@@ -1,0 +1,123 @@
+﻿CREATE VIEW [v_E2E_Records]
+AS select distinct en.FromOrganisation_ReferenceNumber as Enrolment_OrganisationId
+,en.FromOrganisation_Name as Enrolment_OrganisationName
+
+,reg.organisation_id as Registration_organisation_id
+,reg.subsidiary_id as Registration_subsidiary_id
+,reg.organisation_name as Registration_organisation_name
+,reg.trading_name as Registration_trading_name
+,reg.companies_house_number as Registration_companies_house_number
+,reg.home_nation_code as Registration_home_nation_code
+,reg.main_activity_sic as Registration_main_activity_sic
+,reg.organisation_type_code as Registration_organisation_type_code
+,reg.organisation_sub_type_code as Registration_organisation_sub_type_code
+,reg.packaging_activity_so as Registration_packaging_activity_so
+,reg.packaging_activity_pf as Registration_packaging_activity_pf
+,reg.packaging_activity_im as Registration_packaging_activity_im
+,reg.packaging_activity_se as Registration_packaging_activity_se
+,reg.packaging_activity_hl as Registration_packaging_activity_hl
+,reg.packaging_activity_om as Registration_packaging_activity_om
+,reg.packaging_activity_sl as Registration_packaging_activity_sl
+,reg.registration_type_code as Registration_registration_type_code
+,reg.turnover as Registration_turnover
+,reg.total_tonnage as Registration_total_tonnage
+,reg.produce_blank_packaging_flag as Registration_produce_blank_packaging_flag
+,reg.liable_for_disposal_costs_flag as Registration_liable_for_disposal_costs_flag
+,reg.meet_reporting_requirements_flag as Registration_meet_reporting_requirements_flag
+,reg.registered_addr_line1 as Registration_registered_addr_line1
+,reg.registered_addr_line2 as Registration_registered_addr_line2
+-- ,reg.registered_addr_line3 as Registration_registered_addr_line3
+-- ,reg.registered_addr_line4 as Registration_registered_addr_line4
+,reg.registered_city as Registration_registered_city
+,reg.registered_addr_county as Registration_registered_addr_county
+,reg.registered_addr_country as Registration_registered_addr_country
+,reg.registered_addr_postcode as Registration_registered_addr_postcode
+,reg.registered_addr_phone_number as Registration_registered_addr_phone_number
+,reg.audit_addr_line1 as Registration_audit_addr_line1
+,reg.audit_addr_line2 as Registration_audit_addr_line2
+-- ,reg.audit_addr_line3 as Registration_audit_addr_line3
+-- ,reg.audit_addr_line4 as Registration_audit_addr_line4
+,reg.audit_addr_city as Registration_audit_addr_city
+,reg.audit_addr_county as Registration_audit_addr_county
+,reg.audit_addr_country as Registration_audit_addr_country
+,reg.audit_addr_postcode as Registration_audit_addr_postcode
+,reg.service_of_notice_addr_line1 as Registration_service_of_notice_addr_line1
+,reg.service_of_notice_addr_line2 as Registration_service_of_notice_addr_line2
+-- ,reg.service_of_notice_addr_line3 as Registration_service_of_notice_addr_line3
+-- ,reg.service_of_notice_addr_line4 as Registration_service_of_notice_addr_line4
+,reg.service_of_notice_addr_city as Registration_service_of_notice_addr_city
+,reg.service_of_notice_addr_county as Registration_service_of_notice_addr_county
+,reg.service_of_notice_addr_country as Registration_service_of_notice_addr_country
+,reg.service_of_notice_addr_postcode as Registration_service_of_notice_addr_postcode
+,reg.service_of_notice_addr_phone_number as Registration_service_of_notice_addr_phone_number
+,reg.principal_addr_line1 as Registration_principal_addr_line1
+,reg.principal_addr_line2 as Registration_principal_addr_line2
+-- ,reg.principal_addr_line3 as Registration_principal_addr_line3
+-- ,reg.principal_addr_line4 as Registration_principal_addr_line4
+,reg.principal_addr_city as Registration_principal_addr_city
+,reg.principal_addr_county as Registration_principal_addr_county
+,reg.principal_addr_country as Registration_principal_addr_country
+,reg.principal_addr_postcode as Registration_principal_addr_postcode
+,reg.principal_addr_phone_number as Registration_principal_addr_phone_number
+,reg.sole_trader_first_name as Registration_sole_trader_first_name
+,reg.sole_trader_last_name as Registration_sole_trader_last_name
+,reg.sole_trader_phone_number as Registration_sole_trader_phone_number
+,reg.sole_trader_email as Registration_sole_trader_email
+,reg.approved_person_first_name as Registration_approved_person_first_name
+,reg.approved_person_last_name as Registration_approved_person_last_name
+,reg.approved_person_phone_number as Registration_approved_person_phone_number
+,reg.approved_person_email as Registration_approved_person_email
+,reg.approved_person_job_title as Registration_approved_person_job_title
+,reg.delegated_person_first_name as Registration_delegated_person_first_name
+,reg.delegated_person_last_name as Registration_delegated_person_last_name
+,reg.delegated_person_phone_number as Registration_delegated_person_phone_number
+,reg.delegated_person_email as Registration_delegated_person_email
+,reg.delegated_person_job_title as Registration_delegated_person_job_title
+,reg.primary_contact_person_first_name as Registration_primary_contact_person_first_name
+,reg.primary_contact_person_last_name as Registration_primary_contact_person_last_name
+,reg.primary_contact_person_phone_number as Registration_primary_contact_person_phone_number
+,reg.primary_contact_person_email as Registration_primary_contact_person_email
+,reg.primary_contact_person_job_title as Registration_primary_contact_person_job_title
+,reg.secondary_contact_person_first_name as Registration_secondary_contact_person_first_name
+,reg.secondary_contact_person_last_name as Registration_secondary_contact_person_last_name
+,reg.secondary_contact_person_phone_number as Registration_secondary_contact_person_phone_number
+,reg.secondary_contact_person_email as Registration_secondary_contact_person_email
+,reg.secondary_contact_person_job_title as Registration_secondary_contact_person_job_title
+
+,pom.organisation_id as Pom_organisation_id
+,pom.subsidiary_id as Pom_subsidiary_id
+,pom.organisation_size as Pom_organisation_size
+,pom.organisation_sub_type_code as Pom_organisation_sub_type_code
+,pom.packaging_activity as Pom_packaging_activity
+,pom.packaging_type as Pom_packaging_type
+,pom.packaging_class as Pom_packaging_class
+,pom.packaging_material as Pom_packaging_material
+,pom.packaging_sub_material as Pom_packaging_sub_material
+,pom.from_nation as Pom_from_nation
+,pom.to_nation as Pom_to_nation
+,pom.quantity_kg as Pom_quantity_kg
+,pom.quantity_unit as Pom_quantity_unit
+
+,brand.organisation_id as Brand_organisation_id
+,brand.brand_name as Brand_brand_name
+,brand.brand_type_code as Brand_brand_type_code
+
+,partner.organisation_id as Partner_organisation_id
+,partner.partner_first_name as Partner_partner_first_name
+,partner.partner_last_name as Partner_partner_last_name
+,partner.partner_phone_number as Partner_partner_phone_number
+,partner.partner_email as Partner_partner_email
+
+from v_rpd_data_SECURITY_FIX en
+
+join registration reg
+on en.FromOrganisation_ReferenceNumber = reg.organisation_id
+
+join v_POM pom
+on reg.organisation_id = pom.organisation_id
+
+left join rpd.Brands brand
+on en.FromOrganisation_ReferenceNumber = brand.organisation_id
+
+left join rpd.Partnerships partner
+on en.FromOrganisation_ReferenceNumber = partner.organisation_id;

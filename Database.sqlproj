@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>Database</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{b74aa341-d095-425a-8534-248bd1171654}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlDwDatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>Database</RootNamespace>
+    <AssemblyName>Database</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <QueryStoreCaptureMode>None</QueryStoreCaptureMode>
+    <QueryStoreDesiredState>Off</QueryStoreDesiredState>
+    <QueryStoreFlushInterval>0</QueryStoreFlushInterval>
+    <QueryStoreStatsInterval>0</QueryStoreStatsInterval>
+    <QueryStoreMaxPlansPerQuery>0</QueryStoreMaxPlansPerQuery>
+    <QueryStoreStaleQueryThreshold>0</QueryStoreStaleQueryThreshold>
+    <QueryStoreMaxStorageSize>0</QueryStoreMaxStorageSize>
+    <DbScopedConfigLegacyCardinalityEstimation>Off</DbScopedConfigLegacyCardinalityEstimation>
+    <DbScopedConfigLegacyCardinalityEstimationSecondary>Off</DbScopedConfigLegacyCardinalityEstimationSecondary>
+    <DbScopedConfigMaxDOP>0</DbScopedConfigMaxDOP>
+    <DbScopedConfigMaxDOPSecondary>0</DbScopedConfigMaxDOPSecondary>
+    <DbScopedConfigParameterSniffing>Off</DbScopedConfigParameterSniffing>
+    <DbScopedConfigParameterSniffingSecondary>Off</DbScopedConfigParameterSniffingSecondary>
+    <DbScopedConfigOptimizerHotfixes>Off</DbScopedConfigOptimizerHotfixes>
+    <DbScopedConfigOptimizerHotfixesSecondary>Off</DbScopedConfigOptimizerHotfixesSecondary>
+    <DelayedDurability>DISABLED</DelayedDurability>
+    <AutoCreateStatisticsIncremental>False</AutoCreateStatisticsIncremental>
+    <MemoryOptimizedElevateToSnapshot>False</MemoryOptimizedElevateToSnapshot>
+    <Containment>None</Containment>
+    <IsNestedTriggersOn>True</IsNestedTriggersOn>
+    <IsTransformNoiseWordsOn>False</IsTransformNoiseWordsOn>
+    <TwoDigitYearCutoff>2049</TwoDigitYearCutoff>
+    <NonTransactedFileStreamAccess>OFF</NonTransactedFileStreamAccess>
+    <TargetRecoveryTimePeriod>60</TargetRecoveryTimePeriod>
+    <TargetRecoveryTimeUnit>SECONDS</TargetRecoveryTimeUnit>
+    <IsChangeTrackingOn>False</IsChangeTrackingOn>
+    <IsChangeTrackingAutoCleanupOn>False</IsChangeTrackingAutoCleanupOn>
+    <ChangeTrackingRetentionPeriod>0</ChangeTrackingRetentionPeriod>
+    <IsEncryptionOn>False</IsEncryptionOn>
+    <IsBrokerPriorityHonored>False</IsBrokerPriorityHonored>
+    <Trustworthy>False</Trustworthy>
+    <AutoUpdateStatisticsAsynchronously>False</AutoUpdateStatisticsAsynchronously>
+    <PageVerify>NONE</PageVerify>
+    <ServiceBrokerOption>DisableBroker</ServiceBrokerOption>
+    <DateCorrelationOptimizationOn>False</DateCorrelationOptimizationOn>
+    <Parameterization>SIMPLE</Parameterization>
+    <AllowSnapshotIsolation>False</AllowSnapshotIsolation>
+    <ReadCommittedSnapshot>False</ReadCommittedSnapshot>
+    <VardecimalStorageFormatOn>False</VardecimalStorageFormatOn>
+    <SupplementalLoggingOn>False</SupplementalLoggingOn>
+    <CompatibilityMode>140</CompatibilityMode>
+    <AnsiNullDefault>True</AnsiNullDefault>
+    <AnsiNulls>True</AnsiNulls>
+    <AnsiPadding>True</AnsiPadding>
+    <AnsiWarnings>True</AnsiWarnings>
+    <ArithAbort>True</ArithAbort>
+    <ConcatNullYieldsNull>True</ConcatNullYieldsNull>
+    <QuotedIdentifier>True</QuotedIdentifier>
+    <NumericRoundAbort>True</NumericRoundAbort>
+    <RecursiveTriggersEnabled>False</RecursiveTriggersEnabled>
+    <DatabaseChaining>False</DatabaseChaining>
+    <DatabaseState>ONLINE</DatabaseState>
+    <CloseCursorOnCommitEnabled>False</CloseCursorOnCommitEnabled>
+    <DefaultCursor>GLOBAL</DefaultCursor>
+    <AutoClose>False</AutoClose>
+    <AutoCreateStatistics>True</AutoCreateStatistics>
+    <AutoShrink>False</AutoShrink>
+    <AutoUpdateStatistics>False</AutoUpdateStatistics>
+    <TornPageDetection>False</TornPageDetection>
+    <DatabaseAccess>MULTI_USER</DatabaseAccess>
+    <Recovery>SIMPLE</Recovery>
+    <EnableFullTextSearch>False</EnableFullTextSearch>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DbScopedConfigDWCompatibilityLevel>0</DbScopedConfigDWCompatibilityLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Security\" />
+    <Folder Include="apps\" />
+    <Folder Include="apps\Views\" />
+    <Folder Include="apps\Tables\" />
+    <Folder Include="apps\Stored Procedures\" />
+    <Folder Include="rpd\" />
+    <Folder Include="rpd\Tables\" />
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\Views\" />
+    <Folder Include="rpd\Views\" />
+    <Folder Include="dbo\Stored Procedures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Security\apps.sql" />
+    <Build Include="Security\rpd_1.sql" />
+    <Build Include="rpd\Tables\Users.sql" />
+    <Build Include="rpd\Tables\Submissions.sql" />
+    <Build Include="rpd\Tables\SubmissionEvents.sql" />
+    <Build Include="rpd\Tables\Services.sql" />
+    <Build Include="rpd\Tables\ServiceRoles.sql" />
+    <Build Include="rpd\Tables\SelectedSchemes.sql" />
+    <Build Include="rpd\Tables\RegulatorComments.sql" />
+    <Build Include="rpd\Tables\ProducerTypes.sql" />
+    <Build Include="rpd\Tables\Persons.sql" />
+    <Build Include="rpd\Tables\PersonOrganisationConnections.sql" />
+    <Build Include="rpd\Tables\PersonInOrganisationRoles.sql" />
+    <Build Include="rpd\Tables\OrganisationTypes.sql" />
+    <Build Include="rpd\Tables\OrganisationToPersonRoles.sql" />
+    <Build Include="rpd\Tables\OrganisationsConnections.sql" />
+    <Build Include="rpd\Tables\Organisations.sql" />
+    <Build Include="rpd\Tables\Nations.sql" />
+    <Build Include="rpd\Tables\InterOrganisationRoles.sql" />
+    <Build Include="rpd\Tables\error_files_not_processed.sql" />
+    <Build Include="rpd\Tables\EnrolmentStatuses.sql" />
+    <Build Include="rpd\Tables\Enrolments.sql" />
+    <Build Include="rpd\Tables\DelegatedPersonEnrolments.sql" />
+    <Build Include="rpd\Tables\cosmos_file_metadata.sql" />
+    <Build Include="rpd\Tables\ComplianceSchemes.sql" />
+    <Build Include="rpd\Tables\AuditLogs.sql" />
+    <Build Include="rpd\Tables\__EFMigrationsHistory.sql" />
+    <Build Include="dbo\Views\registration.sql" />
+    <Build Include="dbo\Views\v_Multiple_Reg_Sumbissions.sql" />
+    <Build Include="rpd\Tables\Pom.sql" />
+    <Build Include="rpd\Tables\Partnerships.sql" />
+    <Build Include="rpd\Tables\CompanyDetails.sql" />
+    <Build Include="rpd\Tables\Brands.sql" />
+    <Build Include="rpd\Views\files_processed.sql" />
+    <Build Include="dbo\Views\v_Enrolments.sql" />
+    <Build Include="dbo\Views\v_cosmos_file_metadata.sql" />
+    <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX.sql" />
+    <Build Include="dbo\Views\v_Submitter_Name.sql" />
+    <Build Include="rpd\Views\files_not_processed.sql" />
+    <Build Include="dbo\Views\v_Relative_Movement_Order.sql" />
+    <Build Include="dbo\Views\v_POM_Unique.sql" />
+    <Build Include="dbo\Views\v_POM_Submissions.sql" />
+    <Build Include="dbo\Views\v_POM_Packaging_Order.sql" />
+    <Build Include="dbo\Views\v_POM_Material_Order.sql" />
+    <Build Include="dbo\Views\v_POM_Extract.sql" />
+    <Build Include="dbo\Views\v_POM_Aggregated_Packaging_Type_Filter.sql" />
+    <Build Include="dbo\Views\v_POM_Aggregated_Packaging_Order.sql" />
+    <Build Include="dbo\Views\v_POM.sql" />
+    <Build Include="dbo\Views\v_PersonOrganisationConnections.sql" />
+    <Build Include="dbo\Views\v_Packaging_Type_Class_Hierarchy.sql" />
+    <Build Include="dbo\Views\v_OrganisationsAndSecurity.sql" />
+    <Build Include="dbo\Views\v_OrganisationsAndRolesAndPersonsAndNations.sql" />
+    <Build Include="dbo\Views\v_OrganisationsAndRoles.sql" />
+    <Build Include="dbo\Views\v_Organisations_PreJoin.sql" />
+    <Build Include="dbo\Views\v_Organisations.sql" />
+    <Build Include="dbo\Views\v_OrganisationConnectionsAndComplianceSchemesAndRoles.sql" />
+    <Build Include="dbo\Views\v_FromOrganisation_Name.sql" />
+    <Build Include="dbo\Views\v_From_Nation_Order.sql" />
+    <Build Include="dbo\Views\v_E2E_Records.sql" />
+    <Build Include="dbo\Views\enrolment_RLS.sql" />
+    <Build Include="dbo\Views\enrolled_not_registered.sql" />
+    <Build Include="dbo\Views\v_Producer_CS_Lookup.sql" />
+    <Build Include="dbo\Views\v_POM_Operator_Submissions.sql" />
+    <Build Include="dbo\Views\v_POM_All_Submissions.sql" />
+    <Build Include="dbo\Stored Procedures\GenerateTableFromView.sql" />
+    <Build Include="dbo\Tables\rpt_PoM_Codes.sql" />
+    <Build Include="dbo\Views\v_SecurityQuery.sql" />
+    <Build Include="dbo\Views\v_PoM_Codes.sql" />
+    <Build Include="dbo\Views\v_Nations_guids.sql" />
+    <Build Include="dbo\Tables\t_POM_Submissions.sql" />
+    <Build Include="dbo\Tables\t_POM.sql" />
+  </ItemGroup>
+</Project>

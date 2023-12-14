@@ -1,0 +1,30 @@
+﻿CREATE TABLE [rpd].[Organisations] (
+    [Id]                          INT             NULL,
+    [OrganisationTypeId]          INT             NULL,
+    [CompaniesHouseNumber]        NVARCHAR (4000) NULL,
+    [Name]                        NVARCHAR (4000) NULL,
+    [TradingName]                 NVARCHAR (4000) NULL,
+    [ReferenceNumber]             NVARCHAR (4000) NULL,
+    [SubBuildingName]             NVARCHAR (4000) NULL,
+    [BuildingName]                NVARCHAR (4000) NULL,
+    [BuildingNumber]              NVARCHAR (4000) NULL,
+    [Street]                      NVARCHAR (4000) NULL,
+    [Locality]                    NVARCHAR (4000) NULL,
+    [DependentLocality]           NVARCHAR (4000) NULL,
+    [Town]                        NVARCHAR (4000) NULL,
+    [County]                      NVARCHAR (4000) NULL,
+    [Country]                     NVARCHAR (4000) NULL,
+    [Postcode]                    NVARCHAR (4000) NULL,
+    [ValidatedWithCompaniesHouse] BIT             NULL,
+    [IsComplianceScheme]          BIT             NULL,
+    [NationId]                    INT             NULL,
+    [ExternalId]                  NVARCHAR (4000) NULL,
+    [CreatedOn]                   NVARCHAR (4000) NULL,
+    [LastUpdatedOn]               NVARCHAR (4000) NULL,
+    [IsDeleted]                   BIT             NULL,
+    [ProducerTypeId]              INT             NULL,
+    [TransferNationId]            INT             NULL,
+    [load_ts]                     DATETIME2 (7)   NULL
+)
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
