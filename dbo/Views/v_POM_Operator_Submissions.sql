@@ -1,7 +1,8 @@
-﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS SELECT DISTINCT replacement.name AS [Org_Name]
+﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS SELECT DISTINCT replacement.name AS [Org_Name],
+ original.org_name AS [Producer_Org_Name]
     ,original.[PCS_Or_Direct_Producer]
---   ,csname.name Compliance_Scheme
-,original.Compliance_Scheme
+ --   ,csname.name Compliance_Scheme
+ ,original.Compliance_Scheme
     ,original.[Org_Type]
     ,original.[Org_Sub_Type]
     ,original.[organisation_size]
@@ -39,6 +40,12 @@
     ,original.[SubmtterEmail]
     ,original.[ServiceRoles_Name]
     ,original.[OriginalFileName]
+	,original.trading_name
+	,original.registered_addr_line1
+,original.registered_addr_line2
+,original.registered_city
+,original.registered_addr_country
+,original.registered_addr_postcode
 FROM [dbo].[t_POM_Submissions] original
 	 join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos

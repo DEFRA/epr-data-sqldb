@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_POM_Submissions] AS SELECT distinct
+﻿CREATE VIEW [dbo].[v_POM_Submissions]
+AS SELECT distinct
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -43,7 +44,7 @@ else NULL end [Org_Sub_Type]
 ,p.[quantity_unit]
 ,p.[Quantity_kg_extrapolated]
 ,p.[Quantity_units_extrapolated]
- 
+
 ,dsf.[ToOrganisation_NationName]
 ,dsf.SecurityQuery Nation
 ,dsf.[FromOrganisation_NationName]
@@ -58,18 +59,31 @@ else NULL end [Org_Sub_Type]
 ,cast(p.organisation_id as nvarchar) +
 p.filename JOINFIELD
 ,p.relative_move
+--,transfers.NationName
+,transfers.TransferNation
 ,meta.SubmtterEmail
 ,meta.ServiceRoles_Name
 ,meta.[OriginalFileName]
 --,dsf.[from_nation] FromNation
 --,dsf.[tonation] ToNation
-FROM [dbo].[v_Pom] p
+ FROM [dbo].[v_Pom] p
    join [dbo].[v_rpd_data_SECURITY_FIX] dsf
-on p.[organisation_id]  = dsf.[FromOrganisation_ReferenceNumber] 
+ on p.[organisation_id]  = dsf.[FromOrganisation_ReferenceNumber] 
    join [dbo].[v_cosmos_file_metadata] meta
-on p.filename = meta.filename
+ on p.filename = meta.filename
 left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
 left	join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos
   join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
-  group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = p.filename;
+  group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = p.filename
+
+LEFT JOIN (
+    SELECT o.ReferenceNumber AS Producer_ReferenceNumber
+    ,n.Name AS TransferNation
+
+    FROM rpd.Organisations o
+
+    JOIN rpd.Nations n
+    ON o.TransferNationId = n.Id
+) transfers
+ON p.organisation_id = transfers.Producer_ReferenceNumber;

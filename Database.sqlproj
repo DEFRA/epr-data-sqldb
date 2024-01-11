@@ -121,10 +121,6 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Security\" />
-    <Folder Include="apps\" />
-    <Folder Include="apps\Views\" />
-    <Folder Include="apps\Tables\" />
-    <Folder Include="apps\Stored Procedures\" />
     <Folder Include="rpd\" />
     <Folder Include="rpd\Tables\" />
     <Folder Include="dbo\" />
@@ -135,7 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\apps.sql" />
-    <Build Include="Security\rpd_1.sql" />
     <Build Include="rpd\Tables\Users.sql" />
     <Build Include="rpd\Tables\Submissions.sql" />
     <Build Include="rpd\Tables\SubmissionEvents.sql" />
@@ -205,5 +200,8 @@
     <Build Include="dbo\Views\v_Nations_guids.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions.sql" />
     <Build Include="dbo\Tables\t_POM.sql" />
+    <Build Include="dbo\Views\v_Producer_CS_Lookup_2.sql" />
+    <Build Include="Security\rpd.sql" />
+    <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
   </ItemGroup>
 </Project>

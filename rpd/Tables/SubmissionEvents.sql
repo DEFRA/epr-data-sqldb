@@ -1,11 +1,15 @@
 ﻿CREATE TABLE [rpd].[SubmissionEvents] (
+    [RequiresRowValidation]    BIT             NULL,
     [Created]                  NVARCHAR (4000) NULL,
     [RequiresBrandsFile]       BIT             NULL,
     [Comments]                 NVARCHAR (4000) NULL,
     [RegistrationSetId]        NVARCHAR (4000) NULL,
-    [IsResubmissionRequired]   BIT             NULL,
+    [IsResubmissionRequired]   NVARCHAR (4000) NULL,
     [SubmissionEventId]        NVARCHAR (4000) NULL,
     [DataCount]                INT             NULL,
+    [RowErrorCount]            INT             NULL,
+    [HasMaxRowErrors]          BIT             NULL,
+    [CompanyDetailsFileId]     NVARCHAR (4000) NULL,
     [SubmissionId]             NVARCHAR (4000) NULL,
     [Decision]                 NVARCHAR (4000) NULL,
     [RegulatorDecision]        NVARCHAR (4000) NULL,
@@ -29,4 +33,6 @@
     [load_ts]                  DATETIME2 (7)   NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
