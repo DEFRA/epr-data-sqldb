@@ -42,6 +42,7 @@ SELECT
       ,[metafile]
       ,[JOINFIELD]
       ,[relative_move]
+      ,[TransferNation]
       ,[SubmtterEmail]
       ,[ServiceRoles_Name]
       ,[OriginalFileName], 'Operator'
@@ -85,6 +86,7 @@ select
       ,[metafile]
       ,[JOINFIELD]
       ,[relative_move]
+      ,TransferNation
       ,[SubmtterEmail]
       ,[ServiceRoles_Name]
       ,[OriginalFileName] ,'Member'

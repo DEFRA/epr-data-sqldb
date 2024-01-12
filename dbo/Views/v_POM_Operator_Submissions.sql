@@ -37,15 +37,16 @@
     ,original.[metafile]
     ,original.[JOINFIELD]
     ,original.[relative_move]
+    ,original.TransferNation
     ,original.[SubmtterEmail]
     ,original.[ServiceRoles_Name]
     ,original.[OriginalFileName]
-	,original.trading_name
-	,original.registered_addr_line1
-,original.registered_addr_line2
-,original.registered_city
-,original.registered_addr_country
-,original.registered_addr_postcode
+	--,original.trading_name
+	--,original.registered_addr_line1
+--,original.registered_addr_line2
+--,original.registered_city
+--,original.registered_addr_country
+--,original.registered_addr_postcode
 FROM [dbo].[t_POM_Submissions] original
 	 join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos

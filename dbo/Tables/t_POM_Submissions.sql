@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[t_pom_submissions] (
+﻿CREATE TABLE [dbo].[t_POM_Submissions] (
     [Org_Name]                    NVARCHAR (4000) NULL,
     [PCS_Or_Direct_Producer]      VARCHAR (17)    NOT NULL,
     [Compliance_Scheme]           NVARCHAR (4000) NULL,
@@ -34,17 +34,14 @@
     [metafile]                    NVARCHAR (4000) NULL,
     [JOINFIELD]                   NVARCHAR (4000) NULL,
     [relative_move]               VARCHAR (72)    NULL,
+    [TransferNation]              NVARCHAR (4000) NULL,
     [SubmtterEmail]               NVARCHAR (4000) NULL,
     [ServiceRoles_Name]           NVARCHAR (4000) NULL,
-    [OriginalFileName]            NVARCHAR (4000) NULL,
-    [trading_name]                NVARCHAR (4000) NULL,
-    [registered_addr_line1]       NVARCHAR (4000) NULL,
-    [registered_addr_line2]       NVARCHAR (4000) NULL,
-    [registered_city]             NVARCHAR (4000) NULL,
-    [registered_addr_country]     NVARCHAR (4000) NULL,
-    [registered_addr_postcode]    NVARCHAR (4000) NULL
+    [OriginalFileName]            NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 
