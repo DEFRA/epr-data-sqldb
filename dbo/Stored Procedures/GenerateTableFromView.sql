@@ -77,63 +77,58 @@ FROM (
 ) c;
 
 /*1. If t_ table does not exist or structure is different, create t_ table from v_ view*/
-IF EXISTS (SELECT TOP 1 1 FROM tempdb..#c_' + @ObjName + ') 
+ IF EXISTS (SELECT TOP 1 1 FROM tempdb..#c_' + @ObjName + ') 
 	/*Drop and recreate t_ table from v_ view*/
 	BEGIN 
 		IF OBJECT_ID(''dbo.t_' + @ObjName + ''', ''U'') IS NOT NULL
 		 BEGIN
 			DROP TABLE dbo.t_' + @ObjName + ';
-		 END
+		 END;
 
 		 SELECT *
 		 INTO dbo.t_' + @ObjName + '
 		 FROM dbo.v_' + @ObjName + ';
-	END
-ELSE 
+	END;
+ ELSE 
 	BEGIN
-	/*Load all records into temp tables*/
-	SELECT * INTO tempdb..#v_' + @ObjName + ' FROM dbo.v_' + @ObjName + ';
-	SELECT * INTO tempdb..#t_' + @ObjName + ' FROM dbo.t_' + @ObjName + ';
+	/*Insert new records into temp tables*/
+	SELECT * INTO tempdb..#n_' + @ObjName + ' FROM dbo.v_' + @ObjName + ' EXCEPT SELECT * FROM dbo.t_' + @ObjName + ';
 
-	/*Insert new and deleted records into temp tables*/
-	SELECT * INTO tempdb..#n_' + @ObjName + ' FROM tempdb..#v_' + @ObjName + ' EXCEPT SELECT * FROM tempdb..#t_' + @ObjName + ';
-	SELECT * INTO tempdb..#m_' + @ObjName + ' FROM tempdb..#t_' + @ObjName + ' EXCEPT SELECT * FROM tempdb..#v_' + @ObjName + ';
+	/*2. If records have been added to v_ view*/
+		IF EXISTS (SELECT TOP 1 1 FROM tempdb..#n_' + @ObjName + ')
+		   BEGIN
+			  /*Insert the new records into t_' + @ObjName + '*/
+			  INSERT INTO dbo.t_' + @ObjName + '
+			  SELECT *
+			  FROM tempdb..#n_' + @ObjName + ';
+	       END;
+	END;
 
-	/*2. If records have been removed from v_ view*/
-	IF EXISTS (SELECT TOP 1 1 FROM tempdb..#m_' + @ObjName + ') 
-		/*Drop and recreate t_ table from v_ view*/
-		BEGIN 
-			 DROP TABLE dbo.t_' + @ObjName + ';
-			 SELECT *
-			 INTO dbo.t_' + @ObjName + '
-			 FROM tempdb..#v_' + @ObjName + ';
-		END
-
-	/*3. If records have been added to v_ view*/
-	IF EXISTS (SELECT TOP 1 1 FROM tempdb..#n_' + @ObjName + ')
-	   BEGIN
-		  /*Insert the new records into t_' + @ObjName + '*/
-		  INSERT INTO dbo.t_' + @ObjName + '
-		  SELECT *
-		  FROM tempdb..#n_' + @ObjName + ';
-	   END
-	END
+/*3. If records count does not match*/
+IF (
+	(SELECT COUNT(1) FROM dbo.t_' + @ObjName + ') 
+		> (SELECT COUNT(1) FROM dbo.v_' + @ObjName + ')
+	)
+	/*Drop and recreate t_ table from v_ view*/
+	BEGIN 
+			DROP TABLE dbo.t_' + @ObjName + ';
+			SELECT *
+			INTO dbo.t_' + @ObjName + '
+			FROM dbo.v_' + @ObjName + ';
+END;
 
 /*4. If t_ table exists, and structures are the same and the data is exactly the same, do nothing*/
 /*No action needed in this case*/
 
 /*Cleanup temporary tables*/
 IF OBJECT_ID(''tempdb..#c_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#c_' + @ObjName + ' END;
-IF OBJECT_ID(''tempdb..#v_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#v_' + @ObjName + ' END;
-IF OBJECT_ID(''tempdb..#t_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#t_' + @ObjName + ' END;
 IF OBJECT_ID(''tempdb..#n_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#n_' + @ObjName + ' END;
-IF OBJECT_ID(''tempdb..#m_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#m_' + @ObjName + ' END;
 ';
 
 
 
         SET @Counter = @Counter + 1;
-    END
+    END;
 
 
     -- Drop the temporary table outside of any transaction
@@ -142,7 +137,7 @@ IF OBJECT_ID(''tempdb..#m_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABL
 
 
     -- Output the generated SQL query (commented out for production)
-    -- SELECT @SqlQuery AS 'GeneratedSQLQuery';
+    --SELECT @SqlQuery AS 'GeneratedSQLQuery';
 
 
     -- Execute the dynamic SQL query
