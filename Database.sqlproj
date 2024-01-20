@@ -205,5 +205,8 @@
     <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
     <Build Include="dbo\Views\test_view.sql" />
     <Build Include="dbo\Stored Procedures\sp_POM_Comparison_Table.sql" />
+    <Build Include="dbo\Tables\t_Producer_CS_Lookup_Unpivot.sql" />
+    <Build Include="dbo\Tables\t_Producer_CS_Lookup_Pivot.sql" />
+    <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base.sql" />
   </ItemGroup>
 </Project>
