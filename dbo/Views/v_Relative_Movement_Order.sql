@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_Relative_Movement_Order]
-AS with cte_a as (
+﻿CREATE VIEW [dbo].[v_Relative_Movement_Order] AS with cte_a as (
     -- England
     select
     'England to Scotland' as relative_move

@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_From_Nation_Order]
-AS with cte_a as (
+﻿CREATE VIEW [dbo].[v_From_Nation_Order] AS with cte_a as (
     -- England
     select
     'England' as from_nation

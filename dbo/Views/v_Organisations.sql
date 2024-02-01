@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_Organisations]
-AS with CTE_InterOrganisationRoles as (
+﻿CREATE VIEW [dbo].[v_Organisations] AS with CTE_InterOrganisationRoles as (
     select Id as InterOrganisationRolesId
     ,Name as OrganisationRole
     from rpd.InterOrganisationRoles

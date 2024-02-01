@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_Producer_CS_Lookup]
-AS SELECT DISTINCT
+﻿CREATE VIEW [dbo].[v_Producer_CS_Lookup] AS SELECT DISTINCT
 cs.[CompaniesHouseNumber] as Operator_CompaniesHouseNumber
 ,o.Name as Operator_Name
 ,o.ReferenceNumber as Operator_Id

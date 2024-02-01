@@ -1,4 +1,4 @@
-﻿CREATE VIEW [enrolment_RLS] AS SELECT TOP (100) [organisation_id]
+﻿CREATE VIEW [dbo].[enrolment_RLS] AS SELECT TOP (100) [organisation_id]
 ,[brand_name]
 
 ,[brand_type_code]

@@ -6,8 +6,17 @@ BEGIN
 
     -- Variables for SQL query generation
     DECLARE @SqlQuery NVARCHAR(MAX) = ' ',
-            @tableviews NVARCHAR(MAX) = 'v_POM,v_rpd_data_SECURITY_FIX,v_POM_Submissions,v_POM_Filters,v_POM_Submissions_POM_Comparison',
-            @Counter INT = 1,
+            @tableviews NVARCHAR(MAX) = 'v_POM,
+										 v_Producer_CS_Lookup,
+										 v_Producer_CS_Lookup_Pivot,
+										 v_Producer_CS_Lookup_Unpivot,
+										 v_rpd_data_SECURITY_FIX,
+										 v_POM_Submissions,
+										 v_registration_latest,
+										 v_POM_Filters,
+										 v_POM_Com_Landing_Filter,
+										 v_POM_Submissions_POM_Comparison',
+			@Counter INT = 1,
             @TotalRows INT;
 
 
@@ -23,7 +32,18 @@ BEGIN
     INTO #TableList
     FROM (
              SELECT CAST(value AS NVARCHAR(100)) ViewName
-             FROM STRING_SPLIT(REPLACE(@tableviews, ' ', ''), ',')
+             FROM STRING_SPLIT(REPLACE
+			                  (REPLACE
+							  (REPLACE
+							  (REPLACE
+							  (REPLACE
+								(@tableviews, 
+								 ' ', ''), 
+							     CHAR(10), ''), 
+								 CHAR(13), ''),
+								 CHAR(14), ''),
+								 CHAR(9), ''), 
+							  ',')
          ) tl
          JOIN information_schema.views vw ON vw.table_name = tl.viewname
     WHERE vw.table_schema = 'dbo';
@@ -52,24 +72,32 @@ SELECT *
 INTO tempdb..#c_' + @ObjName + '
 FROM (
     (
-	SELECT column_name
+	SELECT 
+		column_name,
+		data_type
     FROM   information_schema.columns
     WHERE  table_name = ''v_' + @ObjName + '''
             AND table_schema = ''dbo''
     EXCEPT
-    SELECT column_name
+	SELECT 
+		column_name,
+		data_type
     FROM   information_schema.columns
     WHERE  table_name = ''t_' + @ObjName + '''
             AND table_schema = ''dbo''
 			)
     UNION ALL
 	(
-    SELECT column_name
+	SELECT 
+		column_name,
+		data_type
     FROM   information_schema.columns
     WHERE  table_name = ''t_' + @ObjName + '''
             AND table_schema = ''dbo''
     EXCEPT
-    SELECT column_name
+	SELECT 
+		column_name,
+		data_type
     FROM   information_schema.columns
     WHERE  table_name = ''v_' + @ObjName + '''
             AND table_schema = ''dbo''

@@ -200,13 +200,32 @@
     <Build Include="dbo\Views\v_Nations_guids.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions.sql" />
     <Build Include="dbo\Tables\t_POM.sql" />
-    <Build Include="dbo\Views\v_Producer_CS_Lookup_2.sql" />
     <Build Include="Security\rpd.sql" />
     <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
-    <Build Include="dbo\Views\test_view.sql" />
     <Build Include="dbo\Stored Procedures\sp_POM_Comparison_Table.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup_Unpivot.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup_Pivot.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base.sql" />
+    <Build Include="dbo\Tables\t_rpd_data_SECURITY_FIX.sql" />
+    <Build Include="dbo\Tables\t_registration_latest.sql" />
+    <Build Include="dbo\Tables\t_Producer_CS_Lookup.sql" />
+    <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
+    <Build Include="dbo\Tables\t_POM_Filters.sql" />
+    <Build Include="dbo\Tables\t_POM_Com_Landing_Filter.sql" />
+    <Build Include="dbo\Tables\t_pom_codes_1.sql" />
+    <Build Include="dbo\Tables\POM_Filters.sql" />
+    <Build Include="dbo\Views\v_registration_latest.sql" />
+    <Build Include="dbo\Views\v_Producer_CS_Lookup_Unpivot.sql" />
+    <Build Include="dbo\Views\v_Producer_CS_Lookup_Pivot.sql" />
+    <Build Include="dbo\Views\v_POM_Submissions_POM_Comparison.sql" />
+    <Build Include="dbo\Views\v_POM_Org_Names.sql" />
+    <Build Include="dbo\Views\v_POM_Filters.sql" />
+    <Build Include="dbo\Views\v_POM_FileNames.sql" />
+    <Build Include="dbo\Views\v_POM_Com_Landing_Filter.sql" />
+    <Build Include="dbo\Views\v_cosmos_file_metadata_CS_additions.sql" />
+    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC_ARROW_LOGIC_DRILL.sql" />
+    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC_ARROW_LOGIC.sql" />
+    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC.sql" />
+    <Build Include="dbo\Stored Procedures\POM_Comparison_Org_Change.sql" />
   </ItemGroup>
 </Project>

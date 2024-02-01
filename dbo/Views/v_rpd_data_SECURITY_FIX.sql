@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_rpd_data_SECURITY_FIX]
-AS SELECT DISTINCT sec.[Organisations_Id]
+﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX] AS SELECT DISTINCT sec.[Organisations_Id]
       ,sec.[FromOrganisation_TypeId]
       ,sec.[FromOrganisation_Type]
       ,sec.[FromOrganisation_CompaniesHouseNumber]

@@ -1,5 +1,4 @@
-﻿CREATE VIEW [v_E2E_Records]
-AS select distinct en.FromOrganisation_ReferenceNumber as Enrolment_OrganisationId
+﻿CREATE VIEW [dbo].[v_E2E_Records] AS select distinct en.FromOrganisation_ReferenceNumber as Enrolment_OrganisationId
 ,en.FromOrganisation_Name as Enrolment_OrganisationName
 
 ,reg.organisation_id as Registration_organisation_id

@@ -34,17 +34,17 @@
 		END 
 	relative_move
 FROM rpd.Pom p
-LEFT JOIN dbo.rpt_PoM_Codes sp ON sp.Code = p.submission_period 
+LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
 								AND sp.Type = 'submission_period'
-LEFT JOIN dbo.rpt_PoM_Codes pa ON pa.Code = p.packaging_activity 
+LEFT JOIN dbo.t_PoM_Codes pa ON pa.Code = p.packaging_activity 
 								AND pa.Type = 'packaging_activity'
-LEFT JOIN dbo.rpt_PoM_Codes pt on pt.code = p.packaging_type 
+LEFT JOIN dbo.t_PoM_Codes pt on pt.code = p.packaging_type 
 								AND pt.Type = 'packaging_type'
-LEFT JOIN dbo.rpt_PoM_Codes pc on pc.code = p.packaging_class 
+LEFT JOIN dbo.t_PoM_Codes pc on pc.code = p.packaging_class 
 								AND pc.Type = 'packaging_class'
-LEFT JOIN dbo.rpt_PoM_Codes pm on pm.code = p.packaging_material 
+LEFT JOIN dbo.t_PoM_Codes pm on pm.code = p.packaging_material 
 								AND pm.Type = 'packaging_material'
-LEFT JOIN dbo.rpt_PoM_Codes tn ON tn.Code = p.to_country 
+LEFT JOIN dbo.t_PoM_Codes tn ON tn.Code = p.to_country 
 								AND tn.Type = 'nation'
-LEFT JOIN dbo.rpt_PoM_Codes fn ON fn.Code = p.from_country 
+LEFT JOIN dbo.t_PoM_Codes fn ON fn.Code = p.from_country 
 								AND fn.Type = 'nation';

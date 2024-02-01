@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_POM_Submissions]
-AS SELECT distinct
+﻿CREATE VIEW [dbo].[v_POM_Submissions] AS SELECT distinct
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -31,7 +30,7 @@ else NULL end [Org_Sub_Type]
 ,p.[submission_period]
 ,p.[organisation_id] 
 ,p.[subsidiary_id] 
-,dsf.ComplianceSchemes_CompaniesHouseNumber [CH_Number] -- companies house number 
+,coalesce(dsf.FromOrganisation_CompaniesHouseNumber,dsf.ComplianceSchemes_CompaniesHouseNumber) [CH_Number] -- companies house number 
 ,dsf.FromOrganisation_NationName [Nation_Of_Enrolment]
 ,p.[packaging_activity]
 ,p.[packaging_type]
