@@ -132,8 +132,6 @@
   <ItemGroup>
     <Build Include="Security\apps.sql" />
     <Build Include="rpd\Tables\Users.sql" />
-    <Build Include="rpd\Tables\Submissions.sql" />
-    <Build Include="rpd\Tables\SubmissionEvents.sql" />
     <Build Include="rpd\Tables\Services.sql" />
     <Build Include="rpd\Tables\ServiceRoles.sql" />
     <Build Include="rpd\Tables\SelectedSchemes.sql" />
@@ -223,9 +221,9 @@
     <Build Include="dbo\Views\v_POM_FileNames.sql" />
     <Build Include="dbo\Views\v_POM_Com_Landing_Filter.sql" />
     <Build Include="dbo\Views\v_cosmos_file_metadata_CS_additions.sql" />
-    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC_ARROW_LOGIC_DRILL.sql" />
-    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC_ARROW_LOGIC.sql" />
-    <Build Include="dbo\Stored Procedures\POM_ComparisonTest_Paginated_JC.sql" />
     <Build Include="dbo\Stored Procedures\POM_Comparison_Org_Change.sql" />
+    <Build Include="dbo\Stored Procedures\POM_Comparison_members.sql" />
+    <Build Include="dbo\Stored Procedures\POM_Comparison_DRILL.sql" />
+    <Build Include="dbo\Stored Procedures\POM_Comparison_ARROW_LOGIC.sql" />
   </ItemGroup>
 </Project>

@@ -27,7 +27,7 @@
     [FromOrganisation_NationName] NVARCHAR (4000) NULL,
     [FileName]                    NVARCHAR (4000) NULL,
     [ServiceRoles_Role]           VARCHAR (1)     NOT NULL,
-    [SubmittedBy]                 NVARCHAR (4000) NULL,
+    [SubmittedBy]                 NVARCHAR (4000) NOT NULL,
     [filetype]                    NVARCHAR (4000) NULL,
     [Users_Email]                 VARCHAR (1)     NOT NULL,
     [Persons_Email]               VARCHAR (1)     NOT NULL,
@@ -41,4 +41,6 @@
     [registration_type_code]      VARCHAR (1)     NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 

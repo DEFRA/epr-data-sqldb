@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[POM_ComparisonTest_Paginated_JC_ARROW_LOGIC_DRILL] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@BreakdownType [nvarchar](100),@packaging_type [nvarchar](100),@packaging_material [nvarchar](100),@packaging_class [nvarchar](100),@relative_move [nvarchar](100),@from_nation [nvarchar](100) AS
+﻿CREATE PROC [dbo].[POM_Comparison_DRILL] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@BreakdownType [nvarchar](100),@packaging_type [nvarchar](100),@packaging_material [nvarchar](100),@packaging_class [nvarchar](100),@relative_move [nvarchar](100),@from_nation [nvarchar](100) AS
 BEGIN
     --declare @organisation_id [int]
     --set @organisation_id = '100230'
@@ -882,7 +882,7 @@ where @packaging_material = packaging_material
 and @packaging_class = packaging_class
 --and packaging_activity = 'Online Marketplace'
 
-if @BreakdownType = 'all_pm_tnh_pa'
+if @BreakdownType = 'all_pm_tnh_pa_online'
 select  OrganisationName,subsidiary_id, packaging_material field2, packaging_class field3
 , file1_Quantity_kg_extrapolated,file2_Quantity_kg_extrapolated,
 quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrapolated_diff

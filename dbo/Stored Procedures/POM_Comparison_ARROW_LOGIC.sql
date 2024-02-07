@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[POM_ComparisonTest_Paginated_JC_ARROW_LOGIC] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@Upper_Threshold [int],@Lower_Threshold [int],@Threshold_Type [nvarchar](100) AS
+﻿CREATE PROC [dbo].[POM_Comparison_ARROW_LOGIC] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@Upper_Threshold [int],@Lower_Threshold [int],@Threshold_Type [nvarchar](100) AS
 BEGIN
     /*
 declare @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),
@@ -15,11 +15,6 @@ set @Lower_Threshold = 5
 set @Threshold_Type = 'Value'
 */
 
-    --   IF OBJECT_ID('#POM_COMP_arrow', 'U') IS NOT NULL
-    --BEGIN
-    -- Drop the table if it exists
-    --      DROP TABLE #POM_COMP_arrow;
-    --  END
 
     SELECT [organisation_id]
       , [subsidiary_id]
@@ -529,7 +524,7 @@ CROSS JOIN
             and isnull(to_nation,'') =''
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -540,7 +535,7 @@ CROSS JOIN
             and isnull(to_nation,'') =''
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, from_nation,
@@ -590,7 +585,7 @@ where quantity_kg_extrapolated_diff >= @upper_threshold
 set a.up_down = 'd'
 from #self_management_consumer_waste_packaging_material_from_nation_1 a
 where quantity_kg_extrapolated_diff <= (@lower_threshold*-1)
---select * into dbo.percent1 from #self_management_consumer_waste_packaging_material_from_nation_1
+
 
 
     --set ud when both
@@ -612,24 +607,16 @@ FROM #self_management_consumer_waste_packaging_material_from_nation_1 main
         ON a.from_nation = b.from_nation AND a.packaging_material = b.packaging_material
         ON main.from_nation = a.from_nation AND main.packaging_material = a.packaging_material;
 
---select * into dbo.percent2 from #self_management_consumer_waste_packaging_material_from_nation_1
-
-
     ---table used for final report
             select packaging_material, from_nation, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #self_management_consumer_waste_packaging_material_from_nation_2
         from #self_management_consumer_waste_packaging_material_from_nation_1
-    union
+    union all
         SELECT packaging_material, from_nation, '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(from_nation,'') <> ''
         and isnull(packaging_material,'')<> ''
         group by packaging_material,from_nation
-
---select * into dbo.percent3 from #self_management_consumer_waste_packaging_material_from_nation_2
-
-
-
 
 
     --relative move
@@ -649,7 +636,7 @@ FROM #self_management_consumer_waste_packaging_material_from_nation_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, relative_move,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -660,7 +647,7 @@ FROM #self_management_consumer_waste_packaging_material_from_nation_1 main
              and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, relative_move,
@@ -734,7 +721,7 @@ FROM #self_management_consumer_waste_packaging_material_relative_move_1 main
             select packaging_material, relative_move, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #self_management_consumer_waste_packaging_material_relative_move_2
         from #self_management_consumer_waste_packaging_material_relative_move_1
-    union
+    union all
         SELECT packaging_material, relative_move, '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(relative_move,'') <> ''
@@ -760,7 +747,7 @@ FROM #self_management_consumer_waste_packaging_material_relative_move_1 main
         and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -772,7 +759,7 @@ FROM #self_management_consumer_waste_packaging_material_relative_move_1 main
                and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, from_nation,
@@ -848,7 +835,7 @@ FROM #self_management_organisation_waste_packaging_material_from_nation_1 main
             select packaging_material, from_nation, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #self_management_organisation_waste_packaging_material_from_nation_2
         from #self_management_organisation_waste_packaging_material_from_nation_1
-    union
+    union all
         SELECT packaging_material, from_nation, '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(from_nation,'') <> ''
@@ -870,7 +857,7 @@ FROM #self_management_organisation_waste_packaging_material_from_nation_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, relative_move,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -881,7 +868,7 @@ FROM #self_management_organisation_waste_packaging_material_from_nation_1 main
           and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, relative_move,
@@ -956,7 +943,7 @@ FROM #self_management_organisation_waste_packaging_material_relative_move_1 main
             select packaging_material, relative_move, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #self_management_organisation_waste_packaging_material_relative_move_2
         from #self_management_organisation_waste_packaging_material_relative_move_1
-    union
+    union all
         SELECT packaging_material, relative_move, '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(relative_move,'') <> ''
@@ -985,7 +972,7 @@ FROM #self_management_organisation_waste_packaging_material_relative_move_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -996,7 +983,7 @@ FROM #self_management_organisation_waste_packaging_material_relative_move_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -1072,7 +1059,7 @@ FROM #all_packaging_household_packaging_material_packaging_class_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #all_packaging_household_packaging_material_packaging_class_2
         from #all_packaging_household_packaging_material_packaging_class_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', ''
         FROM #POM_COMP_arrow
         where  packaging_class in ('Primary packaging','Public bin','Shipment packaging')
@@ -1096,7 +1083,7 @@ FROM #all_packaging_household_packaging_material_packaging_class_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1107,7 +1094,7 @@ FROM #all_packaging_household_packaging_material_packaging_class_1 main
 and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -1183,7 +1170,7 @@ FROM #all_packaging_Non_household_packaging_material_packaging_class_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #all_packaging_Non_household_packaging_material_packaging_class_2
         from #all_packaging_Non_household_packaging_material_packaging_class_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', ''
         FROM #POM_COMP_arrow
             where  packaging_class in ('Online marketplace total','Primary packaging','Secondary packaging','Shipment packaging','Tertiary packaging')
@@ -1210,7 +1197,7 @@ and isnull(packaging_material,'')<>''
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1221,7 +1208,7 @@ and isnull(packaging_material,'')<>''
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1297,7 +1284,7 @@ FROM #all_packaging_household_drinks_material_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit
         into #all_packaging_household_drinks_material_2
         from #all_packaging_household_drinks_material_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1321,7 +1308,7 @@ FROM #all_packaging_household_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1332,7 +1319,7 @@ FROM #all_packaging_household_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1408,7 +1395,7 @@ FROM #all_packaging_non_household_drinks_material_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit
         into #all_packaging_non_household_drinks_material_2
         from #all_packaging_non_household_drinks_material_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1433,7 +1420,7 @@ FROM #all_packaging_non_household_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1444,7 +1431,7 @@ FROM #all_packaging_non_household_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1520,7 +1507,7 @@ FROM #all_packaging_drinks_material_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit
         into #all_packaging_drinks_material_2
         from #all_packaging_drinks_material_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1543,7 +1530,7 @@ FROM #all_packaging_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL,
@@ -1555,7 +1542,7 @@ FROM #all_packaging_drinks_material_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -1631,7 +1618,7 @@ FROM #all_packaging_material_reusable1 main
             select packaging_material, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , ''file2_quantity_unit
         into #all_packaging_material_reusable2
         from #all_packaging_material_reusable1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', ''
         FROM #POM_COMP_arrow
         where packaging_class in('Primary packaging','Non-primary reusable packaging')
@@ -1653,9 +1640,9 @@ FROM #all_packaging_material_reusable1 main
         WHERE file1_Quantity_kg_extrapolated IS NULL
             and (Total_Packaging = 'Total packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL,
@@ -1665,9 +1652,9 @@ FROM #all_packaging_material_reusable1 main
         WHERE file2_Quantity_kg_extrapolated IS NULL
             and (Total_Packaging = 'Total packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1743,7 +1730,7 @@ FROM #all_packaging_material_TP1 main
             select packaging_material, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , ''file2_quantity_unit
         into #all_packaging_material_TP2
         from #all_packaging_material_TP1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1764,9 +1751,9 @@ FROM #all_packaging_material_TP1 main
         WHERE file1_Quantity_kg_extrapolated IS NULL
             and (packaging_type = 'Total Household packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL,
@@ -1776,9 +1763,9 @@ FROM #all_packaging_material_TP1 main
         WHERE file2_Quantity_kg_extrapolated IS NULL
             and (packaging_type = 'Total Household packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1854,7 +1841,7 @@ FROM #all_packaging_material_Thh1 main
             select packaging_material, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , ''file2_quantity_unit
         into #all_packaging_material_Thh2
         from #all_packaging_material_Thh1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1875,9 +1862,9 @@ FROM #all_packaging_material_Thh1 main
         WHERE file1_Quantity_kg_extrapolated IS NULL
             and (packaging_type = 'Total Non-Household packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL,
@@ -1887,9 +1874,9 @@ FROM #all_packaging_material_Thh1 main
         WHERE file2_Quantity_kg_extrapolated IS NULL
             and (packaging_type = 'Total Non-Household packaging' )
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
+        GROUP BY organisationName, subsidiary_id,packaging_material
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -1965,7 +1952,7 @@ FROM #all_packaging_material_Tnhh1 main
             select packaging_material, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , ''file2_quantity_unit
         into #all_packaging_material_Tnhh2
         from #all_packaging_material_Tnhh1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -1988,7 +1975,7 @@ FROM #all_packaging_material_Tnhh1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL,
@@ -2000,7 +1987,7 @@ FROM #all_packaging_material_Tnhh1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -2076,7 +2063,7 @@ FROM #all_packaging_material_total_reusable1 main
             select packaging_material, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , ''file2_quantity_unit
         into #all_packaging_material_total_reusable2
         from #all_packaging_material_total_reusable1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', ''
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -2099,7 +2086,7 @@ FROM #all_packaging_material_total_reusable1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2111,7 +2098,7 @@ FROM #all_packaging_material_total_reusable1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -2188,7 +2175,7 @@ FROM #all_packaging_household_packaging_material_packaging_activity_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_household_packaging_material_packaging_activity_2
         from #all_packaging_household_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_class,'') <> ''
@@ -2214,7 +2201,7 @@ FROM #all_packaging_household_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2226,7 +2213,7 @@ FROM #all_packaging_household_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -2303,7 +2290,7 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_pb_packaging_material_packaging_activity_2
         from #all_packaging_pb_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_class,'') <> ''
@@ -2328,7 +2315,7 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2339,7 +2326,7 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -2415,7 +2402,7 @@ FROM #all_packaging_tnh_packaging_material_packaging_activity_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_tnh_packaging_material_packaging_activity_2
         from #all_packaging_tnh_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where packaging_class in ('Primary packaging','Secondary packaging','Shipment packaging','Online marketplace total','Tertiary packaging')
@@ -2440,7 +2427,7 @@ FROM #all_packaging_tnh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2452,7 +2439,7 @@ FROM #all_packaging_tnh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -2529,7 +2516,7 @@ FROM #all_packaging_household_drinks_material_packaging_activity_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit, [packaging_activity]
         into #all_packaging_household_drinks_material_packaging_activity_2
         from #all_packaging_household_drinks_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -2551,7 +2538,7 @@ FROM #all_packaging_household_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2563,7 +2550,7 @@ FROM #all_packaging_household_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -2640,7 +2627,7 @@ FROM #all_packaging_nonhousehold_drinks_material_packaging_activity_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit, [packaging_activity]
         into #all_packaging_nonhousehold_drinks_material_packaging_activity_2
         from #all_packaging_nonhousehold_drinks_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -2662,7 +2649,7 @@ FROM #all_packaging_nonhousehold_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2674,7 +2661,7 @@ FROM #all_packaging_nonhousehold_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -2751,7 +2738,7 @@ FROM #all_packaging_all_drinks_material_packaging_activity_1 main
             select packaging_material, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , file2_quantity_unit, [packaging_activity]
         into #all_packaging_all_drinks_material_packaging_activity_2
         from #all_packaging_all_drinks_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -2775,7 +2762,7 @@ FROM #all_packaging_all_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2786,7 +2773,7 @@ FROM #all_packaging_all_drinks_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -2862,7 +2849,7 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_reusable_packaging_material_packaging_activity_2
         from #all_packaging_reusable_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where packaging_class in ('Primary packaging','Non-primary reusable packaging')
@@ -2888,7 +2875,7 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2899,7 +2886,7 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -2975,7 +2962,7 @@ FROM #all_packaging_tp_packaging_material_packaging_activity_1 main
             select packaging_material, '' packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_tp_packaging_material_packaging_activity_2
         from #all_packaging_tp_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -3000,7 +2987,7 @@ FROM #all_packaging_tp_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -3011,7 +2998,7 @@ FROM #all_packaging_tp_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -3087,7 +3074,7 @@ FROM #all_packaging_hh_packaging_material_packaging_activity_1 main
             select packaging_material, '' packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_hh_packaging_material_packaging_activity_2
         from #all_packaging_hh_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -3110,7 +3097,7 @@ FROM #all_packaging_hh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -3121,7 +3108,7 @@ FROM #all_packaging_hh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -3197,7 +3184,7 @@ FROM #all_packaging_nonhh_packaging_material_packaging_activity_1 main
             select packaging_material, '' packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_nonhh_packaging_material_packaging_activity_2
         from #all_packaging_nonhh_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
@@ -3222,7 +3209,7 @@ FROM #all_packaging_nonhh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -3233,7 +3220,7 @@ FROM #all_packaging_nonhh_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material,
@@ -3309,15 +3296,14 @@ FROM #all_packaging_totalreusable_packaging_material_packaging_activity_1 main
             select packaging_material, '' packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN , packaging_activity
         into #all_packaging_totalreusable_packaging_material_packaging_activity_2
         from #all_packaging_totalreusable_packaging_material_packaging_activity_1
-    union
+    union all
         SELECT packaging_material, '', '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_material,'')<>''
-        --   where packaging_class in ('Primary packaging','Secondary packaging','Shipment packaging','Online marketplace total','Tertiary packaging')
         group by packaging_material,packaging_activity
 
 
-    --NEW
+   
 
 
     ----------------------------------------------------------------- 
@@ -3336,7 +3322,7 @@ FROM #all_packaging_totalreusable_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -3347,7 +3333,7 @@ FROM #all_packaging_totalreusable_packaging_material_packaging_activity_1 main
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
-    UNION
+    union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
@@ -3425,99 +3411,89 @@ FROM #all_packaging_online_marketplace_1 main
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
         into #all_packaging_online_marketplace_2
         from #all_packaging_online_marketplace_1
-    union
-        SELECT packaging_material, packaging_class, '', '', '', ''
+    union all
+        SELECT packaging_material, packaging_class, '', '', '', NULL
         FROM #POM_COMP_arrow
-        where isnull(packaging_class,'') <> ''
-            and packaging_type = 'Total Household packaging'
-            and packaging_class = 'Online marketplace total'
+        where  packaging_class = 'Online marketplace total'
             and isnull(packaging_material,'')<>''
         group by packaging_material,packaging_class
 
-    --NEW END
-
-    --FINAL OUTPUT
-    --   IF OBJECT_ID('#POMCOMP_output', 'U') IS NOT NULL
-    --BEGIN
-    -- Drop the table if it exists
-    --      DROP TABLE #POMCOMP_output;
-    --   END
-                                                                                                            select packaging_material, from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smcw_pm_fn' breakdown_flag, cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
+select packaging_material, from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smcw_pm_fn' breakdown_flag, cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         into #POMCOMP_output
         from #self_management_consumer_waste_packaging_material_from_nation_2
-    union ALL
+    union all
         select packaging_material, '', relative_move, '', file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smcw_pm_rm', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #self_management_consumer_waste_packaging_material_relative_move_2
-    union ALL
+    union all
         select packaging_material, from_nation, '' relative_move, '', file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smow_pm_fn' breakdown_flag, cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #self_management_organisation_waste_packaging_material_from_nation_2
-    union ALL
+    union all
         select packaging_material, '', relative_move, '', file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smow_pm_rm', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #self_management_organisation_waste_packaging_material_relative_move_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_hh_pc', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
-        from #all_packaging_household_packaging_material_packaging_class_1
-    union ALL
+        from #all_packaging_household_packaging_material_packaging_class_2
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_non_hh_pc', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_Non_household_packaging_material_packaging_class_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_hh_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, ''packaging_activity
         from #all_packaging_household_drinks_material_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_non_hh_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, ''packaging_activity
         from #all_packaging_non_household_drinks_material_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, ''packaging_activity
         from #all_packaging_drinks_material_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_reusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_material_reusable2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_TP', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_material_TP2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_Thh', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_material_Thh2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_Tnhh', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_material_Tnhh2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_TReusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_material_total_reusable2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_hh_pa', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_household_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pb_pa', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_pb_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_tnh_pa', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_tnh_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_HH_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, packaging_activity
         from #all_packaging_household_drinks_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_nHH_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, packaging_activity
         from #all_packaging_nonhousehold_drinks_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_all_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, packaging_activity
         from #all_packaging_all_drinks_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_reusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_reusable_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_tp', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_tp_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_total_hh', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_hh_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_total_nonhh', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_nonhh_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_total_reusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_totalreusable_packaging_material_packaging_activity_2
-    union ALL
+    union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_online', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_online_marketplace_2
 
@@ -3798,22 +3774,18 @@ from #POMCOMP_output a
         join #totals1 b on a.packaging_material = b.packaging_material and a.breakdown_flag = b.breakdown_flag 
 where b.breakdown_flag = 'all_pm_non_hh_pc'
 
-    IF OBJECT_ID('JC_TEST', 'U') IS NOT NULL
-    BEGIN
-    -- Drop the table if it exists
-         DROP TABLE JC_TEST;
-     END
+	 --remove dupe null lines
 
-     select *, @filename1 filename1, @filename2 filename2, @ProducerCS producerCS, @organisation_id organisation_id, @compliance_scheme compliance_scheme, @securityquery securityquery
-    into JC_TEST
-    from #POMCOMP_output
+	 delete from #POMCOMP_output where file1_quantity_kg_extrapolated = 0 and file2_quantity_kg_extrapolated =0 and up_down = ''
+
+
+
     -------------------------------------------
     -- OUTPUT TABLE USED FOR PAGINATED REPORT -
     -------------------------------------------
-    --drop table dbo.JC_TEST
-    --select * into dbo.JC_TEST from #POMCOMP_output 
+   
     select *, @filename1 filename1, @filename2 filename2, @ProducerCS producerCS, @organisation_id organisation_id, @compliance_scheme compliance_scheme, @securityquery securityquery
-    from #POMCOMP_output--_unique --where breakdown_flag ='all_pm_TReusable'  =  'plastic' and relative_move like 'England to%'
---select * from jc_test where breakdown_flag = 'all_pm_pa_all_drinks' order by 1,2
+    from #POMCOMP_output
+
 
 END;

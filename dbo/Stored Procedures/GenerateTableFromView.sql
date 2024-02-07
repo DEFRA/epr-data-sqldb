@@ -6,7 +6,8 @@ BEGIN
 
     -- Variables for SQL query generation
     DECLARE @SqlQuery NVARCHAR(MAX) = ' ',
-            @tableviews NVARCHAR(MAX) = 'v_POM,
+            @tableviews NVARCHAR(MAX) = 'v_pom_codes,
+                                         v_POM,
 										 v_Producer_CS_Lookup,
 										 v_Producer_CS_Lookup_Pivot,
 										 v_Producer_CS_Lookup_Unpivot,

@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_registration_latest]
-AS SELECT  distinct
+﻿CREATE VIEW [dbo].[v_registration_latest] AS SELECT  distinct
 rv.organisation_id,
 rv.subsidiary_id,
 registration_type_code
@@ -13,20 +12,23 @@ registration_type_code
     when rv.[organisation_sub_type_code]  = 'LFR' then 'Licensee/Franchisee'
     when rv.[organisation_sub_type_code]  = 'TEN' then 'Tenant'
     when rv.[organisation_sub_type_code]  = 'OTH' then 'Others'
-else NULL end [Org_Sub_Type] 
+else NULL end [Org_Sub_Type], 
+cs.created
 FROM 
        rpd.CompanyDetails rv
+        join v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
 INNER JOIN 
     (
         SELECT 
             organisation_id, 
             subsidiary_id, 
-            MAX(load_ts) AS latest_load_ts
+            MAX(cs.created) AS created
         FROM 
-         rpd.CompanyDetails
+         rpd.CompanyDetails cd
+             join v_cosmos_file_metadata cs on cs.filename = cd.[FileName]
         GROUP BY 
             organisation_id, 
             subsidiary_id
     ) latest_files ON rv.organisation_id = latest_files.organisation_id 
                     AND rv.subsidiary_id = latest_files.subsidiary_id
-                    AND rv.load_ts = latest_files.latest_load_ts;
+                    AND cs.created = latest_files.created;

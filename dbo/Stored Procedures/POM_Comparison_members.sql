@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[POM_ComparisonTest_Paginated_JC] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200) AS
+﻿CREATE PROC [dbo].[POM_Comparison_members] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200) AS
 BEGIN
 
     /*
@@ -126,13 +126,7 @@ and isnull(a.[organisation_size],'') = isnull(b.organisation_size,'')
 
 
 
-   IF OBJECT_ID('dbo.JC_TEST', 'U') IS NOT NULL
-BEGIN
-    -- Drop the table if it exists
-    DROP TABLE dbo.JC_TEST;
-END
 
-select * into JC_TEST from #file_joined
 
       SELECT distinct
        fj.OrganisationName, fj.subsidiary_id,fj.organisation_size,fj.compliance_scheme
