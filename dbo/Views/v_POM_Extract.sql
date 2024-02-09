@@ -78,4 +78,5 @@ left join ( select cosmos.filename, cs.name
   join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
   group by  cosmos.filename, cs.name) csname on csname.filename = p.filename
 left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
-left join [v_POM_Operator_Submissions] os on os.filename = p.filename;
+left join [v_POM_Operator_Submissions] os on os.filename = p.filename
+where p.[submission_period] is not null;
