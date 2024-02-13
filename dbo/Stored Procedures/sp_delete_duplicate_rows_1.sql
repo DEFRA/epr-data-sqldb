@@ -38,7 +38,7 @@ left JOIN RowsToDelete b
 WHERE b.rnk > 1;
 
 
-
+/*--
 --submissions
 WITH RowsToDelete_submissions AS (
   SELECT
@@ -105,6 +105,13 @@ left JOIN RowsToDelete_submissionsevents b
          and   isnull(a.[FileName],'')  = isnull(b.[FileName],'')
          and   isnull(a.[BlobContainerName],'')  = isnull(b.[BlobContainerName],'')
 WHERE b.rnk > 1
+
+
+
+
+--*
+*/
+
 
 END TRY
 BEGIN CATCH
