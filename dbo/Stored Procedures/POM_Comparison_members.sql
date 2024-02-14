@@ -126,7 +126,10 @@ and isnull(a.[organisation_size],'') = isnull(b.organisation_size,'')
 
 
 
+--remove Self-managed organisation waste where to_nation is not null
 
+delete from #file_joined where packaging_type = 'Self-managed organisation waste' and to_nation is not null
+delete from #file_joined where packaging_type = 'Self-managed consumer waste' and to_nation is not null
 
       SELECT distinct
        fj.OrganisationName, fj.subsidiary_id,fj.organisation_size,fj.compliance_scheme

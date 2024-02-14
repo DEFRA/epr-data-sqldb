@@ -147,15 +147,15 @@ then 'Total Packaging' else null end Total_Packaging
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [from_nation]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [from_nation])f
 CROSS JOIN
     (SELECT [relative_move]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [relative_move])h
     union all
 
@@ -171,16 +171,16 @@ CROSS JOIN
             'Self-managed organisation waste'[packaging_type]
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
-            (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            (SELECT packaging_material
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [from_nation]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [from_nation])f
 CROSS JOIN
     (SELECT [relative_move]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [relative_move])h
 
 
@@ -199,11 +199,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Shipment Packaging','Online marketplace total','Public bin')
             GROUP BY [packaging_class])f
 
@@ -222,16 +222,16 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Shipment Packaging','Online marketplace total','secondary packaging','Tertiary packaging')
             GROUP BY [packaging_class])f
 CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             --  where packaging_class in('Primary packaging','Shipment Packaging','Online marketplace total','secondary packaging','Tertiary packaging')
             GROUP BY [packaging_activity])pa
     union all
@@ -249,11 +249,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_class])f
 
     union all
@@ -271,11 +271,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_class])f
 
     union all
@@ -293,11 +293,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Non-primary reusable packaging')
             GROUP BY [packaging_class])f
 
@@ -322,7 +322,7 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, 'Total Packaging'tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 
     union all
@@ -338,16 +338,16 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Shipment packaging')
             GROUP BY [packaging_class])f
 CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
 
 
@@ -363,20 +363,20 @@ CROSS JOIN
             ''[from_nation],
             pa.[packaging_activity], f.[packaging_class], ''[packaging_sub_material], ''[to_nation],
             ''[relative_move],
-            'Public Bin' [packaging_type]
+            'Public Binned' [packaging_type]
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Public bin')
             GROUP BY [packaging_class])f
    CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
     union all
         SELECT distinct
@@ -389,11 +389,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class ='Online Marketplace total'
             GROUP BY [packaging_class])f
 
@@ -414,16 +414,16 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Shipment packaging','Secondary packaging')
             GROUP BY [packaging_class])f
  CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
 
     union all
@@ -437,11 +437,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 	CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
     union all
         SELECT distinct
@@ -454,11 +454,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
    CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
 
     union all
@@ -474,16 +474,16 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, ''tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 CROSS JOIN
    (SELECT [packaging_class]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             where packaging_class in('Primary packaging','Non-primary reusable packaging')
             GROUP BY [packaging_class])f
    CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
     union all
 
@@ -497,11 +497,11 @@ CROSS JOIN
 , '' file1kg, ''file2kg, ''file1q, ''file2q, ''file1kge, ''file2kge, ''quanitykgdiff, ''quantitykgediff, ''qu, ''wudiff, ''fname1, ''fname2, ''fsubd, ''f2subd, ''org_sub_type, ''org_name, ''orgsize, ''cs, ''rt, 'Total Packaging'tp
         FROM
             (SELECT [packaging_material]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_material]) d
 	CROSS JOIN
    (SELECT [packaging_activity]
-            FROM [dbo].[t_POM_Submissions_POM_Comparison]
+            FROM [dbo].[t_POM]
             GROUP BY [packaging_activity])pa
 
 
@@ -513,7 +513,7 @@ CROSS JOIN
     --packaging material from nation
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, from_nation,
+ /*               SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #self_management_consumer_waste_packaging_material_from_nation_1
@@ -536,39 +536,40 @@ CROSS JOIN
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, from_nation,
+          SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
-              
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+        --    , packaging_activity
+              INTO #self_management_consumer_waste_packaging_material_from_nation_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Self-managed consumer waste'
+        WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Self-managed consumer waste'
             and isnull(from_nation,'')<>''
              and isnull(to_nation,'') =''
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
@@ -625,7 +626,7 @@ FROM #self_management_consumer_waste_packaging_material_from_nation_1 main
     --packaging material relative_move
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, relative_move,
+    /*            SELECT organisationName, subsidiary_id, packaging_material, relative_move,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #self_management_consumer_waste_packaging_material_relative_move_1
@@ -648,39 +649,40 @@ FROM #self_management_consumer_waste_packaging_material_from_nation_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, relative_move,
-            --    SUM(quantity_kg_extrapolated_diff),
+              SELECT organisationName, subsidiary_id, packaging_material, relative_move,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+            INTO #self_management_consumer_waste_packaging_material_relative_move_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Self-managed consumer waste'
-            and isnull(relative_move,'') <>''
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Self-managed consumer waste'
+        and isnull(relative_move,'') <>''
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
@@ -735,7 +737,7 @@ FROM #self_management_consumer_waste_packaging_material_relative_move_1 main
     --packaging material from nation
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, from_nation,
+      /*          SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #self_management_organisation_waste_packaging_material_from_nation_1
@@ -760,38 +762,39 @@ FROM #self_management_consumer_waste_packaging_material_relative_move_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, from_nation
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, from_nation,
+          SELECT organisationName, subsidiary_id, packaging_material, from_nation,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+            INTO #self_management_organisation_waste_packaging_material_from_nation_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Self-managed organisation waste'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            -- file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Self-managed organisation waste'
             and isnull(from_nation,'')<>''
            and isnull(to_nation,'')=''
            and isnull(packaging_material,'')<>''
@@ -846,7 +849,7 @@ FROM #self_management_organisation_waste_packaging_material_from_nation_1 main
     --packaging material relative_move
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, relative_move,
+ /*               SELECT organisationName, subsidiary_id, packaging_material, relative_move,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #self_management_organisation_waste_packaging_material_relative_move_1
@@ -869,39 +872,40 @@ FROM #self_management_organisation_waste_packaging_material_from_nation_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, relative_move,
+            SELECT organisationName, subsidiary_id, packaging_material, relative_move,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+         INTO #self_management_organisation_waste_packaging_material_relative_move_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Self-managed organisation waste'
-       and isnull(to_nation,'') ='' 
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Self-managed organisation waste'
+       and isnull(to_nation,'') <>'' 
        and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, relative_move
 
@@ -961,7 +965,7 @@ FROM #self_management_organisation_waste_packaging_material_relative_move_1 main
     --packaging material Household Pacakaging, packaging_clas
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+    /*            SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #all_packaging_household_packaging_material_packaging_class_1
@@ -984,38 +988,39 @@ FROM #self_management_organisation_waste_packaging_material_relative_move_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+            SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+                INTO #all_packaging_household_packaging_material_packaging_class_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Household packaging'
+        WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Household packaging'
             and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
@@ -1072,7 +1077,7 @@ FROM #all_packaging_household_packaging_material_packaging_class_1 main
     --packaging material Non-Household Pacakaging, packaging_clas
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+  /*              SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
         INTO #all_packaging_Non_household_packaging_material_packaging_class_1
@@ -1095,38 +1100,39 @@ and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+             SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+       INTO #all_packaging_Non_household_packaging_material_packaging_class_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Non-Household packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Non-Household packaging'
             and packaging_class in ('Online marketplace total','Primary packaging','Secondary packaging','Shipment packaging','Tertiary packaging')
 and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
@@ -1185,7 +1191,7 @@ and isnull(packaging_material,'')<>''
     --packaging material Household drinks
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+   /*             SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated,
@@ -1209,39 +1215,41 @@ and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+               SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-               , sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+                , sum(file2_quantity_unit) file2_quantity_unit
+     INTO #all_packaging_household_drinks_material_1
+           
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Household drinks containers'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Household drinks containers'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1296,7 +1304,7 @@ FROM #all_packaging_household_drinks_material_1 main
     --packaging material non-Household drinks
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+  /*              SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated,
@@ -1320,39 +1328,40 @@ FROM #all_packaging_household_drinks_material_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+               SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-               , sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+                , sum(file2_quantity_unit) file2_quantity_unit
+    INTO #all_packaging_non_household_drinks_material_1
+           
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Non-household drinks containers'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            --AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Non-household drinks containers'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1408,7 +1417,7 @@ FROM #all_packaging_non_household_drinks_material_1 main
     --all drinks
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+ /*               SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1432,39 +1441,40 @@ FROM #all_packaging_non_household_drinks_material_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+                SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-               , sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+                , sum(file2_quantity_unit) file2_quantity_unit
+                 INTO #all_packaging_drinks_material_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Non-household drinks containers' OR packaging_type = 'household drinks containers')
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Non-household drinks containers' OR packaging_type = 'household drinks containers')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1518,7 +1528,7 @@ FROM #all_packaging_drinks_material_1 main
     --all packaging reusable packaging
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+  /*              SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             cAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1543,39 +1553,39 @@ FROM #all_packaging_drinks_material_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
-            --      SUM(quantity_kg_extrapolated_diff),
+                     SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-        --   ,    sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+       INTO #all_packaging_material_reusable1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Reusable packaging' )
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Reusable packaging' )
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
@@ -1629,7 +1639,7 @@ FROM #all_packaging_material_reusable1 main
 
     --all packaging total packaging
 
-    --file 1 is null
+ /*   --file 1 is null
                 SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             cAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
@@ -1655,39 +1665,39 @@ FROM #all_packaging_material_reusable1 main
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
-            --  SUM(quantity_kg_extrapolated_diff),
+                          SELECT organisationName, subsidiary_id, packaging_material,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-        --   ,    sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+                INTO #all_packaging_material_TP1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (Total_Packaging = 'Total packaging' )
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (Total_Packaging = 'Total packaging' )
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1741,7 +1751,7 @@ FROM #all_packaging_material_TP1 main
     --all packaging total household
     --------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+    /*            SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             cAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1766,39 +1776,39 @@ FROM #all_packaging_material_TP1 main
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
-            --  SUM(quantity_kg_extrapolated_diff),
+                          SELECT organisationName, subsidiary_id, packaging_material,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-        --   ,    sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+               INTO #all_packaging_material_Thh1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Total Household packaging' )
+        WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Total Household packaging' )
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1852,7 +1862,7 @@ FROM #all_packaging_material_Thh1 main
     --all packaging total non household
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+ /*               SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             cAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1877,39 +1887,39 @@ FROM #all_packaging_material_Thh1 main
         GROUP BY organisationName, subsidiary_id,packaging_material
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
-            --  SUM(quantity_kg_extrapolated_diff),
+                            SELECT organisationName, subsidiary_id, packaging_material,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-        --   ,    sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+              INTO #all_packaging_material_Tnhh1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Total Non-Household packaging' )
+        WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Total Non-Household packaging' )
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -1963,7 +1973,7 @@ FROM #all_packaging_material_Tnhh1 main
     --all packaging reusable
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+  /*              SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             cAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -1988,39 +1998,39 @@ FROM #all_packaging_material_Tnhh1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_class
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
-            --  SUM(quantity_kg_extrapolated_diff),
+                                  SELECT organisationName, subsidiary_id, packaging_material,
+            --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-        --   ,    sum(file2_quantity_unit) file2_quantity_unit
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+              INTO #all_packaging_material_total_reusable1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Reusable packaging' )
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Reusable packaging' )
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material
 
@@ -2074,19 +2084,20 @@ FROM #all_packaging_material_total_reusable1 main
     --packaging material Household Pacakaging, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
+    /*
                 SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
         INTO #all_packaging_household_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NULL
+        WHERE (file1_Quantity_kg_extrapolated IS NULL or file1_Quantity_kg_extrapolated is null)
             and packaging_type = 'Total Household packaging'
             and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
+        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity*/
 
-    union all
+   /* union all
         --file2 is null 
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL, CAST('' AS VARCHAR(2)), 'file2', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
@@ -2097,45 +2108,47 @@ FROM #all_packaging_material_total_reusable1 main
             and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
-
-    union all
+*/
+   -- union all
 
         --both file1 and 2 have data
         SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+              INTO #all_packaging_household_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Household packaging'
-            and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL 
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Household packaging'
+            and packaging_class in ('Primary packaging','Shipment packaging')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
+--select *into dbo.JC_DELETE_ME1 from #all_packaging_household_packaging_material_packaging_activity_1
 --select * into percent1 from #all_packaging_household_packaging_material_packaging_activity_1
 
     ---add arrow
@@ -2148,7 +2161,7 @@ where quantity_kg_extrapolated_diff >= @upper_threshold
 set a.up_down = 'd'
 from #all_packaging_household_packaging_material_packaging_activity_1 a
 where quantity_kg_extrapolated_diff <= (@lower_threshold*-1)
-
+--select *into dbo.JC_DELETE_ME2 from #all_packaging_household_packaging_material_packaging_activity_1
 --select * into percent2 from #all_packaging_household_packaging_material_packaging_activity_1
 
     --set ud when both
@@ -2179,17 +2192,17 @@ FROM #all_packaging_household_packaging_material_packaging_activity_1 main
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
         FROM #POM_COMP_arrow
         where isnull(packaging_class,'') <> ''
-            and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
+            and packaging_class in ('Primary packaging','Shipment packaging')
             and isnull(packaging_material,'')<>''
         group by packaging_material,packaging_class,packaging_activity
-
+--select *into dbo.JC_DELETE_ME3 from #all_packaging_household_packaging_material_packaging_activity_2
 --select * into percent3 from #all_packaging_household_packaging_material_packaging_activity_2
 
     ----------------------------------------------------------------- 
     --packaging material public bin, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+   /*             SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -2214,39 +2227,40 @@ FROM #all_packaging_household_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+                                  SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+              INTO #all_packaging_pb_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Public bin'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            --AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Public binned'
             and packaging_class in ('Public bin')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
@@ -2304,7 +2318,7 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
     --packaging material Total Non-Household packaging, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+  /*              SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -2327,39 +2341,39 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+*/
+                                 SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+             INTO #all_packaging_tnh_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Non-Household packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Non-Household packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
@@ -2414,7 +2428,7 @@ FROM #all_packaging_tnh_packaging_material_packaging_activity_1 main
     --packaging material Household drinks - packaging_activity
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+       /*         SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated,
@@ -2440,40 +2454,40 @@ FROM #all_packaging_tnh_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+                                     SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
                , sum(file2_quantity_unit) file2_quantity_unit
                , packaging_activity
+                INTO #all_packaging_household_drinks_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Household drinks containers'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+          --  AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Household drinks containers'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
@@ -2525,7 +2539,7 @@ FROM #all_packaging_household_drinks_material_packaging_activity_1 main
     --packaging material nonHousehold drinks - packaging_activity
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+  /*              SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated,
@@ -2551,40 +2565,41 @@ FROM #all_packaging_household_drinks_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+                                 SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
                , sum(file2_quantity_unit) file2_quantity_unit
                , packaging_activity
+                    INTO #all_packaging_nonhousehold_drinks_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Non-household drinks containers'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Non-household drinks containers'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
@@ -2636,7 +2651,7 @@ FROM #all_packaging_nonhousehold_drinks_material_packaging_activity_1 main
     --packaging material all drinks - packaging_activity
 
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+ /*               SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated,
             sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated,
@@ -2662,40 +2677,40 @@ FROM #all_packaging_nonhousehold_drinks_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+                              SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
                , sum(file2_quantity_unit) file2_quantity_unit
                , packaging_activity
+                  INTO #all_packaging_all_drinks_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and (packaging_type = 'Non-household drinks containers' OR packaging_type = 'Household drinks containers')
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            --AND file2_Quantity_kg_extrapolated IS NOT NULL
+             (packaging_type = 'Non-household drinks containers' OR packaging_type = 'Household drinks containers')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
@@ -2751,7 +2766,7 @@ FROM #all_packaging_all_drinks_material_packaging_activity_1 main
     --packaging material reuasable, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+     /*           SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -2774,39 +2789,40 @@ FROM #all_packaging_all_drinks_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+                                  SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+               INTO #all_packaging_reusable_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Reusable packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Reusable packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
 
@@ -2864,7 +2880,7 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
     --packaging material TOTAL packaging, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+    /*            SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -2887,39 +2903,39 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+                                     SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+              INTO #all_packaging_tp_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and Total_Packaging = 'Total packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             Total_Packaging = 'Total packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
@@ -2976,7 +2992,7 @@ FROM #all_packaging_tp_packaging_material_packaging_activity_1 main
     --packaging material  hhpackaging, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+   /*             SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -2999,39 +3015,39 @@ FROM #all_packaging_tp_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+                                SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+              INTO #all_packaging_hh_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Household packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Household packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
@@ -3086,7 +3102,7 @@ FROM #all_packaging_hh_packaging_material_packaging_activity_1 main
     --packaging material  non hhpackaging, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+ /*               SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -3109,39 +3125,39 @@ FROM #all_packaging_hh_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
-        --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+*/
+                                  SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+               INTO #all_packaging_nonhh_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Non-Household packaging'
+        WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Non-Household packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
@@ -3198,7 +3214,7 @@ FROM #all_packaging_nonhh_packaging_material_packaging_activity_1 main
     --packaging material  reusable, packaging_class - [packaging_activity]
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material,
+    /*            SELECT organisationName, subsidiary_id, packaging_material,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
        , [packaging_activity]
@@ -3221,39 +3237,40 @@ FROM #all_packaging_nonhh_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material,packaging_activity
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material,
+                    SELECT organisationName, subsidiary_id, packaging_material,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
             , packaging_activity
+              INTO #all_packaging_totalreusable_packaging_material_packaging_activity_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Reusable packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+           -- AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Reusable packaging'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_activity
 
@@ -3310,7 +3327,7 @@ FROM #all_packaging_totalreusable_packaging_material_packaging_activity_1 main
     --packaging material online, online 
     ----------------------------------------------------------------------
     --file 1 is null
-                SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+    /*            SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
             NULL AS quantity_kg_extrapolated_diff,
             CAST('' AS VARCHAR(2)) AS UP_DOWN, 'file1' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
 
@@ -3334,39 +3351,39 @@ FROM #all_packaging_totalreusable_packaging_material_packaging_activity_1 main
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
     union all
-
+*/
         --both file1 and 2 have data
-        SELECT organisationName, subsidiary_id, packaging_material, packaging_class,
+              SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
             --   SUM(quantity_kg_extrapolated_diff),
 
-            case  when @Threshold_Type = 'Percentage' and isnull(sum(file1_Quantity_kg_extrapolated),0) = 0 then 0
-when @Threshold_Type = 'Percentage' and isnull(sum(file2_Quantity_kg_extrapolated),0) = 0 then 0
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) < sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
                 then
 ((sum
-(file2_Quantity_kg_extrapolated)-sum
-(file1_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*100)
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
                 when @Threshold_Type = 'Percentage' and sum
-(file1_Quantity_kg_extrapolated) > sum
-(file2_Quantity_kg_extrapolated) 
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
               then
 ((sum
-(file1_Quantity_kg_extrapolated)-sum
-(file2_Quantity_kg_extrapolated))/sum
-(file1_Quantity_kg_extrapolated)*-100) 
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
               when @Threshold_Type = 'Value'
               then  SUM
-(quantity_kg_extrapolated_diff)
-end,
-            CAST(NULL AS VARCHAR(2)), 'both', sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
-
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+          into   #all_packaging_online_marketplace_1
         FROM #POM_COMP_arrow
-        WHERE file1_Quantity_kg_extrapolated IS NOT NULL
-            AND file2_Quantity_kg_extrapolated IS NOT NULL
-            and packaging_type = 'Total Household packaging'
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            -- file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Household packaging'
             and packaging_class = 'Online Marketplace'
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
@@ -3412,7 +3429,7 @@ FROM #all_packaging_online_marketplace_1 main
         into #all_packaging_online_marketplace_2
         from #all_packaging_online_marketplace_1
     union all
-        SELECT packaging_material, packaging_class, '', '', '', NULL
+        SELECT packaging_material, packaging_class, '', '', '', ''
         FROM #POM_COMP_arrow
         where  packaging_class = 'Online marketplace total'
             and isnull(packaging_material,'')<>''
@@ -3776,7 +3793,7 @@ where b.breakdown_flag = 'all_pm_non_hh_pc'
 
 	 --remove dupe null lines
 
-	 delete from #POMCOMP_output where file1_quantity_kg_extrapolated = 0 and file2_quantity_kg_extrapolated =0 and up_down = ''
+	 --delete from #POMCOMP_output where file1_quantity_kg_extrapolated = 0 and file2_quantity_kg_extrapolated =0 and up_down = ''
 
 
 
