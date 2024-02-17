@@ -880,6 +880,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
+and packaging_type = 'Total Household Packaging'
 --and packaging_activity = 'Online Marketplace'
 
 if @BreakdownType = 'all_pm_tnh_pa_online'
@@ -890,5 +891,26 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Online Marketplace'
+
+--public binned all
+if @BreakdownType = 'all_public_binned'
+select  OrganisationName,subsidiary_id, packaging_material field2, packaging_class field3
+, file1_Quantity_kg_extrapolated,file2_Quantity_kg_extrapolated,
+quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrapolated_diff
+ from   #file_joined
+where @packaging_material = packaging_material 
+and @packaging_class = packaging_class
+
+--online non
+if @BreakdownType = 'all_pm_online_non'
+select  OrganisationName,subsidiary_id, packaging_material field2, packaging_class field3
+, file1_Quantity_kg_extrapolated,file2_Quantity_kg_extrapolated,
+quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrapolated_diff
+ from   #file_joined
+where @packaging_material = packaging_material 
+and @packaging_class = packaging_class
+and packaging_type = 'Total non-Household Packaging'
+
+
 
 END;

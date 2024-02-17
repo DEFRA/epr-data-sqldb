@@ -85,6 +85,13 @@ set @Threshold_Type = 'Value'
 	)
   )
 
+--only where orgid is in both and company size has not changed. 
+  SELECT a.organisation_id
+INTO #matching_orgs
+FROM #file1 a
+INNER JOIN #file2 b ON a.organisation_id = b.organisation_id
+WHERE a.organisation_size = b.organisation_size;
+
     select coalesce(a.[organisation_id],b.[organisation_id]) OrganisationName ,
         coalesce(a.[subsidiary_id],b.[subsidiary_id]) [subsidiary_id] ,
         coalesce(a.packaging_material,b.packaging_material) packaging_material
@@ -114,9 +121,12 @@ set @Threshold_Type = 'Value'
 		  , coalesce(a.compliance_scheme,b.compliance_scheme)compliance_scheme
           	  , coalesce(a.registration_type_code,b.registration_type_code)registration_type_code
     --US 246659 - Org size added
+   -- ,a.[organisation_id] File1_org_id,
+    --b.[organisation_id] File2_org_id
     into #file_joined
     from #file1 a
-        full outer join #file2 b on isnull(a.[organisation_id],'') = isnull(b.[organisation_id],'')
+    --join #matching_orgs mo on mo.organisation_id = a.organisation_id
+        full outer join #file2 b on isnull(a.[organisation_id],'') = isnull(b.[organisation_id],'') AND a.[organisation_id] IN (SELECT organisation_id FROM #matching_orgs)
             and isnull(a.[subsidiary_id],'') = isnull(b.[subsidiary_id],'')
             and isnull(a.organisation_id,'') = isnull(b.organisation_id,'')
             and isnull(a.[packaging_activity],'') = isnull(b.packaging_activity,'')
@@ -126,6 +136,7 @@ set @Threshold_Type = 'Value'
             and isnull(a.[packaging_sub_material],'') = isnull(b.packaging_sub_material,'')
             and isnull(a.[from_nation],'') = isnull(b.from_nation,'')
             and isnull(a.[to_nation],'') = isnull(b.to_nation,'')
+
 
  select *, case when packaging_type in ('Total Non-Household packaging','Total Household packaging','Public binned','Reusable packaging','Household drinks containers','Non-household drinks containers')
 then 'Total Packaging' else null end Total_Packaging
@@ -1021,7 +1032,7 @@ end quantity_kg_extrapolated_diff,
         WHERE-- file1_Quantity_kg_extrapolated IS NOT NULL
           --  AND file2_Quantity_kg_extrapolated IS NOT NULL
              packaging_type = 'Total Household packaging'
-            and packaging_class in ('Primary packaging','Public bin','Shipment packaging')
+            and packaging_class in ('Primary packaging','Public bin','Shipment packaging','Online marketplace total')
             and isnull(packaging_material,'')<>''
         GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
 
@@ -2313,6 +2324,92 @@ FROM #all_packaging_pb_packaging_material_packaging_activity_1 main
         group by packaging_material,packaging_class,packaging_activity
 
 
+/*NEW*/
+
+                             SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
+            --   SUM(quantity_kg_extrapolated_diff),
+
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and sum
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
+                then
+((sum
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
+                when @Threshold_Type = 'Percentage' and sum
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
+              then
+((sum
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
+              when @Threshold_Type = 'Value'
+              then  SUM
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+         
+              INTO #all_packaging_pb_packaging_material_1
+        FROM #POM_COMP_arrow
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            --AND file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Public binned'
+            and packaging_class in ('Public bin')
+            and isnull(packaging_material,'')<>''
+        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class
+
+
+
+    ---add arrow
+    update a
+set a.up_down = 'u'
+from #all_packaging_pb_packaging_material_1 a
+where quantity_kg_extrapolated_diff >= @upper_threshold
+
+    update a
+set a.up_down = 'd'
+from #all_packaging_pb_packaging_material_1 a
+where quantity_kg_extrapolated_diff <= (@lower_threshold*-1)
+
+
+
+    --set ud when both
+    update main
+set main.UP_DOWN ='ud'
+FROM #all_packaging_pb_packaging_material_1 main
+        JOIN (
+    SELECT a.packaging_material, a.packaging_class
+        FROM #all_packaging_pb_packaging_material_1 a
+        WHERE up_down = 'u'
+        GROUP BY a.packaging_material, a.packaging_class
+) AS a
+        INNER JOIN (
+    SELECT b.packaging_material, b.packaging_class
+        FROM #all_packaging_pb_packaging_material_1 b
+        WHERE up_down = 'd'
+        GROUP BY b.packaging_material, b.packaging_class
+) AS b
+        ON a.packaging_class = b.packaging_class AND a.packaging_material = b.packaging_material --and a.packaging_activity = b.packaging_activity
+        ON main.packaging_class = a.packaging_class AND main.packaging_material = a.packaging_material --and a.packaging_activity = main.packaging_activity;
+
+
+    ---table used for final report
+            select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN 
+        into #all_packaging_pb_packaging_material_2
+        from #all_packaging_pb_packaging_material_1
+    union all
+        SELECT packaging_material, packaging_class, '', '', '', ''
+        FROM #POM_COMP_arrow
+        where isnull(packaging_class,'') <> ''
+            and packaging_class in ('Public Bin')
+            and isnull(packaging_material,'')<>''
+        group by packaging_material,packaging_class
+
+
 
     ----------------------------------------------------------------- 
     --packaging material Total Non-Household packaging, packaging_class - [packaging_activity]
@@ -2867,8 +2964,8 @@ FROM #all_packaging_reusable_packaging_material_packaging_activity_1 main
         from #all_packaging_reusable_packaging_material_packaging_activity_1
     union all
         SELECT packaging_material, packaging_class, '', '', '', '', packaging_activity
-        FROM #POM_COMP_arrow
-        where packaging_class in ('Primary packaging','Non-primary reusable packaging')
+        FROM t_pom
+        where     (packaging_type = 'Reusable packaging' )
         and isnull(packaging_material,'')<>''
         group by packaging_material,packaging_class,packaging_activity
 
@@ -3384,11 +3481,12 @@ end quantity_kg_extrapolated_diff,
         WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
             -- file2_Quantity_kg_extrapolated IS NOT NULL
              packaging_type = 'Total Household packaging'
-            and packaging_class = 'Online Marketplace'
+            and packaging_class = 'Online marketplace total'
             and isnull(packaging_material,'')<>''
-        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class,packaging_activity
+        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class--,packaging_activity
 
-
+--drop table JC_DELETE_ME1
+--select *,@upper_threshold into dbo.JC_DELETE_ME1 from #all_packaging_online_marketplace_1
 
     ---add arrow
     update a
@@ -3401,7 +3499,8 @@ set a.up_down = 'd'
 from #all_packaging_online_marketplace_1 a
 where quantity_kg_extrapolated_diff <= (@lower_threshold*-1)
 
-
+--drop table JC_DELETE_ME2
+--select * into dbo.JC_DELETE_ME2 from #all_packaging_online_marketplace_1
 
     --set ud when both
     update main
@@ -3422,7 +3521,8 @@ FROM #all_packaging_online_marketplace_1 main
         ON a.packaging_class = b.packaging_class AND a.packaging_material = b.packaging_material
         ON main.packaging_class = a.packaging_class AND main.packaging_material = a.packaging_material
     ;
-
+--drop table JC_DELETE_ME3
+--select * into dbo.JC_DELETE_ME3 from #all_packaging_online_marketplace_1
 
     ---table used for final report
             select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
@@ -3434,6 +3534,92 @@ FROM #all_packaging_online_marketplace_1 main
         where  packaging_class = 'Online marketplace total'
             and isnull(packaging_material,'')<>''
         group by packaging_material,packaging_class
+--drop table dbo.JC_DELETE_ME4
+--select * into dbo.JC_DELETE_ME4 from #all_packaging_online_marketplace_2
+
+----
+             SELECT organisationName, subsidiary_id, packaging_material,packaging_class,
+            --   SUM(quantity_kg_extrapolated_diff),
+
+            case  when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file1_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and isnull(sum(isnull(file2_Quantity_kg_extrapolated,0)),0) = 0 then 0
+when @Threshold_Type = 'Percentage' and sum
+(isnull(file1_Quantity_kg_extrapolated,0)) < sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
+                then
+((sum
+(isnull(file2_Quantity_kg_extrapolated,0))-sum
+(isnull(file1_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*100)
+                when @Threshold_Type = 'Percentage' and sum
+(isnull(file1_Quantity_kg_extrapolated,0)) > sum
+(isnull(file2_Quantity_kg_extrapolated,0)) 
+              then
+((sum
+(isnull(file1_Quantity_kg_extrapolated,0))-sum
+(isnull(file2_Quantity_kg_extrapolated,0)))/sum
+(isnull(file1_Quantity_kg_extrapolated,0))*-100) 
+              when @Threshold_Type = 'Value'
+              then  SUM
+(isnull(quantity_kg_extrapolated_diff,0))
+end quantity_kg_extrapolated_diff,
+            CAST('' AS VARCHAR(2)) AS UP_DOWN, 'both' filecheck, sum(file1_Quantity_kg_extrapolated) file1_Quantity_kg_extrapolated, sum(file2_Quantity_kg_extrapolated) file2_Quantity_kg_extrapolated
+          into   #all_packaging_online_marketplace_non_HH_1
+        FROM #POM_COMP_arrow
+        WHERE --file1_Quantity_kg_extrapolated IS NOT NULL
+            -- file2_Quantity_kg_extrapolated IS NOT NULL
+             packaging_type = 'Total Non-Household packaging'
+            and packaging_class = 'Online marketplace total'
+            and isnull(packaging_material,'')<>''
+        GROUP BY organisationName, subsidiary_id,packaging_material, packaging_class--,packaging_activity
+
+
+
+    ---add arrow
+    update a
+set a.up_down = 'u'
+from #all_packaging_online_marketplace_non_HH_1 a
+where quantity_kg_extrapolated_diff >= @upper_threshold
+
+    update a
+set a.up_down = 'd'
+from #all_packaging_online_marketplace_non_HH_1 a
+where quantity_kg_extrapolated_diff <= (@lower_threshold*-1)
+
+
+
+    --set ud when both
+    update main
+set main.UP_DOWN ='ud'
+FROM #all_packaging_online_marketplace_non_HH_1 main
+        JOIN (
+    SELECT a.packaging_material, a.packaging_class
+        FROM #all_packaging_online_marketplace_non_HH_1 a
+        WHERE up_down = 'u'
+        GROUP BY a.packaging_material, a.packaging_class
+) AS a
+        INNER JOIN (
+    SELECT b.packaging_material, b.packaging_class
+        FROM #all_packaging_online_marketplace_non_HH_1 b
+        WHERE up_down = 'd'
+        GROUP BY b.packaging_material, b.packaging_class
+) AS b
+        ON a.packaging_class = b.packaging_class AND a.packaging_material = b.packaging_material
+        ON main.packaging_class = a.packaging_class AND main.packaging_material = a.packaging_material
+    ;
+
+
+    ---table used for final report
+            select packaging_material, packaging_class, quantity_kg_extrapolated_diff, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, UP_DOWN
+        into #all_packaging_online_marketplace_non_HH_2
+        from #all_packaging_online_marketplace_non_HH_1
+    union all
+        SELECT packaging_material, packaging_class, '', '', '', ''
+        FROM #POM_COMP_arrow
+        where  packaging_class = 'Online marketplace total'
+            and isnull(packaging_material,'')<>''
+        group by packaging_material,packaging_class
+
 
 select packaging_material, from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'smcw_pm_fn' breakdown_flag, cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         into #POMCOMP_output
@@ -3496,7 +3682,7 @@ select packaging_material, from_nation, '' relative_move, ''packaging_class, fil
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_all_drinks', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, file2_quantity_unit, packaging_activity
         from #all_packaging_all_drinks_material_packaging_activity_2
     union all
-        select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_reusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
+        select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_reusable', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
         from #all_packaging_reusable_packaging_material_packaging_activity_2
     union all
         select packaging_material, '' from_nation, '' relative_move, ''packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_pa_tp', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, packaging_activity
@@ -3513,6 +3699,14 @@ select packaging_material, from_nation, '' relative_move, ''packaging_class, fil
     union all
         select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_online', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
         from #all_packaging_online_marketplace_2
+    union all
+        select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_public_binned', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
+        from #all_packaging_pb_packaging_material_2
+       union all
+        select packaging_material, '' from_nation, '' relative_move, packaging_class, file1_quantity_kg_extrapolated, file2_quantity_kg_extrapolated, up_down, 'all_pm_online_non', cAST('' AS VARCHAR(2)) AS TOTAL_UP_DOWN, ''file2_quantity_unit, ''packaging_activity
+        from #all_packaging_online_marketplace_non_HH_2
+
+
 
 --TOTAL CALCS
 
