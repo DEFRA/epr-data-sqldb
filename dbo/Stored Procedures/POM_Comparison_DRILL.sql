@@ -306,6 +306,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Total Household Packaging'
 
 --pubic binned
 if @BreakdownType = 'all_pm_pb_pa'
@@ -316,6 +317,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Public Binned'
 
 --non-household
 if @BreakdownType = 'all_pm_tnh_pa'
@@ -326,6 +328,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Total non-Household Packaging'
 
 --HH drinks
 if @BreakdownType = 'all_pm_pa_HH_drinks'
@@ -335,6 +338,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Household drinks containers'
 
 --non HH drinks
 if @BreakdownType = 'all_pm_pa_nHH_drinks'
@@ -344,7 +348,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
-
+and packaging_type = 'Non-household drinks containers'
 
 --all drinks
 if @BreakdownType = 'all_pm_pa_all_drinks'
@@ -354,6 +358,8 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
+and packaging_type like  '%Household drinks containers'
+
 
 --reusable packclass
 if @BreakdownType = 'all_pm_pa_reusable'
@@ -364,6 +370,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Reusable packaging'
 
 --total packaging
 if @BreakdownType = 'all_pm_pa_tp'
@@ -373,6 +380,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
+and Total_Packaging = 'total packaging'
 
 --hh
 if @BreakdownType = 'all_pm_pa_total_hh'
@@ -382,6 +390,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Total Household packaging'
 
 
 --nhh
@@ -392,6 +401,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
+and packaging_type = 'Total Non-Household packaging'
 
 --reuse
 
@@ -402,7 +412,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Brand Owner'
-
+and packaging_type = 'Reusable packaging'
 
 
 
@@ -422,6 +432,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Total Household packaging'
 
 --pubic binned
 if @BreakdownType = 'all_pm_pb_pa_pack'
@@ -432,6 +443,8 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Public Binned'
+
 
 --non-household
 if @BreakdownType = 'all_pm_tnh_pa_pack'
@@ -442,6 +455,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Total Non-Household packaging'
 
 --HH drinks
 if @BreakdownType = 'all_pm_pa_HH_drinks_pack'
@@ -451,6 +465,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Household drinks containers'
 
 --non HH drinks
 if @BreakdownType = 'all_pm_pa_nHH_drinks_pack'
@@ -460,6 +475,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Non-household drinks containers'
 
 
 --all drinks
@@ -470,6 +486,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Packer / Filler'
+and packaging_type like  '%Household drinks containers'
 
 --reusable packclass
 if @BreakdownType = 'all_pm_pa_reusable_pack'
@@ -480,6 +497,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Reusable packaging'
 
 --total packaging
 if @BreakdownType = 'all_pm_pa_tp'
@@ -488,7 +506,9 @@ select  OrganisationName,subsidiary_id, packaging_material field2, packaging_cla
 quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrapolated_diff
  from   #file_joined
 where @packaging_material = packaging_material 
-and packaging_activity = 'Brand Owner'
+and packaging_activity = 'Packer / Filler'
+and Total_Packaging = 'total packaging'
+
 
 --hh
 if @BreakdownType = 'all_pm_pa_total_hh_pack'
@@ -498,7 +518,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Packer / Filler'
-
+and packaging_type = 'Total Household packaging'
 
 --nhh
 if @BreakdownType = 'all_pm_pa_total_nonhh_pack'
@@ -507,7 +527,9 @@ select  OrganisationName,subsidiary_id, packaging_material field2, packaging_cla
 quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrapolated_diff
  from   #file_joined
 where @packaging_material = packaging_material 
-and packaging_activity = 'Brand Owner'
+and packaging_activity = 'Packer / Filler'
+and packaging_type = 'Total Non-Household packaging'
+
 
 --reuse
 
@@ -518,7 +540,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Packer / Filler'
-
+and packaging_type = 'Reusable packaging'
 
 
 
@@ -535,6 +557,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Imported'
+and packaging_type = 'Total Household packaging'
 
 --pubic binned
 if @BreakdownType = 'all_pm_pb_pa_Imported'
@@ -545,6 +568,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Imported'
+and packaging_type = 'Public Binned'
 
 --non-household
 if @BreakdownType = 'all_pm_tnh_pa_Imported'
@@ -555,6 +579,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Imported'
+and packaging_type = 'Total Non-Household packaging'
 
 --HH drinks
 if @BreakdownType = 'all_pm_pa_HH_drinks_Imported'
@@ -564,6 +589,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
+and packaging_type = 'Household drinks containers'
 
 --non HH drinks
 if @BreakdownType = 'all_pm_pa_nHH_drinks_Imported'
@@ -573,7 +599,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
-
+and packaging_type = 'Non-household drinks containers'
 
 --all drinks
 if @BreakdownType = 'all_pm_pa_all_drinks_Imported'
@@ -583,6 +609,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
+and packaging_type like  '%Household drinks containers'
 
 --reusable packclass
 if @BreakdownType = 'all_pm_pa_reusable_Imported'
@@ -593,6 +620,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Imported'
+and packaging_type = 'Reusable packaging'
 
 --total packaging
 if @BreakdownType = 'all_pm_pa_tp_Imported'
@@ -602,6 +630,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
+and Total_Packaging = 'total packaging'
 
 --hh
 if @BreakdownType = 'all_pm_pa_total_hh_Imported'
@@ -611,7 +640,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
-
+and packaging_type = 'Total Household packaging'
 
 --nhh
 if @BreakdownType = 'all_pm_pa_total_nonhh_Imported'
@@ -621,6 +650,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
+and packaging_type = 'Total Non-Household packaging'
 
 --reuse
 
@@ -631,7 +661,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Imported'
-
+and packaging_type = 'Reusable packaging'
 
 
 
@@ -654,6 +684,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Sold as empty'
+and packaging_type = 'Total Household packaging'
 
 --pubic binned
 if @BreakdownType = 'all_pm_pb_pa_sold'
@@ -664,6 +695,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Sold as empty'
+and packaging_type = 'Public Binned'
 
 --non-household
 if @BreakdownType = 'all_pm_tnh_pa_sold'
@@ -674,6 +706,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Sold as empty'
+and packaging_type = 'Total Non-Household packaging'
 
 --HH drinks
 if @BreakdownType = 'all_pm_pa_HH_drinks_sold'
@@ -683,6 +716,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
+and packaging_type = 'Household drinks containers'
 
 --non HH drinks
 if @BreakdownType = 'all_pm_pa_nHH_drinks_sold'
@@ -692,7 +726,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
-
+and packaging_type = 'Non-household drinks containers'
 
 --all drinks
 if @BreakdownType = 'all_pm_pa_all_drinks_sold'
@@ -702,6 +736,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
+and packaging_type like  '%Household drinks containers'
 
 --reusable packclass
 if @BreakdownType = 'all_pm_pa_reusable_sold'
@@ -712,6 +747,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Sold as empty'
+and packaging_type = 'Reusable packaging'
 
 --total packaging
 if @BreakdownType = 'all_pm_pa_tp_sold'
@@ -721,6 +757,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
+and Total_Packaging = 'total packaging'
 
 --hh
 if @BreakdownType = 'all_pm_pa_total_hh_sold'
@@ -730,7 +767,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
-
+and packaging_type = 'Total Household packaging'
 
 --nhh
 if @BreakdownType = 'all_pm_pa_total_nonhh_sold'
@@ -740,7 +777,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
-
+and packaging_type = 'Total Non-Household packaging'
 --reuse
 
 if @BreakdownType = 'all_pm_pa_total_reusable_sold'
@@ -750,7 +787,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Sold as empty'
-
+and packaging_type = 'Reusable packaging'
 
 
 
@@ -770,6 +807,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Hired or loaned'
+and packaging_type = 'Total Household packaging'
 
 --pubic binned
 if @BreakdownType = 'all_pm_pb_pa_Imported'
@@ -780,6 +818,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Hired or loaned'
+and packaging_type = 'Public Binned'
 
 --non-household
 if @BreakdownType = 'all_pm_tnh_pa_hired'
@@ -790,6 +829,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Hired or loaned'
+and packaging_type = 'Total Non-Household packaging'
 
 --HH drinks
 if @BreakdownType = 'all_pm_pa_HH_drinks_hired'
@@ -799,6 +839,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
+and packaging_type = 'Household drinks containers'
 
 --non HH drinks
 if @BreakdownType = 'all_pm_pa_nHH_drinks_hired'
@@ -808,7 +849,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
-
+and packaging_type = 'Non-household drinks containers'
 
 --all drinks
 if @BreakdownType = 'all_pm_pa_all_drinks_hired'
@@ -818,6 +859,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
+and packaging_type like  '%Household drinks containers'
 
 --reusable packclass
 if @BreakdownType = 'all_pm_pa_reusable_hired'
@@ -828,6 +870,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_activity = 'Hired or loaned'
+and packaging_type = 'Reusable packaging'
 
 --total packaging
 if @BreakdownType = 'all_pm_pa_tp__hired'
@@ -837,6 +880,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
+and Total_Packaging = 'total packaging'
 
 --hh
 if @BreakdownType = 'all_pm_pa_total_hh_hired'
@@ -846,7 +890,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
-
+and packaging_type = 'Total Household packaging'
 
 --nhh
 if @BreakdownType = 'all_pm_pa_total_nonhh_hired'
@@ -856,7 +900,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
-
+and packaging_type = 'Total Non-Household packaging'
 --reuse
 
 if @BreakdownType = 'all_pm_pa_total_reusable_hired'
@@ -866,7 +910,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and packaging_activity = 'Hired or loaned'
-
+and packaging_type = 'Reusable packaging'
 
 
 
@@ -890,7 +934,8 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
-and packaging_activity = 'Online Marketplace'
+and packaging_type = 'Total Non-Household packaging'
+--and packaging_activity = 'Online Marketplace'
 
 --public binned all
 if @BreakdownType = 'all_public_binned'
@@ -900,6 +945,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
  from   #file_joined
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
+and packaging_type = 'Public Binned'
 
 --online non
 if @BreakdownType = 'all_pm_online_non'
@@ -910,6 +956,7 @@ quantity_kg_diff ,file1_submission_date,file2_submission_date,Quantity_kg_extrap
 where @packaging_material = packaging_material 
 and @packaging_class = packaging_class
 and packaging_type = 'Total non-Household Packaging'
+--and packaging_activity = 'Online Marketplace'
 
 
 
