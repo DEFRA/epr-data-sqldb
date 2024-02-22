@@ -225,5 +225,6 @@
     <Build Include="dbo\Stored Procedures\POM_Comparison_members.sql" />
     <Build Include="dbo\Stored Procedures\POM_Comparison_DRILL.sql" />
     <Build Include="dbo\Stored Procedures\POM_Comparison_ARROW_LOGIC.sql" />
+    <Build Include="dbo\Views\v_enrolment_history.sql" />
   </ItemGroup>
 </Project>
