@@ -3,7 +3,7 @@ AS select row_number() over(order by u.UserId, B.LastUpdatedOn desc) as his_id
 	,u.UserId, poc.OrganisationId, poc.PersonId, B.EID, B.CreatedOn, B.LastUpdatedOn, B.ServiceRoleId, B.ConnectionId , sr.[Key]  as Service_Role, sr.Name as Service_Name
 	from 
 	(
-		SELECT distinct JSON_VALUE(val, '$.Id') AS EID /* get distinct values*/
+		SELECT distinct JSON_VALUE(val, '$.Id') AS EID
 			,JSON_VALUE(val, '$.CreatedOn') as CreatedOn
 			,JSON_VALUE(val, '$.LastUpdatedOn') as LastUpdatedOn
 			,JSON_VALUE(val, '$.ServiceRoleId') as ServiceRoleId
