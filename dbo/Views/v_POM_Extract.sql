@@ -14,7 +14,8 @@ else'Producer' end [PCS_Or_Direct_Producer]
 else NULL
 end   [Compliance_Scheme]*/
 --,dsf.[ComplianceSchemes_Name] Compliance_Scheme
-,case when csname.name is not null then csname.name else dsf.[ComplianceSchemes_Name] end Compliance_Scheme
+--,case when csname.name is not null then csname.name else dsf.[ComplianceSchemes_Name] end Compliance_Scheme 278515
+,csname.name as Compliance_Scheme
 ,dsf.FromOrganisation_Type [Org_Type]
 ,case 
     when reg.[organisation_sub_type_code]  = 'LIC' then 'Licensor'
