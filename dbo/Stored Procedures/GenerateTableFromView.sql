@@ -16,7 +16,8 @@ BEGIN
 										 v_registration_latest,
 										 v_POM_Filters,
 										 v_POM_Com_Landing_Filter,
-										 v_POM_Submissions_POM_Comparison',
+										 v_POM_Submissions_POM_Comparison,
+										 v_registration_with_brandandpartner',
 			@Counter INT = 1,
             @TotalRows INT;
 
