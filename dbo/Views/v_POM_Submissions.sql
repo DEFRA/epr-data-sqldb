@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_POM_Submissions] AS SELECT distinct
+﻿CREATE VIEW [dbo].[v_POM_Submissions]
+AS SELECT distinct
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -61,15 +62,17 @@ p.filename JOINFIELD
 --,transfers.NationName
 ,transfers.TransferNation
 ,meta.SubmtterEmail
-,meta.ServiceRoles_Name
+,meta.Service_Name_History as ServiceRoles_Name
 ,meta.[OriginalFileName]
 --,dsf.[from_nation] FromNation
 --,dsf.[tonation] ToNation
  FROM [dbo].[v_Pom] p
    join [dbo].[v_rpd_data_SECURITY_FIX] dsf
  on p.[organisation_id]  = dsf.[FromOrganisation_ReferenceNumber] 
+left join [dbo].[v_PersonOrganisationConnections] po_con
+on po_con.Persons_Id = dsf.Persons_Id  
    join [dbo].[v_cosmos_file_metadata] meta
- on p.filename = meta.filename
+ on p.filename = meta.filename and (po_con.Users_UserId = meta.userid or meta.ComplianceSchemeId is not null)
 left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
 left	join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos
