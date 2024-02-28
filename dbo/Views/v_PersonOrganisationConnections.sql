@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_PersonOrganisationConnections] AS with cte_Enrolments as (
+﻿CREATE VIEW [dbo].[v_PersonOrganisationConnections]
+AS with cte_Enrolments as (
     -- Enrolments Table - 230 records
     SELECT EnrolmentsTable.Id as Enrolment_Id
     ,EnrolmentsTable.[ConnectionId] as Enrolment_ConnectionId
@@ -65,6 +66,7 @@ cte_PersonOrganisationConnections as (
     ,PersonsAndUsers.Users_IsDeleted
     ,PersonsAndUsers.Users_InviteToken
     ,PersonsAndUsers.Users_InvitedBy
+	,PersonsAndUsers.Users_UserId
 
     from rpd.PersonOrganisationConnections POCTable
     left join rpd.OrganisationToPersonRoles OrgToPersonRolesTable
@@ -87,6 +89,7 @@ cte_PersonOrganisationConnections as (
         ,UsersTable.IsDeleted as Users_IsDeleted
         ,UsersTable.InviteToken as Users_InviteToken
         ,UsersTable.InvitedBy as Users_InvitedBy
+		,UsersTable.UserId as Users_UserId
         from rpd.Persons PersonsTable
         left join rpd.Users UsersTable
         on PersonsTable.UserId = UsersTable.Id
