@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_POM_Extract] AS SELECT DISTINCT
+﻿CREATE VIEW [dbo].[v_POM_Extract]
+AS SELECT DISTINCT
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -19,7 +20,7 @@ end   [Compliance_Scheme]*/
 
 --,case when csname.name is not null then csname.name else dsf.[ComplianceSchemes_Name] end Compliance_Scheme 278515
 ,csname.name as Compliance_Scheme
-,dsf.FromOrganisation_Type   as [Org_Type]
+--,dsf.FromOrganisation_Type   as [Org_Type]
 
 -- ********==========================================**********************
 -- The below code included in the "v_registration_latest" ********
@@ -36,6 +37,22 @@ end   [Compliance_Scheme]*/
 --else NULL end [org_sub_type]
 -- ********==========================================**********************
 
+--- Below lines fetch Org Type from Orgtypecode form the Company Details table
+,CASE
+	WHEN cd.[organisation_type_code] = 'SOL'	THEN	'Sole trader'
+	WHEN cd.[organisation_type_code] = 'PAR'	THEN	'Partnership'
+	WHEN cd.[organisation_type_code] = 'REG'	THEN	'Regulator'
+	WHEN cd.[organisation_type_code] = 'PLC'	THEN	'Public limited company'
+	WHEN cd.[organisation_type_code] = 'LLP'	THEN	'Limited Liability partnership'
+	WHEN cd.[organisation_type_code] = 'LTD'	THEN	'Limited Liability company'
+	WHEN cd.[organisation_type_code] = 'LPA'	THEN	'Limited partnership'
+	WHEN cd.[organisation_type_code] = 'COP'	THEN	'Co-operative'
+	WHEN cd.[organisation_type_code] = 'CIC'	THEN	'Community interest Company'
+	WHEN cd.[organisation_type_code] = 'OUT'	THEN	'Outside UK'
+	WHEN cd.[organisation_type_code] = 'OTH'	THEN	'Others'
+ELSE dsf.FromOrganisation_Type END as [Org_Type] -- 278519
+
+--,cd.[organisation_type_code]
 
 ,reglatest.[Org_Sub_Type] --New column for org_sub_type
 ,p.[organisation_size]
@@ -43,7 +60,7 @@ end   [Compliance_Scheme]*/
 ,p.[submission_period]
 ,p.[organisation_id] 
 ,p.[subsidiary_id] 
-,dsf.ComplianceSchemes_CompaniesHouseNumber [CH_Number] -- companies house number 
+,dsf.FromOrganisation_CompaniesHouseNumber [CH_Number] -- companies house number 278675
 ,dsf.FromOrganisation_NationName [Nation_Of_Enrolment]
 ,p.[packaging_activity]
 ,p.[packaging_type]
@@ -92,4 +109,6 @@ FROM [dbo].[v_Pom] p
 											group by  cosmos.filename, cs.name) csname on csname.filename = p.filename
 
 	left join [dbo].[v_registration_latest] reglatest on  reglatest.[organisation_id] = p.[organisation_id] and reglatest.[subsidiary_id] =p.[subsidiary_id]
+
+	left join (select distinct [organisation_id], [organisation_type_code] from  [rpd].[CompanyDetails] where [organisation_id] is not null ) cd on cd.[organisation_id] = p.[organisation_id]
 WHERE p.[submission_period] is not null;
