@@ -5,7 +5,7 @@
 ,[load_ts]
 ,[filename]
 ,'England'  As Region
- FROM [rpd].[brands]
+ FROM [dbo].[v_rpd_Brands_Active]
  where organisation_id = '546574'
 
  union 
@@ -15,5 +15,5 @@
 ,[load_ts]
 ,[filename]
 ,'Scotland'  As Region
- FROM [rpd].[brands]
+ FROM [dbo].[v_rpd_Brands_Active]
  where organisation_id != '546574';

@@ -39,8 +39,8 @@
 	dense_rank() over(partition by trim(sp.Text), p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) as Rank_over_time,
 	case when dense_rank() over(partition by trim(sp.Text), p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
 
-FROm rpd.POM p
---FROM dbo.v_rpd_Pom_Active p
+--FROm rpd.POM p
+FROM dbo.v_rpd_Pom_Active p
 LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
 								AND sp.Type = 'submission_period'
 LEFT JOIN dbo.t_PoM_Codes pa ON pa.Code = p.packaging_activity 

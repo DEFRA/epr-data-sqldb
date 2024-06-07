@@ -275,8 +275,8 @@ a.[organisation_id]
 --,null as [partner load_ts]
 --,null as [partner FileName]
 
-FROM [rpd].[CompanyDetails] a -- Registration
-join [rpd].[Brands] br on br.organisation_id = a.organisation_id
+FROM dbo.v_rpd_CompanyDetails_Active a -- Registration
+join dbo.v_rpd_Brands_Active br on br.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'')
 
 union all
@@ -375,8 +375,8 @@ a.[organisation_id]
 --,p.[load_ts]
 --,p.[FileName]
 
-FROM [rpd].[CompanyDetails] a -- Registration
-join [rpd].[Partnerships] p on p.organisation_id = a.organisation_id
+FROM dbo.v_rpd_CompanyDetails_Active a -- Registration
+join dbo.v_rpd_Partnerships_Active p on p.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(p.[subsidiary_id],'')
 
 union all
@@ -477,11 +477,11 @@ a.[organisation_id]
 
 
 
-FROM [rpd].[CompanyDetails] a -- Registration
+FROM dbo.v_rpd_CompanyDetails_Active a -- Registration
 
-left join [rpd].[Brands] br on br.organisation_id = a.organisation_id
+left join dbo.v_rpd_Brands_Active br on br.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'')
-left join [rpd].[Partnerships] p on p.organisation_id = a.organisation_id
+left join dbo.v_rpd_Partnerships_Active p on p.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(p.[subsidiary_id],'')
 where br.[brand_name] is null and  br.[subsidiary_id] is null 
 and  p.[partner_first_name] is null and  p.[subsidiary_id] is null 

@@ -9,5 +9,5 @@ end packaging_type
     when packaging_type = 'OW' then 2
 end packaging_type_order
 
-from rpd.Pom
+from dbo.v_rpd_Pom_Active
 where packaging_type in ('CW', 'OW');

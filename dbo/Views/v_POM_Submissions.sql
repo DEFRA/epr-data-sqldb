@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_POM_Submissions]
-AS SELECT distinct
+﻿CREATE VIEW [dbo].[v_POM_Submissions] AS SELECT distinct
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -73,17 +72,17 @@ left join [dbo].[v_PersonOrganisationConnections] po_con
 on po_con.Persons_Id = dsf.Persons_Id  
    join [dbo].[v_cosmos_file_metadata] meta
  on p.filename = meta.filename and (po_con.Users_UserId = meta.userid or meta.ComplianceSchemeId is not null)
-left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
+left join dbo.v_rpd_CompanyDetails_Active reg on reg.[organisation_id] = p.[organisation_id]
 left	join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos
-  join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
+  join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
   group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = p.filename
 
 LEFT JOIN (
     SELECT o.ReferenceNumber AS Producer_ReferenceNumber
     ,n.Name AS TransferNation
 
-    FROM rpd.Organisations o
+    FROM dbo.v_rpd_Organisations_Active o
 
     JOIN rpd.Nations n
     ON o.TransferNationId = n.Id

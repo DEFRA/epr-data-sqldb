@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[enrolled_not_registered]
-AS SELECT 
+﻿CREATE VIEW [dbo].[enrolled_not_registered] AS SELECT 
 a.[Organisations_Id],a.[FromOrganisation_TypeId]
 ,a.[FromOrganisation_Type]
 ,a.[FromOrganisation_CompaniesHouseNumber]
@@ -156,9 +155,7 @@ a.[Organisations_Id],a.[FromOrganisation_TypeId]
 ,a.[DelegatedPerson_JobTitle]
 
 FROM [v_rpd_data_SECURITY_FIX] a -- Enrolment
-
-
 WHERE NOT EXISTS 
 	(SELECT organisation_id
-	FROM [rpd].[CompanyDetails] b
+	FROM dbo.v_rpd_CompanyDetails_Active b
 	WHERE a.FromOrganisation_ReferenceNumber = b.organisation_id);

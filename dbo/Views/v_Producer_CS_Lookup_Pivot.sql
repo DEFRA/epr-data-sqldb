@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_Producer_CS_Lookup_Pivot]
-AS SELECT DISTINCT Producer_Id
+﻿CREATE VIEW [dbo].[v_Producer_CS_Lookup_Pivot] AS SELECT DISTINCT Producer_Id
 ,Producer_Name
 ,Operator_Id
 ,Operator_Name
@@ -26,18 +25,18 @@ FROM (
     ,'Operator' AS Submission_Type
     ,'OP_CS_START' AS StartPoint
 
-    FROM rpd.ComplianceSchemes cs
+    FROM dbo.v_rpd_ComplianceSchemes_Active cs
 
-    JOIN rpd.SelectedSchemes ss
+    JOIN dbo.v_rpd_SelectedSchemes_Active ss
     ON cs.Id = ss.ComplianceSchemeId
 
-    JOIN rpd.OrganisationsConnections oc
+    JOIN dbo.v_rpd_OrganisationsConnections_Active oc
     ON ss.OrganisationConnectionId = oc.Id
 
-    JOIN rpd.Organisations o
+    JOIN dbo.v_rpd_Organisations_Active o
     ON oc.FromOrganisationId = o.Id
 
-    JOIN rpd.Organisations op
+    JOIN dbo.v_rpd_Organisations_Active op
     ON cs.CompaniesHouseNumber = op.CompaniesHouseNumber
 
     JOIN rpd.Nations pn
@@ -68,12 +67,12 @@ SELECT * FROM (
     ,'Operator' AS Submission_Type
     ,'OP_POM_START' AS StartPoint
 
-    FROM rpd.Pom pom
+    FROM dbo.v_rpd_Pom_Active pom
 
     JOIN rpd.cosmos_file_metadata meta
         ON pom.FileName = meta.FileName
 
-    JOIN rpd.ComplianceSchemes cs
+    JOIN dbo.v_rpd_ComplianceSchemes_Active cs
         ON meta.ComplianceSchemeId = cs.ExternalId
 /*
     JOIN rpd.SelectedSchemes ss
@@ -158,9 +157,9 @@ SELECT * FROM (
     ,'Producer' AS Submission_Type
     ,'PR_ENR_START' AS StartPoint
     
-    FROM rpd.Organisations o
+    FROM dbo.v_rpd_Organisations_Active o
 
-    LEFT JOIN rpd.OrganisationsConnections oc
+    LEFT JOIN dbo.v_rpd_OrganisationsConnections_Active oc
     ON o.Id = oc.FromOrganisationId
 
     JOIN rpd.Nations n

@@ -73,9 +73,12 @@
     [secondary_contact_person_email]        NVARCHAR (4000) NULL,
     [secondary_contact_person_job_title]    NVARCHAR (4000) NULL,
     [load_ts]                               DATETIME2 (7)   NOT NULL,
-    [FileName]                              NVARCHAR (4000) NULL
+    [FileName]                              NVARCHAR (4000) NULL,
+    [IsDeleted]                             BIT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 

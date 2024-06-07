@@ -13,9 +13,12 @@
     [packaging_material_weight]  FLOAT (53)      NULL,
     [packaging_material_units]   FLOAT (53)      NULL,
     [load_ts]                    DATETIME2 (7)   NOT NULL,
-    [FileName]                   NVARCHAR (4000) NULL
+    [FileName]                   NVARCHAR (4000) NULL,
+    [IsDeleted]                  BIT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 

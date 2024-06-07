@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_POM_Material_Order]
-AS SELECT distinct
+﻿CREATE VIEW [dbo].[v_POM_Material_Order] AS SELECT distinct
 
 p.packaging_material as packaging_material_code
 
@@ -26,7 +25,7 @@ end packaging_material
     when p.packaging_material = 'OT' then 8
 -- else p.packaging_material
 end packaging_material_order
-from rpd.Pom p
+from dbo.v_rpd_Pom_Active p
 where packaging_material in (
     'PL', 'WD', 'AL', 'ST',
     'GL', 'PC', 'FC', 'OT'

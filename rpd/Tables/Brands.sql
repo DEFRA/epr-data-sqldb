@@ -4,9 +4,12 @@
     [brand_name]      NVARCHAR (4000) NULL,
     [brand_type_code] NVARCHAR (4000) NULL,
     [load_ts]         DATETIME2 (7)   NOT NULL,
-    [FileName]        NVARCHAR (4000) NULL
+    [FileName]        NVARCHAR (4000) NULL,
+    [IsDeleted]       BIT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 

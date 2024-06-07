@@ -25,7 +25,7 @@
 
     ,packaging_class
 
-    from rpd.Pom p
+    from dbo.v_rpd_Pom_Active p
     where packaging_type in (
         'CW', 'OW', 'HH', 'NH',
         'HDC', 'NDC', 'PB', 'RU'

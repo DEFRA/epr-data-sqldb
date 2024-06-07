@@ -253,6 +253,6 @@ a.[organisation_id]
 ,c.[load_ts] as cosmos_load_ts
 ,c.SubmtterEmail
 ,c.ServiceRoles_Name
-FROM [rpd].[CompanyDetails] a -- Registration
+FROM dbo.v_rpd_CompanyDetails_Active a -- Registration
 JOIN [v_rpd_data_SECURITY_FIX] b ON a.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
 JOIN [dbo].[v_cosmos_file_metadata] c ON a.FileName = c.FileName;

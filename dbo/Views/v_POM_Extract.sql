@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_POM_Extract]
-AS SELECT DISTINCT
+﻿CREATE VIEW [dbo].[v_POM_Extract] AS SELECT DISTINCT
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -105,10 +104,10 @@ FROM [dbo].[v_Pom] p
 	left join [v_POM_Operator_Submissions] os on os.filename = p.filename
 	join [dbo].[v_cosmos_file_metadata] meta on p.filename = meta.filename
 
-	left join ( select cosmos.filename, cs.name from [dbo].[v_cosmos_file_metadata] cosmos join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
+	left join ( select cosmos.filename, cs.name from [dbo].[v_cosmos_file_metadata] cosmos join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
 											group by  cosmos.filename, cs.name) csname on csname.filename = p.filename
 
 	left join [dbo].[v_registration_latest] reglatest on  reglatest.[organisation_id] = p.[organisation_id] and reglatest.[subsidiary_id] =p.[subsidiary_id]
 
-	left join (select distinct [organisation_id], [organisation_type_code] from  [rpd].[CompanyDetails] where [organisation_id] is not null ) cd on cd.[organisation_id] = p.[organisation_id]
+	left join (select distinct [organisation_id], [organisation_type_code] from  dbo.v_rpd_CompanyDetails_Active where [organisation_id] is not null ) cd on cd.[organisation_id] = p.[organisation_id]
 WHERE p.[submission_period] is not null;

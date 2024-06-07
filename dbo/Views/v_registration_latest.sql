@@ -18,6 +18,7 @@ from
 		when rv.[organisation_sub_type_code]  = 'TEN' then 'Tenant'
 		when rv.[organisation_sub_type_code]  = 'OTH' then 'Others'
 	else NULL end [Org_Sub_Type], 
+	rv.organisation_type_code,
 	rv.companies_house_number,
 	rv.organisation_name,
 	rv.Trading_Name,
@@ -30,7 +31,7 @@ from
 	cs.created,
 	row_number() over(partition by organisation_id, subsidiary_id order by cs.created desc) as rn
 	FROM 
-		   rpd.CompanyDetails rv
+		   v_rpd_CompanyDetails_Active rv
 			join v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
 )A
 where A.rn = 1;

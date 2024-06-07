@@ -35,7 +35,7 @@ when p.packaging_type = 'HDC' then 'Total Household packaging'
 when p.packaging_type = 'NDC' then 'Total Non-Household packaging'
 end packaging_type_group
 
-from rpd.Pom p
+from dbo.v_rpd_Pom_Active p
 where packaging_type in (
     'CW', 'OW', 'HH',
     'NH', 'PB', 'RU',

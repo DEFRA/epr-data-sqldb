@@ -115,8 +115,8 @@ on en.FromOrganisation_ReferenceNumber = reg.organisation_id
 join v_POM pom
 on reg.organisation_id = pom.organisation_id
 
-left join rpd.Brands brand
+left join dbo.v_rpd_Brands_Active brand
 on en.FromOrganisation_ReferenceNumber = brand.organisation_id
 
-left join rpd.Partnerships partner
+left join dbo.v_rpd_Partnerships_Active partner
 on en.FromOrganisation_ReferenceNumber = partner.organisation_id;
