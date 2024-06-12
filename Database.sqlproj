@@ -228,5 +228,6 @@
     <Build Include="dbo\Views\v_enrolment_history.sql" />
     <Build Include="dbo\Tables\t_registration_with_brandandpartner.sql" />
     <Build Include="dbo\Views\v_registration_with_brandandpartner.sql" />
+    <Build Include="dbo\Views\v_POM_Extract_Fix.sql" />
   </ItemGroup>
 </Project>
