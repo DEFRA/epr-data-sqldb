@@ -11,7 +11,7 @@ HAVING COUNT(filename) > 1
 
 SELECT distinct
     t.organisation_id,
-    --t.organisation_name,
+    t.[ComplianceSchemes_Name],
     t.FromOrganisation_Name as organisation_name,
     CASE
         WHEN t.[FromOrganisation_IsComplianceScheme] = 'True' THEN 'Compliance Scheme'
