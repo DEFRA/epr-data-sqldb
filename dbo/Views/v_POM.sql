@@ -17,27 +17,27 @@
 	p.load_ts,
 	p.FileName,
 	CASE
-		WHEN p.submission_period =  '2023-P2' THEN CAST(p.packaging_material_weight * (181.00 / 121.00) AS DECIMAL(16,2))
-		WHEN p.submission_period =  '2024-P2' THEN CAST(p.packaging_material_weight * (182.00 / 91.00) AS DECIMAL(16,2)) 
-		WHEN p.submission_period =  '2024-P3' THEN CAST(p.packaging_material_weight * (182.00 / 61.00) AS DECIMAL(16,2))   
+		WHEN p.submission_period =  '2023-P2' THEN CAST(p.packaging_material_weight * 1.50  AS DECIMAL(16,2))
+		WHEN p.submission_period =  '2024-P2' THEN CAST(p.packaging_material_weight * 2 AS DECIMAL(16,2)) 
+		WHEN p.submission_period =  '2024-P3' THEN CAST(p.packaging_material_weight * 3 AS DECIMAL(16,2))   
 		ELSE p.packaging_material_weight 
 	END Quantity_kg_extrapolated,
 
 	CASE
-		WHEN p.submission_period =  '2023-P2' THEN CAST(p.packaging_material_units * (181.00 / 121.00) AS DECIMAL(16,2))
-		WHEN p.submission_period =  '2024-P2' THEN CAST(p.packaging_material_units * (182.00 / 91.00) AS DECIMAL(16,2))
-		WHEN p.submission_period =  '2024-P3' THEN CAST(p.packaging_material_units * (182.00 / 61.00) AS DECIMAL(16,2))
+		WHEN p.submission_period =  '2023-P2' THEN CAST(p.packaging_material_units * 1.5 AS DECIMAL(16,2))
+		WHEN p.submission_period =  '2024-P2' THEN CAST(p.packaging_material_units * 2 AS DECIMAL(16,2))
+		WHEN p.submission_period =  '2024-P3' THEN CAST(p.packaging_material_units * 3 AS DECIMAL(16,2))
 		ELSE p.packaging_material_units
 	END	Quantity_units_extrapolated,
 
 	CASE
 		WHEN p.to_country IS NOT NULL AND p.from_country IS NOT NULL THEN CONCAT(fn.Text, ' to ', tn.Text)
 		ELSE NULL
-	END relative_move,
+	END relative_move
+	,CONVERT(DATETIME,substring(meta.created,1,23)) File_submitted_time
 
-	CONVERT(DATETIME,substring(meta.created,1,23)) File_submitted_time,
-	dense_rank() over(partition by trim(sp.Text), p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) as Rank_over_time,
-	case when dense_rank() over(partition by trim(sp.Text), p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
+,case when dense_rank() over(partition by sp.Text, p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
+	
 
 FROm rpd.POM p
 --FROM dbo.v_rpd_Pom_Active p
