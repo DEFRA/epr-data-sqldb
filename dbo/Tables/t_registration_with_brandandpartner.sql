@@ -18,9 +18,9 @@
     [registration_type_code]                                         NVARCHAR (4000) NULL,
     [turnover]                                                       FLOAT (53)      NULL,
     [total_tonnage]                                                  FLOAT (53)      NULL,
-    [produce_blank_packaging_flag]                                   BIT             NULL,
-    [liable_for_disposal_costs_flag]                                 BIT             NULL,
-    [meet_reporting_requirements_flag]                               BIT             NULL,
+    [produce_blank_packaging_flag]                                   NVARCHAR (4000) NULL,
+    [liable_for_disposal_costs_flag]                                 NVARCHAR (4000) NULL,
+    [meet_reporting_requirements_flag]                               NVARCHAR (4000) NULL,
     [registered_addr_line1]                                          NVARCHAR (4000) NULL,
     [registered_addr_line2]                                          NVARCHAR (4000) NULL,
     [registered_city]                                                NVARCHAR (4000) NULL,
@@ -258,4 +258,6 @@
     [ServiceRoles_Name]                                              NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 

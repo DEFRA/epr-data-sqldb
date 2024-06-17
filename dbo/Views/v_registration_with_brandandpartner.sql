@@ -60,8 +60,8 @@
 ,b.[SelectedSchemes_CreatedOn]
 ,b.[SelectedSchemes_LastUpdatedOn]
 ,b.[SelectedSchemes_IsDeleted]
-,b.[ComplianceSchemes_Id]
-,b.[ComplianceSchemes_Name]
+,d.[id] as ComplianceSchemes_Id
+,d.[name] as ComplianceSchemes_Name
 ,b.[ComplianceSchemes_CreatedOn]
 ,b.[ComplianceSchemes_LastUpdatedOn]
 ,b.[ComplianceSchemes_IsDeleted]
@@ -489,4 +489,6 @@ and  p.[partner_first_name] is null and  p.[subsidiary_id] is null
 ) as rbp
 
 JOIN [v_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
-JOIN [dbo].[v_cosmos_file_metadata] c ON rbp.FileName = c.FileName;
+JOIN [dbo].[v_cosmos_file_metadata] c ON rbp.FileName = c.FileName
+LEFT JOIN [rpd].[ComplianceSchemes]	 d
+ON c.ComplianceSchemeId = d.externalid;
