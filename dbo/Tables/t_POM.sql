@@ -20,10 +20,11 @@
     [Quantity_units_extrapolated] FLOAT (53)      NULL,
     [relative_move]               VARCHAR (72)    NULL,
     [File_submitted_time]         DATETIME        NULL,
-    [Rank_over_time]              BIGINT          NULL,
     [IsLatest]                    INT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 
