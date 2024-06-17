@@ -135,8 +135,8 @@ a.[organisation_id]
 ,b.[SelectedSchemes_CreatedOn]
 ,b.[SelectedSchemes_LastUpdatedOn]
 ,b.[SelectedSchemes_IsDeleted]
-,b.[ComplianceSchemes_Id]
-,b.[ComplianceSchemes_Name]
+,d.[id] as ComplianceSchemes_Id
+,d.[name] as ComplianceSchemes_Name
 ,b.[ComplianceSchemes_CreatedOn]
 ,b.[ComplianceSchemes_LastUpdatedOn]
 ,b.[ComplianceSchemes_IsDeleted]
@@ -255,4 +255,6 @@ a.[organisation_id]
 ,c.ServiceRoles_Name
 FROM [rpd].[CompanyDetails] a -- Registration
 JOIN [v_rpd_data_SECURITY_FIX] b ON a.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
-JOIN [dbo].[v_cosmos_file_metadata] c ON a.FileName = c.FileName;
+JOIN [dbo].[v_cosmos_file_metadata] c ON a.FileName = c.FileName
+LEFT JOIN [rpd].[ComplianceSchemes]	 d
+ON c.ComplianceSchemeId = d.externalid;
