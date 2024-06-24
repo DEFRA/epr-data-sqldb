@@ -24,6 +24,20 @@ from
 			when rv.[organisation_sub_type_code]  = 'TEN' then 'Tenant'
 			when rv.[organisation_sub_type_code]  = 'OTH' then 'Others'
 		else NULL end [Org_Sub_Type], 
+		rv.organisation_type_code,
+		CASE
+			WHEN rv.organisation_type_code = 'SOL'	THEN	'Sole trader'
+			WHEN rv.organisation_type_code = 'PAR'	THEN	'Partnership'
+			WHEN rv.organisation_type_code = 'REG'	THEN	'Regulator'
+			WHEN rv.organisation_type_code = 'PLC'	THEN	'Public limited company'
+			WHEN rv.organisation_type_code = 'LLP'	THEN	'Limited Liability partnership'
+			WHEN rv.organisation_type_code = 'LTD'	THEN	'Limited Liability company'
+			WHEN rv.organisation_type_code = 'LPA'	THEN	'Limited partnership'
+			WHEN rv.organisation_type_code = 'COP'	THEN	'Co-operative'
+			WHEN rv.organisation_type_code = 'CIC'	THEN	'Community interest Company'
+			WHEN rv.organisation_type_code = 'OUT'	THEN	'Outside UK'
+			WHEN rv.organisation_type_code = 'OTH'	THEN	'Others'
+		ELSE NULL END as organisation_type_code_description,
 		rv.companies_house_number,
 		rv.organisation_name,
 		rv.Trading_Name,
