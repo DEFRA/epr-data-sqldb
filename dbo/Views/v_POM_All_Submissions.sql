@@ -1,5 +1,6 @@
-﻿CREATE VIEW [dbo].[v_POM_All_Submissions]
-AS SELECT [Org_Name]
+﻿CREATE VIEW [dbo].[v_POM_All_Submissions] AS With vPOM_AS As 
+(
+SELECT [Org_Name]
       ,[PCS_Or_Direct_Producer]
       ,[Compliance_Scheme]
       ,[Org_Type]
@@ -134,4 +135,12 @@ SELECT
 	  'Member'
 	  from v_POM_Operator_Submissions 
 where	[organisation_id_producer] <>   [organisation_id]
-		AND compliance_scheme IS NOT NULL;
+		AND compliance_scheme IS NOT NULL
+		)
+
+		Select 
+	 v.*
+/** BL/SN:  Added IsLatest based on v_POM.Is_Latest  **/
+	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.organisation_id Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
+From 
+	vPOM_AS v;
