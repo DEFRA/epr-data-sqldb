@@ -1,4 +1,31 @@
-﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS SELECT distinct 
+﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS WITH CompanyDetails_with_regid AS
+(
+select 
+	c_meta.RegistrationSetId,c.* 
+from [rpd].[CompanyDetails] c
+	join [rpd].[cosmos_file_metadata] c_meta 
+		on c_meta.filename = c.filename
+),
+Brands_with_regid AS
+(
+select 
+	b_meta.RegistrationSetId,b.* 
+From [rpd].[Brands] b
+	join [rpd].[cosmos_file_metadata] b_meta 
+		on b_meta.filename = b.filename
+),
+Partnerships_with_regid AS
+(
+select 
+	p_meta.RegistrationSetId,p.* 
+From [rpd].[Partnerships] p
+	join [rpd].[cosmos_file_metadata] p_meta 
+		on p_meta.filename = p.filename
+)
+
+
+
+SELECT distinct 
  rbp.*
 ,b.[Organisations_Id]
 ,b.[FromOrganisation_TypeId]
@@ -275,9 +302,11 @@ a.[organisation_id]
 --,null as [partner load_ts]
 --,null as [partner FileName]
 
-FROM [rpd].[CompanyDetails] a -- Registration
-join [rpd].[Brands] br on br.organisation_id = a.organisation_id
+FROM CompanyDetails_with_regid a -- Registration
+join Brands_with_regid br on br.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'')
+and a.RegistrationSetId = br.RegistrationSetId
+
 
 union all
 --2 Partnerships mapping
@@ -375,9 +404,10 @@ a.[organisation_id]
 --,p.[load_ts]
 --,p.[FileName]
 
-FROM [rpd].[CompanyDetails] a -- Registration
-join [rpd].[Partnerships] p on p.organisation_id = a.organisation_id
+FROM CompanyDetails_with_regid a -- Registration
+join Partnerships_with_regid p on p.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(p.[subsidiary_id],'')
+and a.RegistrationSetId = p.RegistrationSetId
 
 union all
 
@@ -477,12 +507,19 @@ a.[organisation_id]
 
 
 
-FROM [rpd].[CompanyDetails] a -- Registration
+FROM CompanyDetails_with_regid a -- Registration
 
-left join [rpd].[Brands] br on br.organisation_id = a.organisation_id
-and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'')
-left join [rpd].[Partnerships] p on p.organisation_id = a.organisation_id
-and ISNULL(a.[subsidiary_id],'') = ISNULL(p.[subsidiary_id],'')
+left join Brands_with_regid br 
+	on br.organisation_id = a.organisation_id
+		and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'') 
+			and a.RegistrationSetId = br.RegistrationSetId
+
+left join Partnerships_with_regid p 
+	on p.organisation_id = a.organisation_id
+		and ISNULL(a.[subsidiary_id],'') = ISNULL(p.[subsidiary_id],'') 
+			and a.RegistrationSetId = p.RegistrationSetId
+
+
 where br.[brand_name] is null and  br.[subsidiary_id] is null 
 and  p.[partner_first_name] is null and  p.[subsidiary_id] is null 
 
