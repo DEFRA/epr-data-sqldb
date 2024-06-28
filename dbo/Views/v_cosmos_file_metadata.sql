@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_cosmos_file_metadata]
-AS WITH RankedData AS (
+﻿CREATE VIEW [dbo].[v_cosmos_file_metadata] AS WITH RankedData AS (
     SELECT
         distinct 
         a.[SubmissionId],
@@ -22,6 +21,7 @@ AS WITH RankedData AS (
         a.[FileName],
         a.[load_ts],
 		a.[ComplianceSchemeId],
+		a.[RegistrationSetId],
         ROW_NUMBER() OVER (PARTITION BY a.[FileName] ORDER BY a.[load_ts] desc, roles_POI.LastUpdatedOn DESC) AS RowNum,
 		CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime) as LastUpdatedOn_History,
 		roles_POI.Service_Name as Service_Name_History
@@ -63,6 +63,7 @@ a.[SubmissionId]
 ,a.[ComplianceSchemeId]
 ,a.LastUpdatedOn_History
 ,a.Service_Name_History
+,a.[RegistrationSetId]
 from RankedData a
 
 left  join  rpd.organisations o on a.organisationId = o.externalid and o.isdeleted = 0
