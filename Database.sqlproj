@@ -230,5 +230,9 @@
     <Build Include="dbo\Views\v_registration_with_brandandpartner.sql" />
     <Build Include="dbo\Views\v_POM_Extract_Fix.sql" />
     <Build Include="dbo\Views\v_registration_latest_by_Year.sql" />
+    <Build Include="dbo\Views\v_submitted_pom_org_file_status.sql" />
+    <Build Include="dbo\Views\v_Enrolmentstatus.sql" />
+    <Build Include="rpd\Tables\Submissions.sql" />
+    <Build Include="rpd\Tables\SubmissionEvents.sql" />
   </ItemGroup>
 </Project>

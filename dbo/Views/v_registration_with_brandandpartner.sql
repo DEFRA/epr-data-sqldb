@@ -205,6 +205,10 @@ SELECT distinct
 ,c.[load_ts] as cosmos_load_ts
 ,c.SubmtterEmail
 ,c.ServiceRoles_Name
+,pos.Decision_Date
+,pos.[Regulator_Status]
+,pos.[Regulator_User_Name]
+,pos.[Regulator_Rejection_Comments]
 
 FROM
 --1 Brand mapping
@@ -306,7 +310,6 @@ FROM CompanyDetails_with_regid a -- Registration
 join Brands_with_regid br on br.organisation_id = a.organisation_id
 and ISNULL(a.[subsidiary_id],'') = ISNULL(br.[subsidiary_id],'')
 and a.RegistrationSetId = br.RegistrationSetId
-
 
 union all
 --2 Partnerships mapping
@@ -527,5 +530,5 @@ and  p.[partner_first_name] is null and  p.[subsidiary_id] is null
 
 JOIN [v_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
 JOIN [dbo].[v_cosmos_file_metadata] c ON rbp.FileName = c.FileName
-LEFT JOIN [rpd].[ComplianceSchemes]	 d
-ON c.ComplianceSchemeId = d.externalid;
+LEFT JOIN [rpd].[ComplianceSchemes]	 d ON c.ComplianceSchemeId = d.externalid
+LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = rbp.filename;
