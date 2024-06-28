@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX] AS SELECT DISTINCT sec.[Organisations_Id]
+﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX]
+AS SELECT DISTINCT sec.[Organisations_Id]
       ,sec.[FromOrganisation_TypeId]
       ,sec.[FromOrganisation_Type]
       ,sec.[FromOrganisation_CompaniesHouseNumber]
@@ -153,8 +154,13 @@
       ,sec.[DelegatedPerson_LastUpdatedOn]
       ,sec.[DelegatedPerson_IsDeleted]
       ,sec.[DelegatedPerson_JobTitle]
-
+	  ,ve.Regulator_Status
+	  ,ve.Regulator_Rejection_Comments
+	  ,ve.Decision_Date
+	  ,ve.Regulator_User_Name
+	  
   FROM [dbo].[v_rpd_data_SECURITY_FIX_base] sec
-
   LEFT JOIN t_Producer_CS_Lookup_Unpivot unpvt
-  ON sec.FromOrganisation_ReferenceNumber = unpvt.Producer_Id;
+  ON sec.FromOrganisation_ReferenceNumber = unpvt.Producer_Id
+  Left Join v_Enrolmentstatus ve
+  on ve.EnrolmentID=sec.Enrolment_Id;
