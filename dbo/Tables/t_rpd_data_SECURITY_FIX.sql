@@ -153,7 +153,13 @@
     [DelegatedPerson_CreatedOn]                                      NVARCHAR (4000) NULL,
     [DelegatedPerson_LastUpdatedOn]                                  NVARCHAR (4000) NULL,
     [DelegatedPerson_IsDeleted]                                      BIT             NULL,
-    [DelegatedPerson_JobTitle]                                       NVARCHAR (4000) NULL
+    [DelegatedPerson_JobTitle]                                       NVARCHAR (4000) NULL,
+    [Status]                                                         NVARCHAR (4000) NULL,
+    [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL,
+    [Decision_Date]                                                  NVARCHAR (4000) NULL,
+    [Regulator_User_Name]                                            NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 

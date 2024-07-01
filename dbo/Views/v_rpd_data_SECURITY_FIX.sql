@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX]
-AS SELECT DISTINCT sec.[Organisations_Id]
+﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX] AS SELECT DISTINCT sec.[Organisations_Id]
       ,sec.[FromOrganisation_TypeId]
       ,sec.[FromOrganisation_Type]
       ,sec.[FromOrganisation_CompaniesHouseNumber]
@@ -154,7 +153,7 @@ AS SELECT DISTINCT sec.[Organisations_Id]
       ,sec.[DelegatedPerson_LastUpdatedOn]
       ,sec.[DelegatedPerson_IsDeleted]
       ,sec.[DelegatedPerson_JobTitle]
-	  ,ve.Regulator_Status
+	  ,ve.[Status]
 	  ,ve.Regulator_Rejection_Comments
 	  ,ve.Decision_Date
 	  ,ve.Regulator_User_Name
