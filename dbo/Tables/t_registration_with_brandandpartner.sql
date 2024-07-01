@@ -255,9 +255,15 @@
     [cosmos_file_name]                                               NVARCHAR (4000) NULL,
     [cosmos_load_ts]                                                 DATETIME2 (7)   NULL,
     [SubmtterEmail]                                                  NVARCHAR (4000) NULL,
-    [ServiceRoles_Name]                                              NVARCHAR (4000) NULL
+    [ServiceRoles_Name]                                              NVARCHAR (4000) NULL,
+    [Decision_Date]                                                  NVARCHAR (4000) NULL,
+    [Regulator_Status]                                               NVARCHAR (4000) NULL,
+    [Regulator_User_Name]                                            NVARCHAR (4000) NULL,
+    [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 
