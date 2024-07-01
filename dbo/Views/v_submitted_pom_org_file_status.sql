@@ -17,13 +17,10 @@ SELECT distinct
 		,se.[UserId]
 		,Row_Number() Over(Partition by c.[filename] order by se.[created]  desc) as RowNumber
   FROM [rpd].[cosmos_file_metadata] c
-  lEFT JOIN [rpd].[SubmissionEvents] se on se.[SubmissionId] = c.[SubmissionId]
+  lEFT JOIN [rpd].[SubmissionEvents] se on se.fileid = c.fileid and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision')
   lEFT JOIN [rpd].[Users] u on se.[Userid] = u.[userid] and u.[isdeleted] = 0
   lEFT JOIN rpd.[persons] p on u.[id] =p.[userid] and p.[isdeleted] = 0
-  WHERE se.[type] in (
-					'RegulatorPoMDecision',
-					'RegulatorRegistrationDecision'
-					)
+  
 ) 
 
 select sfs.SubmissionId
