@@ -153,7 +153,7 @@ a.[Organisations_Id],a.[FromOrganisation_TypeId]
 ,a.[DelegatedPerson_LastUpdatedOn]
 ,a.[DelegatedPerson_IsDeleted]
 ,a.[DelegatedPerson_JobTitle]
-,a.Regulator_Status
+,a.[Status]
 ,a.Regulator_Rejection_Comments
 ,a.Decision_Date
 ,a.Regulator_User_Name
