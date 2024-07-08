@@ -234,6 +234,5 @@
     <Build Include="dbo\Views\v_Enrolmentstatus.sql" />
     <Build Include="rpd\Tables\Submissions.sql" />
     <Build Include="rpd\Tables\SubmissionEvents.sql" />
-    <Build Include="dbo\Views\v_enrolment_report.sql" />
   </ItemGroup>
 </Project>
