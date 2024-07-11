@@ -48,8 +48,8 @@ LEFT JOIN (
 		FROM [rpd].[AuditLogs]
 		WHERE Entity = 'Enrolment' and (userid is not null or organisationid is not null)  -- remove all after and
 		) a
-	LEFT JOIN [rpd].[Users] u ON u.userid = a.userid
-	LEFT JOIN rpd.persons p ON p.userid = u.id
+	LEFT JOIN [rpd].[Users] u ON u.userid = a.userid and  u.isdeleted=0
+	LEFT JOIN rpd.persons p ON p.userid = u.id and p.isdeleted = 0
 	WHERE RN = 1
 	) Auditlogs ON Auditlogs.[ExternalId] = e.[ExternalId]
 WHERE e.EnrolmentStatusId <> 4;
