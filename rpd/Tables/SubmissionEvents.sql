@@ -9,7 +9,7 @@
     [UserEmail]                NVARCHAR (4000) NULL,
     [Comments]                 NVARCHAR (4000) NULL,
     [RegistrationSetId]        NVARCHAR (4000) NULL,
-    [IsResubmissionRequired]   NVARCHAR (4000) NULL,
+    [IsResubmissionRequired]   BIT             NULL,
     [SubmissionEventId]        NVARCHAR (4000) NULL,
     [DataCount]                INT             NULL,
     [RowErrorCount]            INT             NULL,
@@ -44,4 +44,6 @@
     [load_ts]                  DATETIME2 (7)   NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
