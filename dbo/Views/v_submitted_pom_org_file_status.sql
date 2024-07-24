@@ -9,10 +9,10 @@ SELECT distinct
 		,c.[TargetDirectoryName]
 		,se.[created]  AS Decision_Date
 		,se.[Decision] AS Regulator_Status
-		,se.[RegulatorDecision]
+		,'' AS [RegulatorDecision] --not represented in Cosmos DB
 		,ISNULL(p.[FirstName],'') +' '+ ISNULL(p.[LastName],'') as Regulator_User_Name
 		,se.[Comments]  AS Regulator_Rejection_Comments
-		,se.[RejectionComments]
+		,'' AS [RejectionComments] --not represented in Cosmos DB
 		,se.[type]
 		,se.[UserId]
 		,Row_Number() Over(Partition by c.[filename] order by se.[created]  desc) as RowNumber
