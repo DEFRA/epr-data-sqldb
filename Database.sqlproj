@@ -209,7 +209,6 @@
     <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
     <Build Include="dbo\Tables\t_POM_Filters.sql" />
     <Build Include="dbo\Tables\t_POM_Com_Landing_Filter.sql" />
-    <Build Include="dbo\Tables\t_pom_codes_1.sql" />
     <Build Include="dbo\Tables\POM_Filters.sql" />
     <Build Include="dbo\Views\v_registration_latest.sql" />
     <Build Include="dbo\Views\v_Producer_CS_Lookup_Unpivot.sql" />
