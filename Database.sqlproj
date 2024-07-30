@@ -192,7 +192,6 @@
     <Build Include="dbo\Views\v_POM_Operator_Submissions.sql" />
     <Build Include="dbo\Views\v_POM_All_Submissions.sql" />
     <Build Include="dbo\Stored Procedures\GenerateTableFromView.sql" />
-    <Build Include="dbo\Tables\rpt_PoM_Codes.sql" />
     <Build Include="dbo\Views\v_SecurityQuery.sql" />
     <Build Include="dbo\Views\v_PoM_Codes.sql" />
     <Build Include="dbo\Views\v_Nations_guids.sql" />
