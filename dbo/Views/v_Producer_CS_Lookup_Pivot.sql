@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_Producer_CS_Lookup_Pivot]
-AS SELECT DISTINCT Producer_Id
+﻿CREATE VIEW [dbo].[v_Producer_CS_Lookup_Pivot] AS SELECT DISTINCT Producer_Id
 ,Producer_Name
 ,Operator_Id
 ,Operator_Name
@@ -161,7 +160,7 @@ SELECT * FROM (
     FROM rpd.Organisations o
 
     LEFT JOIN rpd.OrganisationsConnections oc
-    ON o.Id = oc.FromOrganisationId
+    ON o.Id = oc.FromOrganisationId and oc.isdeleted = 0  -- Where the Organisation has enrolleda and been a CS member and moved again to DP.
 
     JOIN rpd.Nations n
     ON o.NationId = n.Id
