@@ -25,3 +25,6 @@ dbo,InterPersonRoles,Full,
 dbo,LaOrganisations,INCR,Id
 dbo,RegulatorComments,INCR,ExternalId
 dbo,ProducerTypes,FULL,
+dbo,OrganisationRelationshipTypes,FULL,
+dbo,OrganisationRelationships,INCR,Id
+dbo,OrganisationRegistrationTypes,FULL,
