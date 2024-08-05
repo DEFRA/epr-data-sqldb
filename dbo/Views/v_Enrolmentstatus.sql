@@ -43,7 +43,7 @@ LEFT JOIN (
 	FROM (
 		SELECT *
 			,Row_Number() OVER (
-				PARTITION BY organisationid ORDER BY [Timestamp] DESC
+				PARTITION BY organisationid, [ExternalId] ORDER BY [Timestamp] DESC  -- added 05/08/2024 [ExternalId]
 				) AS RN
 		FROM [rpd].[AuditLogs]
 		WHERE Entity = 'Enrolment' and (userid is not null or organisationid is not null)  -- remove all after and
