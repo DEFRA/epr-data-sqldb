@@ -20,7 +20,7 @@
     ,ServicesAndRoles.Services_Service
     ,ServicesAndRoles.Services_Description
 
-    FROM [rpd].[Enrolments] EnrolmentsTable
+    FROM dbo.v_rpd_Enrolments_Active EnrolmentsTable
     left join rpd.EnrolmentStatuses EnrolmentStatusesTable
     on EnrolmentsTable.EnrolmentStatusId = EnrolmentStatusesTable.Id
 
@@ -90,11 +90,11 @@ cte_Enrolments_And_DP as (
 
     FROM [dbo].[v_Enrolments] a
 
-    left join [rpd].[DelegatedPersonEnrolments] b
+    left join dbo.v_rpd_DelegatedPersonEnrolments_Active b
 
     on a.Enrolment_Id = b.EnrolmentId
 
-    left join rpd.DelegatedPersonEnrolments c
+    left join dbo.v_rpd_DelegatedPersonEnrolments_Active c
 
     on a.Enrolment_Id = c.NominatorEnrolmentId
 ),
@@ -124,7 +124,7 @@ cte_PersonOrganisationConnections as (
     ,PersonsAndUsers.Users_InviteToken
     ,PersonsAndUsers.Users_InvitedBy
 
-    from rpd.PersonOrganisationConnections POCTable
+    from dbo.v_rpd_PersonOrganisationConnections_Active POCTable
     left join rpd.OrganisationToPersonRoles OrgToPersonRolesTable
     on POCTable.OrganisationRoleId = OrgToPersonRolesTable.Id
 
@@ -145,8 +145,8 @@ cte_PersonOrganisationConnections as (
         ,UsersTable.IsDeleted as Users_IsDeleted
         ,UsersTable.InviteToken as Users_InviteToken
         ,UsersTable.InvitedBy as Users_InvitedBy
-        from rpd.Persons PersonsTable
-        left join rpd.Users UsersTable
+        from dbo.v_rpd_Persons_Active PersonsTable
+        left join dbo.v_rpd_Users_Active UsersTable
         on PersonsTable.UserId = UsersTable.Id
     ) PersonsAndUsers
     on POCTable.PersonId = PersonsAndUsers.Persons_Id
@@ -182,9 +182,9 @@ cte_ComplianceSchemes as (
     ,ComplianceSchemesTable.IsDeleted as ComplianceSchemes_IsDeleted
     ,ComplianceSchemesTable.CompaniesHouseNumber as ComplianceSchemes_CompaniesHouseNumber
 
-    from rpd.SelectedSchemes SelectedSchemesTable
+    from dbo.v_rpd_SelectedSchemes_Active SelectedSchemesTable
 
-    left join rpd.ComplianceSchemes ComplianceSchemesTable
+    left join dbo.v_rpd_ComplianceSchemes_Active ComplianceSchemesTable
 
     on SelectedSchemesTable.ComplianceSchemeId = ComplianceSchemesTable.Id
 ),
@@ -198,7 +198,7 @@ cte_OrganisationConnections as (
     ,[CreatedOn] as OrganisationConnections_CreatedOn
     ,[LastUpdatedOn] as OrganisationConnections_LastUpdatedOn
     ,[IsDeleted] as OrganisationConnections_IsDeleted
-    FROM [rpd].[OrganisationsConnections]
+    FROM dbo.v_rpd_OrganisationsConnections_Active
 ),
 
 cte_OrganisationConnectionsAndComplianceSchemes as (

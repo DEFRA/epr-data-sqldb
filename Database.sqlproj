@@ -237,5 +237,15 @@
     <Build Include="dbo\Views\v_Large_Producers.sql" />
     <Build Include="dbo\Views\v_extract_recent_pom_org_data.sql" />
     <Build Include="dbo\Views\v_enrolment_report.sql" />
+    <Build Include="dbo\Views\v_rpd_Users_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_SelectedSchemes_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_RegulatorComments_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_Persons_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_PersonOrganisationConnections_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_OrganisationsConnections_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_Organisations_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_Enrolments_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_DelegatedPersonEnrolments_Active.sql" />
+    <Build Include="dbo\Views\v_rpd_ComplianceSchemes_Active.sql" />
   </ItemGroup>
 </Project>

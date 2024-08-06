@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_Large_Producers]
-AS select 
+﻿CREATE VIEW [dbo].[v_Large_Producers] AS select 
 	--Reporting_year, Organisation_name, Trading_name, Companies_House_number, RPD_Organisation_ID, Subsidiary_ID, Address_line_1, Address_line_2, Town, County, Country, Postcode
 		
 		RPD_Organisation_ID,		submission_period,		Compliance_scheme,		Companies_House_number,		Subsidiary_ID,		Organisation_name,
@@ -81,9 +80,9 @@ AS select
 									ON p.Organisation_id = v.organisation_id
 										and isnull(p.subsidiary_id,'') = isnull(v.subsidiary_id,'')
 										and v.Reporting_year = '20'+reverse(substring(reverse(trim(meta.SubmissionPeriod)),1,2))
-								LEFT JOIN rpd.ComplianceSchemes cs
+								LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active cs
 									ON meta.ComplianceSchemeId = cs.ExternalId
-								left JOIN rpd.Organisations prr
+								left JOIN dbo.v_rpd_Organisations_Active prr
 									ON p.organisation_id = prr.ReferenceNumber
 								LEFT JOIN rpd.Nations producernation   
 									ON prr.NationId = producernation.Id
@@ -164,9 +163,9 @@ AS select
 							FROM [rpd].[CompanyDetails] cd
  							left join [dbo].[v_cosmos_file_metadata] meta
 								on meta.FileName = cd.FileName
-							LEFT JOIN rpd.ComplianceSchemes cs
+							LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active cs
 								ON meta.ComplianceSchemeId = cs.ExternalId
-							left JOIN rpd.Organisations pr
+							left JOIN dbo.v_rpd_Organisations_Active pr
 								ON cd.organisation_id = pr.ReferenceNumber
 							LEFT JOIN rpd.Nations producernation 
 								ON pr.NationId = producernation.Id
