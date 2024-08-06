@@ -50,8 +50,8 @@
 FROM [dbo].[t_POM_Submissions] original
 	 join ( select cosmos.filename, cs.name, cs.companieshousenumber
   from [dbo].[v_cosmos_file_metadata] cosmos
-  join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
+  join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
   group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = original.filename
 --     JOIN v_Producer_CS_Lookup replacement
 --    ON original.organisation_id = replacement.Producer_Id;
-join rpd.organisations replacement on replacement.companieshousenumber = csname.companieshousenumber;
+join dbo.v_rpd_Organisations_Active replacement on replacement.companieshousenumber = csname.companieshousenumber;

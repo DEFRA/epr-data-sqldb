@@ -10,7 +10,7 @@ SELECT DISTINCT
     o.[CompaniesHouseNumber] ch_number,
 	p.organisation_size
 FROM  rpd.Pom p
-JOIN [rpd].[Organisations] o ON o.[ReferenceNumber] = p.organisation_id
+JOIN dbo.v_rpd_Organisations_Active o ON o.[ReferenceNumber] = p.organisation_id
 WHERE p.FileName = @fn1
 	AND @fn1 != @fn2
 	  ),
@@ -24,7 +24,7 @@ SELECT DISTINCT
     o.[CompaniesHouseNumber] ch_number,
 	p.organisation_size
 FROM  rpd.Pom p
-JOIN [rpd].[Organisations] o ON o.[ReferenceNumber] = p.organisation_id
+JOIN dbo.v_rpd_Organisations_Active o ON o.[ReferenceNumber] = p.organisation_id
 WHERE p.FileName = @fn2
 	AND @fn1 != @fn2 
 	  ),

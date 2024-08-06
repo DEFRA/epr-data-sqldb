@@ -7,7 +7,7 @@
     ,enrolments.LastUpdatedOn as Enrolments_LastUpdatedOn
     ,ROW_NUMBER() OVER (PARTITION BY enrolments.ConnectionId ORDER BY enrolments.LastUpdatedOn DESC) AS RowNum
 
-    from rpd.Enrolments enrolments
+    from dbo.v_rpd_Enrolments_Active enrolments
 
     left join rpd.ServiceRoles serviceroles
     on enrolments.ServiceRoleId = serviceroles.Id
@@ -20,10 +20,10 @@ cte_persons as (
         ,p.Email as Submitter_Email
         ,poc.Id as POC_Id
         ,u.UserId 
-    from rpd.Persons p
-    join rpd.PersonOrganisationConnections poc
+    from dbo.v_rpd_Persons_Active p
+    join dbo.v_rpd_PersonOrganisationConnections_Active poc
         on p.Id = poc.PersonId
-    join rpd.users u 
+    join dbo.v_rpd_Users_Active u 
         on u.id = p.UserId
 )
 

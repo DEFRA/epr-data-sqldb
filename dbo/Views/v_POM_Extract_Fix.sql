@@ -52,10 +52,10 @@ JOIN [dbo].[v_rpd_data_SECURITY_FIX] dsf on p.[organisation_id]  = dsf.[FromOrga
 
 LEFT JOIN ( select cosmos.filename, cs.name, cs.companieshousenumber
 				from [dbo].[v_cosmos_file_metadata] cosmos
-				join  rpd.complianceschemes cs on cs.externalid = cosmos.[ComplianceSchemeId]
+				join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
 				group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = p.filename
 				
-LEFT JOIN rpd.organisations replacement on replacement.companieshousenumber = csname.companieshousenumber
+LEFT JOIN dbo.v_rpd_Organisations_Active replacement on replacement.companieshousenumber = csname.companieshousenumber
 
 JOIN [dbo].[v_cosmos_file_metadata] meta  on p.filename = meta.filename
 
