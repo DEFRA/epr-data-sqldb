@@ -260,5 +260,5 @@ a.[organisation_id]
 FROM [rpd].[CompanyDetails] a -- Registration
 JOIN [v_rpd_data_SECURITY_FIX] b ON a.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
 JOIN [dbo].[v_cosmos_file_metadata] c ON a.FileName = c.FileName
-LEFT JOIN [rpd].[ComplianceSchemes]	 d ON c.ComplianceSchemeId = d.externalid
+LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active	 d ON c.ComplianceSchemeId = d.externalid
 LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = a.filename;

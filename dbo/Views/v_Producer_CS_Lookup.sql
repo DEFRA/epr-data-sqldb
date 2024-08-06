@@ -9,21 +9,21 @@ cs.[CompaniesHouseNumber] as Operator_CompaniesHouseNumber
 ,cs.[Id] as ComplianceScheme_Id
 ,csn.Name as ComplianceScheme_Nation
 
-FROM [rpd].[ComplianceSchemes] cs
+FROM dbo.v_rpd_ComplianceSchemes_Active cs
 
 JOIN rpd.Nations csn
 ON cs.NationId = csn.Id
 
-JOIN rpd.Organisations o
+JOIN dbo.v_rpd_Organisations_Active o
 ON cs.CompaniesHouseNumber = o.CompaniesHouseNumber
 
-JOIN rpd.SelectedSchemes ss
+JOIN dbo.v_rpd_SelectedSchemes_Active ss
 ON cs.Id = ss.ComplianceSchemeId
 
-JOIN rpd.OrganisationsConnections oc
+JOIN dbo.v_rpd_OrganisationsConnections_Active oc
 ON ss.OrganisationConnectionId = oc.Id
 
-JOIN rpd.Organisations org
+JOIN dbo.v_rpd_Organisations_Active org
 ON oc.FromOrganisationId = org.Id
 
 JOIN rpd.Nations pn
