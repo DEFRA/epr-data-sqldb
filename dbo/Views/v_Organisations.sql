@@ -15,8 +15,7 @@ CTE_OrganisationsConnections as (
     ,[LastUpdatedOn]
     ,[IsDeleted]
     ,[load_ts]
-    FROM [rpd].[OrganisationsConnections]
-    -- where IsDeleted = 'False'
+    FROM [dbo].[v_rpd_OrganisationsConnections_Active]
 ),
 
 CTE_FromOrganisationRoles as (
@@ -40,14 +39,14 @@ CTE_ToOrganisationRoles as (
 CTE_SelectedSchemes as (
     select OrganisationConnectionId
     ,ComplianceSchemeId
-    from rpd.SelectedSchemes
+    from [dbo].[v_rpd_SelectedSchemes_Active]
 ),
 
 CTE_ComplianceSchemes as (
     select Id as ComplianceSchemeId
     ,Name as ComplianceSchemeName
     ,CompaniesHouseNumber as ComplianceSchemeCompaniesHouseNumber
-    from rpd.ComplianceSchemes
+    from [dbo].[v_rpd_ComplianceSchemes_Active]
 ),
 
 CTE_SelectedSchemes_ComplianceSchemes as (
@@ -103,7 +102,7 @@ CTE_Main_Organisations as (
     ,[IsDeleted]
     ,[ProducerTypeId]
     ,[TransferNationId]
-    FROM [rpd].[Organisations]
+    FROM [dbo].[v_rpd_Organisations_Active]
 ),
 
 CTE_Main_FromOrganisations as (
@@ -159,12 +158,12 @@ CTE_Enrolments as (
     ,c.ServiceKey
     ,c.ServiceDescription
     ,c.ServiceName
-    from rpd.Enrolments a
+    from [dbo].[v_rpd_Enrolments_Active] a
     join rpd.EnrolmentStatuses b
     on a.EnrolmentStatusId = b.Id
     join CTE_ServiceRoles c
     on a.ServiceRoleId = c.ServiceRoleId
-    -- where a.IsDeleted = 'False'
+	-- where a.IsDeleted = 'False'
 ),
 
 CTE_Persons as (
@@ -175,10 +174,10 @@ CTE_Persons as (
     ,a.Id as PersonsId
     ,b.Email as ExternalEmail
     ,b.InvitedBy
-    from rpd.Persons a
+    from [dbo].[v_rpd_Persons_Active] a
     left join rpd.Users b
     on a.UserId = b.Id
-    -- where a.IsDeleted = 'False'
+	-- where a.IsDeleted = 'False'
 ),
 
 CTE_PersonOrganisationConnections as (
@@ -188,7 +187,7 @@ CTE_PersonOrganisationConnections as (
     ,c.Name as PersonInOrganisationRole
     ,d.*
     ,e.*
-    from rpd.PersonOrganisationConnections a
+    from [dbo].[v_rpd_PersonOrganisationConnections_Active] a
     left join rpd.OrganisationToPersonRoles b
     on a.OrganisationRoleId = b.Id
     left join rpd.PersonInOrganisationRoles c
@@ -197,7 +196,7 @@ CTE_PersonOrganisationConnections as (
     on a.Id = d.ConnectionId
     left join CTE_Persons e
     on a.PersonId = e.PersonsId
-    -- where a.IsDeleted = 'False'
+	-- where a.IsDeleted = 'False'
 ),
 
 CTE_MainBody as (
