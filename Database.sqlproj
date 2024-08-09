@@ -247,5 +247,10 @@
     <Build Include="dbo\Views\v_rpd_Enrolments_Active.sql" />
     <Build Include="dbo\Views\v_rpd_DelegatedPersonEnrolments_Active.sql" />
     <Build Include="dbo\Views\v_rpd_ComplianceSchemes_Active.sql" />
+    <Build Include="rpd\Tables\SubsidiaryOrganisations.sql" />
+    <Build Include="rpd\Tables\OrganisationRelationshipTypes.sql" />
+    <Build Include="rpd\Tables\OrganisationRelationships.sql" />
+    <Build Include="rpd\Tables\OrganisationRegistrationTypes.sql" />
+    <Build Include="dbo\Views\v_subsidiaryorganisations_1.sql" />
   </ItemGroup>
 </Project>
