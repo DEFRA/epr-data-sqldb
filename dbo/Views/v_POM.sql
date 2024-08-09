@@ -1,6 +1,7 @@
 ﻿CREATE VIEW [dbo].[v_POM] AS SELECT 
 	p.organisation_id,
 	p.subsidiary_id, 
+	so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
 	p.organisation_size,
 	'' as organisation_sub_type_code,
 	sp.Text submission_period,
@@ -55,4 +56,8 @@ LEFT JOIN dbo.t_PoM_Codes tn ON tn.Code = p.to_country
 								AND tn.Type = 'nation'
 LEFT JOIN dbo.t_PoM_Codes fn ON fn.Code = p.from_country 
 								AND fn.Type = 'nation'
-LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName;
+LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName
+LEFT JOIN dbo.v_subsidiaryorganisations so 
+	on so.FirstOrganisation_ReferenceNumber = p.organisation_id
+		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(p.subsidiary_id),'')
+			and so.RelationToDate is NULL;
