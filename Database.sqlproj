@@ -252,5 +252,6 @@
     <Build Include="rpd\Tables\OrganisationRelationships.sql" />
     <Build Include="rpd\Tables\OrganisationRegistrationTypes.sql" />
     <Build Include="dbo\Views\v_subsidiaryorganisations_1.sql" />
+    <Build Include="dbo\Views\v_SubsidiaryExtract.sql" />
   </ItemGroup>
 </Project>
