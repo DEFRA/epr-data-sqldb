@@ -1,24 +1,27 @@
 ﻿CREATE VIEW [dbo].[v_SubsidiaryExtract] AS with base_data as (
-				select OrganisationId
-				, SubmissionPeriod
-				, case when SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
-						when SubmissionPeriod = 'July to December 2023' then 2
-						when SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
-						when SubmissionPeriod = 'July to December 2024' then 4
-						when SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
-						when SubmissionPeriod = 'July to December 2025' then 6
-						when SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
-						when SubmissionPeriod = 'July to December 2026' then 8
-						when SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
-						when SubmissionPeriod = 'July to December 2027' then 10
-						when SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
-						when SubmissionPeriod = 'July to December 2028' then 12
+				select m.OrganisationId
+				, m.SubmissionPeriod
+				, case when m.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
+						when m.SubmissionPeriod = 'July to December 2023' then 2
+						when m.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
+						when m.SubmissionPeriod = 'July to December 2024' then 4
+						when m.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
+						when m.SubmissionPeriod = 'July to December 2025' then 6
+						when m.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
+						when m.SubmissionPeriod = 'July to December 2026' then 8
+						when m.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
+						when m.SubmissionPeriod = 'July to December 2027' then 10
+						when m.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
+						when m.SubmissionPeriod = 'July to December 2028' then 12
 						else 0
 						end as SubmissionPeriod_id
-				, CONVERT(DATETIME,substring(Created,1,23)) as Submission_time
-				, FileType
-				, filename
-				from rpd.cosmos_file_metadata
+				, CONVERT(DATETIME,substring(m.Created,1,23)) as Submission_time
+				, m.FileType
+				, m.filename
+				, st.Regulator_Status
+				from rpd.cosmos_file_metadata m
+				inner join dbo.v_submitted_pom_org_file_status st on m.filename = st.FileName
+				where UPPER(TRIM(ISNULL(Regulator_Status,''))) <> 'REJECTED'
 				),
 latest_CompanyDetails as
 (
@@ -32,8 +35,9 @@ latest_CompanyDetails as
 	) A
 	where cd_rn = 1
 	
-),
-latest_pom as
+)
+,
+/*latest_pom as
 (
 	select *
 	from
@@ -59,6 +63,14 @@ inner join latest_CompanyDetails cd
 	and p.SubmissionPeriod_id = cd.SubmissionPeriod_id
 left join rpd.organisations o on p.OrganisationId = o.ExternalId
 
+)*/
+org_pom_combined as 
+(
+select 
+	o.ReferenceNumber as file_submitted_organisation, o.IsComplianceScheme as file_submitted_organisation_IsComplianceScheme,
+	cd.OrganisationId, cd.SubmissionPeriod, cd.SubmissionPeriod_id, cd.Submission_time as cd_Submission_time, cd.FileType as cd_filetype, cd.filename as cd_filename
+from latest_CompanyDetails cd 
+left join rpd.organisations o on cd.OrganisationId = o.ExternalId
 ),
 sub_data as 
 (
@@ -89,7 +101,14 @@ sub_data as
 				)
 		)
 	and trim(upper(cd.subsidiary_id)) not in ('N/A', 'NA', 'NOT SET', '-', 'NONE') --Ignore bad data
-	and org.IsComplianceScheme = 0 --Pick only direct producer
+	and org.IsComplianceScheme = 0 --Pick only direct producer, if CS id entered in the org file it should be ignored
 )
-select *, ROW_NUMBER() OVER(ORDER BY organisation_id, subsidiary_id) as RN
-from sub_data;
+select sub_data.*
+	, ROW_NUMBER() OVER(ORDER BY sub_data.organisation_id, sub_data.subsidiary_id) as RN
+from sub_data
+left join [dbo].[v_subsidiaryorganisations] vs 
+	on sub_data.organisation_id = vs.FirstOrganisation_ReferenceNumber
+		and TRIM(ISNULL(sub_data.subsidiary_id,'')) = TRIM(ISNULL(vs.SubsidiaryId,''))
+		and TRIM(ISNULL(sub_data.companies_house_number,'')) = TRIM(ISNULL(vs.SecondOrganisation_CompaniesHouseNumber,''))
+where sub_data.subsidiary_id not in (select ReferenceNumber from rpd.organisations)-- this is to ignore if user defined sub id is same as system generated sub id
+and vs.FirstOrganisationId IS NULL;
