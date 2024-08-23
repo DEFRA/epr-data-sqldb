@@ -1,4 +1,13 @@
 ﻿CREATE VIEW [dbo].[v_registration_latest] AS WITH lsubmitted AS (
+/*****************************************************************************************************************
+	History:
+
+	Updated 2024-07-23: ST001:	Updated underlying logic for Organisation Detail columns: org_name, org_sub_type and registration_type_code
+								Previously using the latest submitted file - now using the most recently accepted based on the decision date
+								When there is no accepted file -  reverts to using the latest submitted
+
+
+ *****************************************************************************************************************/
 SELECT  distinct
 	rv.organisation_id,
 	rv.subsidiary_id,
