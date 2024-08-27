@@ -104,7 +104,7 @@ sub_data as
 	and org.IsComplianceScheme = 0 --Pick only direct producer, if CS id entered in the org file it should be ignored
 )
 select sub_data.*
-	, ROW_NUMBER() OVER(ORDER BY sub_data.organisation_id, sub_data.subsidiary_id) as RN
+	, ROW_NUMBER() OVER(ORDER BY sub_data.organisation_id, sub_data.subsidiary_id) as RowNumber
 from sub_data
 left join [dbo].[v_subsidiaryorganisations] vs 
 	on sub_data.organisation_id = vs.FirstOrganisation_ReferenceNumber
