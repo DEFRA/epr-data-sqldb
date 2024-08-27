@@ -176,7 +176,7 @@ SELECT DISTINCT fj.OrganisationName
 	,fj.packaging_class
 	,fj.packaging_sub_material
 	,fj.to_nation
-	,r.org_name  /** ST001: **/
+	,r.[organisation_name] as org_name  /** ST001: **/ --- changed by TS set the org name
 	,fj.Quantity_kg_extrapolated_diff
 	,CASE 
 		WHEN fj.packaging_type IN (

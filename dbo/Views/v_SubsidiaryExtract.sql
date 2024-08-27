@@ -21,7 +21,7 @@
 				, st.Regulator_Status
 				from rpd.cosmos_file_metadata m
 				inner join dbo.v_submitted_pom_org_file_status st on m.filename = st.FileName
-				where UPPER(TRIM(ISNULL(Regulator_Status,''))) <> 'REJECTED'
+				where UPPER(TRIM(ISNULL(Regulator_Status,''))) not in ('REJECTED', '')
 				),
 latest_CompanyDetails as
 (
@@ -104,7 +104,7 @@ sub_data as
 	and org.IsComplianceScheme = 0 --Pick only direct producer, if CS id entered in the org file it should be ignored
 )
 select sub_data.*
-	, ROW_NUMBER() OVER(ORDER BY sub_data.organisation_id, sub_data.subsidiary_id) as RN
+	, ROW_NUMBER() OVER(ORDER BY sub_data.organisation_id, sub_data.subsidiary_id) as RowNumber
 from sub_data
 left join [dbo].[v_subsidiaryorganisations] vs 
 	on sub_data.organisation_id = vs.FirstOrganisation_ReferenceNumber
