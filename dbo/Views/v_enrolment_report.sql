@@ -79,5 +79,4 @@ src as (
 
 
 select *
-from src
-WHERE IsLatestEnrolment = 'Latest Enrolment';
+from src;
