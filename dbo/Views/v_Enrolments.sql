@@ -19,7 +19,7 @@
     ,ServicesAndRoles.Services_Service
     ,ServicesAndRoles.Services_Description
 
-    FROM [rpd].[Enrolments] EnrolmentsTable
+    FROM [dbo].[v_rpd_Enrolments_Active] EnrolmentsTable
     left join rpd.EnrolmentStatuses EnrolmentStatusesTable
     on EnrolmentsTable.EnrolmentStatusId = EnrolmentStatusesTable.Id
 
@@ -38,7 +38,7 @@
     ) ServicesAndRoles
     on EnrolmentsTable.ServiceRoleId = ServicesAndRoles.ServiceRoles_Id
 
-    left join rpd.RegulatorComments RegComments
+    left join [dbo].[v_rpd_RegulatorComments_Active] RegComments
     on EnrolmentsTable.Id = RegComments.EnrolmentId
 )
 

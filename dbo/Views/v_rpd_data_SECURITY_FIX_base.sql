@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX_base]
-AS WITH 
+﻿CREATE VIEW [dbo].[v_rpd_data_SECURITY_FIX_base] AS WITH 
 cte_Enrolments_AND_DP AS (
     SELECT 
 		e.[Enrolment_Id],
@@ -46,8 +45,8 @@ cte_Enrolments_AND_DP AS (
         n.[LAStUpdatedon] AS NominatedDelegatedPersonEnrolment_LAStUpdatedon,
         n.[IsDeleted] AS NominatedDelegatedPersonEnrolment_IsDeleted
     FROM dbo.v_Enrolments e
-    LEFT JOIN rpd.DelegatedPersonEnrolments d ON e.Enrolment_Id = d.EnrolmentId
-	LEFT JOIN rpd.DelegatedPersonEnrolments n ON e.Enrolment_Id = n.NominatorEnrolmentId
+    LEFT JOIN dbo.v_rpd_DelegatedPersonEnrolments_Active d ON e.Enrolment_Id = d.EnrolmentId
+	LEFT JOIN dbo.v_rpd_DelegatedPersonEnrolments_Active n ON e.Enrolment_Id = n.NominatorEnrolmentId
 ),
 
 cte_PersonsUsers AS (
@@ -64,8 +63,8 @@ cte_PersonsUsers AS (
         u.IsDeleted AS Users_IsDeleted,
         u.InviteToken AS Users_InviteToken,
         u.InvitedBy AS Users_InvitedBy
-    FROM rpd.Persons AS p
-    LEFT JOIN rpd.Users AS u ON p.UserId = u.Id
+    FROM dbo.v_rpd_Persons_Active AS p
+    LEFT JOIN dbo.v_rpd_Users_Active AS u ON p.UserId = u.Id
 ),
 
 cte_PersonOrganisationConnections AS (
@@ -91,7 +90,7 @@ SELECT
     pu.Users_IsDeleted,
     pu.Users_InviteToken,
     pu.Users_InvitedBy
-FROM rpd.PersonOrganisationConnections AS poc
+FROM dbo.v_rpd_PersonOrganisationConnections_Active AS poc
 LEFT JOIN rpd.OrganisationToPersonRoles AS otpr ON poc.OrganisationRoleId = otpr.Id
 LEFT JOIN rpd.PersonInOrganisationRoles AS pior ON poc.PersonRoleId = pior.Id
 LEFT JOIN cte_PersonsUsers pu ON poc.PersonId = pu.Persons_Id
@@ -121,8 +120,8 @@ SELECT
     cs.CompaniesHouseNumber AS ComplianceSchemes_CompaniesHouseNumber,
 	--LK - Added for CS Nation
 	cs.NationId AS ComplianceSchemes_NationId
-FROM rpd.SelectedSchemes AS ss
-LEFT JOIN rpd.ComplianceSchemes AS cs ON ss.ComplianceSchemeId = cs.Id
+FROM dbo.v_rpd_SelectedSchemes_Active AS ss
+LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active AS cs ON ss.ComplianceSchemeId = cs.Id
 ),
 
 cte_OrganisationConnectionsANDComplianceSchemes AS (
@@ -136,7 +135,7 @@ SELECT
     oc.LastUpdatedOn AS OrganisationConnections_LastUpdatedon,
     oc.IsDeleted AS OrganisationConnections_IsDeleted,
     cs.*
-FROM rpd.OrganisationsConnections oc
+FROM dbo.v_rpd_OrganisationsConnections_Active oc
 LEFT JOIN cte_ComplianceSchemes cs ON oc.Id = cs.SelectedSchemes_OrganisationConnectionId
 WHERE oc.IsDeleted = 0
 ),
@@ -178,7 +177,7 @@ SELECT
     org.ProducerTypeId AS Organisations_ProducerTypeId,
     org.TransferNationId AS Organisations_TransferNationId,
     orgType.Name AS OrganisationTypes_OrganisationType
-FROM rpd.Organisations AS org
+FROM dbo.v_rpd_Organisations_Active AS org
 LEFT JOIN rpd.OrganisationTypes AS orgType ON org.OrganisationTypeId = orgType.Id
 ),
 
@@ -554,11 +553,12 @@ SELECT
 	cs.LastUpdatedOn ComplianceSchemes_LastUpdatedOn,
 	cs.IsDeleted ComplianceSchemes_IsDeleted,
 	cs.CompaniesHouseNumber ComplianceSchemes_CompaniesHouseNumber,
-	cs.ID ComplianceSchemes_Id
-FROM rpd.OrganisationsConnections oc
-LEFT JOIN rpd.organisations o ON o.id = toOrganisationId
-LEFT JOIN rpd.SelectedSchemes ss ON ss.OrganisationConnectionId = oc.id
-LEFT JOIN rpd.ComplianceSchemes cs ON cs.id = ss.ComplianceSchemeId
+	cs.ID ComplianceSchemes_Id,
+	ss.IsDeleted as SelectedSchemes_IsDeleted_new
+FROM dbo.v_rpd_OrganisationsConnections_Active oc
+LEFT JOIN dbo.v_rpd_Organisations_Active o ON o.id = toOrganisationId
+LEFT JOIN dbo.v_rpd_SelectedSchemes_Active ss ON ss.OrganisationConnectionId = oc.id
+LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active cs ON cs.id = ss.ComplianceSchemeId
 UNION
 SELECT
 	o.id Organisations_Id,
@@ -569,9 +569,10 @@ SELECT
 	cs.LastUpdatedOn ComplianceSchemes_LastUpdatedOn,
 	cs.IsDeleted ComplianceSchemes_IsDeleted,
 	cs.CompaniesHouseNumber ComplianceSchemes_CompaniesHouseNumber,
-	cs.ID ComplianceSchemes_Id
-FROM rpd.organisations o
-LEFT JOIN rpd.complianceschemes cs ON cs.CompaniesHouseNumber = o.CompaniesHouseNumber
+	cs.ID ComplianceSchemes_Id,
+	NULL as SelectedSchemes_IsDeleted_new
+FROM dbo.v_rpd_Organisations_Active o
+LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active cs ON cs.CompaniesHouseNumber = o.CompaniesHouseNumber
 ),
 
 cte_rpd_data_all AS
@@ -636,7 +637,8 @@ SELECT
 	d.SelectedSchemes_ComplianceSchemeId,
 	d.SelectedSchemes_CreatedOn,
 	d.SelectedSchemes_LastUpdatedOn,
-	d.SelectedSchemes_IsDeleted,
+	--d.SelectedSchemes_IsDeleted,
+	cst.SelectedSchemes_IsDeleted_new as SelectedSchemes_IsDeleted,
 	ISNULL(cst.ComplianceSchemes_Id, csf.ComplianceSchemes_Id) ComplianceSchemes_Id,
 	ISNULL(cst.ComplianceSchemes_Name, csf.ComplianceSchemes_Name) ComplianceSchemes_Name,
 	ISNULL(cst.ComplianceSchemes_CreatedOn, csf.ComplianceSchemes_CreatedOn) ComplianceSchemes_CreatedOn,

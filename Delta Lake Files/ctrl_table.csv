@@ -28,4 +28,3 @@ dbo,ProducerTypes,FULL,
 dbo,OrganisationRelationshipTypes,FULL,
 dbo,OrganisationRelationships,INCR,Id
 dbo,OrganisationRegistrationTypes,FULL,
-dbo,SubsidiaryOrganisations,INCR,Id

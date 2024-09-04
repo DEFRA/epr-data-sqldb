@@ -66,12 +66,12 @@ a.[SubmissionId]
 ,a.[RegistrationSetId]
 from RankedData a
 
-left  join  rpd.organisations o on a.organisationId = o.externalid and o.isdeleted = 0
-left join  rpd.complianceschemes cs on cs.externalid = a.[ComplianceSchemeId] and cs.isdeleted = 0
+left  join  dbo.v_rpd_Organisations_Active o on a.organisationId = o.externalid and o.isdeleted = 0
+left join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = a.[ComplianceSchemeId] and cs.isdeleted = 0
 left join rpd.nations n on cs.nationid = n.id 
-left join rpd.users u on a.userid = u.userid and u.isdeleted = 0
-left join rpd.persons p on u.id =p.userid and p.isdeleted = 0
-left join rpd.PersonOrganisationConnections poc on p.Id = poc.PersonId and poc.isdeleted = 0
+left join dbo.v_rpd_Users_Active u on a.userid = u.userid and u.isdeleted = 0
+left join dbo.v_rpd_Persons_Active p on u.id =p.userid and p.isdeleted = 0
+left join dbo.v_rpd_PersonOrganisationConnections_Active poc on p.Id = poc.PersonId and poc.isdeleted = 0
 left join  (select enrolments.Id as Enrolments_Id
     ,enrolments.ConnectionId as Enrolments_ConnectionId
     ,enrolments.CreatedOn as Enrolments_CreatedOn
@@ -80,7 +80,7 @@ left join  (select enrolments.Id as Enrolments_Id
     ,enrolments.LastUpdatedOn as Enrolments_LastUpdatedOn
     ,ROW_NUMBER() OVER (PARTITION BY enrolments.ConnectionId ORDER BY enrolments.LastUpdatedOn DESC) AS RowNum
 
-    from rpd.Enrolments enrolments
+    from dbo.v_rpd_Enrolments_Active enrolments
 
     left join rpd.ServiceRoles serviceroles
     on enrolments.ServiceRoleId = serviceroles.Id) roles on roles.Enrolments_ConnectionId = poc.id and roles.RowNum = 1
