@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_enrolment_report] AS With enrolmentBase as (
+﻿CREATE VIEW [dbo].[v_enrolment_report]
+AS With enrolmentBase as (
 
 Select 
 	 ApprovedPerson_Email
@@ -37,11 +38,17 @@ Select
 	,Case When[FromOrganisation_IsComplianceScheme]=1 Then 'Compliance Scheme' Else 'Producer' End [PCS_or_DP]
 	,[Security_Id]
     ,[SecurityQuery]
+	,ComplianceSchemes_Id
+	,[OrganisationConnections_CreatedOn]
+	--,OrganisationConnections_IsDeleted
 	
 
 From
-	[dbo].t_rpd_data_SECURITY_FIX
+	[dbo].[v_rpd_data_SECURITY_FIX_for_enrolment] 
+
 ),
+
+
 
 /** SN001: Added to get latest Compliance Scheme Name **/
 LtstCS as (
@@ -51,7 +58,7 @@ LtstCS as (
 				,ComplianceSchemes_Name AS ComplianceSchemes_Name_lcs
 				,SelectedSchemes_IsDeleted AS SelectedSchemes_IsDeleted_lcs
 				,Case When 
-					Dense_Rank () over(partition by [FromOrganisation_ReferenceNumber] Order By cONVERT(DATETIME,substring([Enrolment_CreatedOn_str],1,23)) Desc) = 1 
+					Dense_Rank () over(partition by [FromOrganisation_ReferenceNumber] Order By cONVERT(DATETIME,substring([OrganisationConnections_CreatedOn],1,23)) Desc) = 1 
 						--And Isnull(SelectedSchemes_IsDeleted,0) = 0 
 					Then 1 
 					Else 0 
@@ -63,20 +70,24 @@ LtstCS as (
 src as (
 		Select 	 
 			 eb.*
+			
 			,Case When DENSE_RANK() over(partition by [FromOrganisation_ReferenceNumber],ServiceRoles_Role
 				Order By Convert(DATETIME,substring(eb.[Enrolment_CreatedOn_str],1,23)) Desc)=1 
-					--And Isnull(SelectedSchemes_IsDeleted,0) = 0 
+					And Isnull(SelectedSchemes_IsDeleted,0) = 0 
 						then 'Latest Enrolment' 
 				Else 'Old Enrolment' 
 			End IsLatestEnrolment
-			,Case When ISNULL([ComplianceSchemes_Name],'') <> '' Then 'CS Member' Else 'Direct Producer' End [CSorDP]
+			
+			,Case 
+				When ISNULL([ComplianceSchemes_Name],'') <> '' Then 'CS Member'			
+			Else 'Direct Producer' End [CSorDP]
 			,Enrolment_CreatedOn=CONVERT(DATETIME,substring(eb.[Enrolment_CreatedOn_str],1,23))
 			,LtstCS.ComplianceSchemes_Name_lcs AS Latest_ComplianceScheme		/** SN001: Added **/
 		From 
-			enrolmentBase eb
-		Inner Join LtstCS  on eb.FromOrganisation_ReferenceNumber=LtstCS.FromOrganisation_ReferenceNumber_lcs and LtstCS.Is_LatestCS=1 
+			enrolmentBase eb  
+		inner Join LtstCS  on eb.FromOrganisation_ReferenceNumber=LtstCS.FromOrganisation_ReferenceNumber_lcs and LtstCS.Is_LatestCS=1 
+		
 )
 
 
-select *
-from src;
+select * from src;

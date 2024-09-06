@@ -21,7 +21,7 @@
 				, st.Regulator_Status
 				from rpd.cosmos_file_metadata m
 				inner join dbo.v_submitted_pom_org_file_status st on m.filename = st.FileName
-				where UPPER(TRIM(ISNULL(Regulator_Status,''))) not in ('REJECTED', '')
+				where UPPER(TRIM(ISNULL(Regulator_Status,''))) <> 'REJECTED'
 				),
 latest_CompanyDetails as
 (
