@@ -535,5 +535,5 @@ LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active	 d ON c.ComplianceSchemeId = d.exte
 LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = rbp.filename
 LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = rbp.organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(rbp.subsidiary_id),'')
+		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(rbp.subsidiary_id),'') and ISNULL(TRIM(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(rbp.[companies_house_number]), '')
 			and so.RelationToDate is NULL;
