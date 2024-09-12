@@ -8,11 +8,11 @@ BEGIN
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
            Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
-           compliance_scheme, registration_type_code
+           compliance_scheme, registration_type_code, so.[SecondOrganisation_CompaniesHouseNumber]
     FROM dbo.t_POM_Submissions_POM_Comparison
 	LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
+		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
 			and so.RelationToDate is NULL -- added new sys gen subsidiary id
     WHERE nation = @securityquery
       AND FileName = @filename1
@@ -24,11 +24,11 @@ file2 AS (
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
            Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
-           compliance_scheme, registration_type_code
+           compliance_scheme, registration_type_code, so.[SecondOrganisation_CompaniesHouseNumber]
     FROM dbo.t_POM_Submissions_POM_Comparison
 	LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
+		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
 			and so.RelationToDate is NULL -- added new sys gen subsidiary id
     WHERE nation = @securityquery
       AND FileName = @filename2
@@ -39,6 +39,8 @@ file_joined_1 AS (
 	SELECT COALESCE(a.organisation_id, b.organisation_id) AS OrganisationName,
 	       COALESCE(a.subsidiary_id, b.subsidiary_id) AS subsidiary_id,
 		   COALESCE(a.[SubsidiaryOrganisation_ReferenceNumber], b.[SubsidiaryOrganisation_ReferenceNumber]) AS [SubsidiaryOrganisation_ReferenceNumber],-- added new sys gen subsidiary id
+		   COALESCE(a.[SecondOrganisation_CompaniesHouseNumber], b.[SecondOrganisation_CompaniesHouseNumber]) AS [SubsidiaryOrganisation_ReferenceNumber],-- added new sys gen subsidiary id
+
 	       COALESCE(a.packaging_material, b.packaging_material) AS packaging_material,
 	       COALESCE(a.from_nation, b.from_nation) AS from_nation,
 	       COALESCE(a.packaging_activity, b.packaging_activity) AS packaging_activity,
@@ -71,6 +73,7 @@ file_joined_1 AS (
 	  ON a.organisation_id = b.organisation_id
 	     AND a.subsidiary_id = b.subsidiary_id
 		 AND a.SubsidiaryOrganisation_ReferenceNumber = b.SubsidiaryOrganisation_ReferenceNumber -- added new subsidiary column
+		 AND a.[SecondOrganisation_CompaniesHouseNumber] = b.[SecondOrganisation_CompaniesHouseNumber]-- added new subsidiary column
 	     AND a.packaging_activity = b.packaging_activity
 	     AND a.packaging_type = b.packaging_type
 	     AND a.packaging_class = b.packaging_class

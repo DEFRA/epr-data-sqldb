@@ -16,7 +16,7 @@ As
 	from
 	(
 			SELECT [Org_Name]
-			,MemberName		= [Org_Name]  /**  SN001: Added  **/
+			,[Org_Name]  as OrganisationName   /**  SN001: Added  **/
 				  ,[PCS_Or_Direct_Producer]
 				  ,[Compliance_Scheme]
 				  ,[Org_Type]
@@ -24,6 +24,7 @@ As
 				  ,[organisation_size]
 				  ,[Submission_Date]
 				  ,[submission_period]
+				  ,[organisation_id] AS SubmitterID
 				  ,[organisation_id]
 				  ,[subsidiary_id]
 				  ,[CH_Number]
@@ -56,7 +57,8 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName]
 				  ,'Direct' data_type
-			FROM t_POM_Submissions direct
+				  , [organisation_id] OrganisationID -- added TS 12/09/2024
+			FROM t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
 											FROM v_POM_Operator_Submissions operators )
  
@@ -64,7 +66,7 @@ As
 			--add in operator
 			SELECT 
 				   [Org_Name]
-				   ,MemberName		=  [Producer_Org_Name] /**  SN001: Added  **/
+				   ,[Producer_Org_Name] As OrganisationName    /**  SN001: Added  **/
 				  ,[PCS_Or_Direct_Producer]
 				  ,[Compliance_Scheme]
 				  ,[Org_Type]
@@ -72,6 +74,7 @@ As
 				  ,[organisation_size]
 				  ,[Submission_Date]
 				  ,[submission_period]
+				  ,[organisation_id] AS SubmitterID
 				  ,[organisation_id]
 				  ,[subsidiary_id]
 				  ,[CH_Number]
@@ -104,13 +107,14 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName], 
 				  'Operator'
+				  ,'' OrganisationID -- added TS 12/09/2024
 			FROM v_POM_Operator_Submissions
  
 			UNION 
 
 			SELECT
 				   [Org_Name]
-				   ,MemberName		= [Producer_Org_Name]  /**  SN001: Added  **/
+				   ,[Producer_Org_Name] as OrganisationName    /**  SN001: Added  **/
 				  ,[PCS_Or_Direct_Producer]
 				  ,[Compliance_Scheme]
 				  ,[Org_Type]
@@ -118,7 +122,8 @@ As
 				  ,[organisation_size]
 				  ,[Submission_Date]
 				  ,[submission_period]
-						,[organisation_id]  /**  SN001: Uncommented  **/
+						,[organisation_id] AS SubmitterID  /**  SN001: Uncommented  **/
+						,[organisation_id]
 				  --,[organisation_id_producer] /**  SN001: commented  **/
 				  ,[subsidiary_id]
 				  ,[CH_Number]
@@ -151,19 +156,21 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName] ,
 				  'Member'
+				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
 				  from v_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
 left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
 LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = A.organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'')
+	on so.FirstOrganisation_ReferenceNumber = A.[organisation_id]
+		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
+
 			and so.RelationToDate is NULL
 )
 
 Select 
 	 v.*
-	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.organisation_id Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
+	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.[organisation_id] Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
 From 
 	vPOM_AS v;
