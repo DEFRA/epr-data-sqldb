@@ -40,12 +40,12 @@ AS (
 		,org_name
 		,compliance_scheme
 		,registration_type_code
-		,so.[SecondOrganisation_CompaniesHouseNumber]
+		--,so.[SecondOrganisation_CompaniesHouseNumber]
 	FROM [dbo].[t_POM_Submissions_POM_Comparison]
 	LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].organisation_id
 		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
-		and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
+		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
 			and so.RelationToDate is NULL -- added new sys gen subsidiary id
 
 	WHERE nation = @securityquery
@@ -86,12 +86,12 @@ file2 AS (
 		,org_name
 		,compliance_scheme
 		,registration_type_code
-		,so.[SecondOrganisation_CompaniesHouseNumber]
+		--,so.[SecondOrganisation_CompaniesHouseNumber]
 	FROM [dbo].[t_POM_Submissions_POM_Comparison]
 	LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].organisation_id
 		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
-		and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
+		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
 			and so.RelationToDate is NULL -- added new subsidiary column
 	WHERE nation = @securityquery
 		AND FileName = @filename2
@@ -109,8 +109,8 @@ file2 AS (
 	)
 SELECT coalesce(a.[organisation_id], b.[organisation_id]) OrganisationName  /** NN001: **/
 	,coalesce(a.[subsidiary_id], b.[subsidiary_id]) [subsidiary_id]
-	,coalesce(a.[SubsidiaryOrganisation_ReferenceNumber], b.[SubsidiaryOrganisation_ReferenceNumber]) [SubsidiaryOrganisation_ReferenceNumber] -- added new sys gen subsidiary id
-	,coalesce(a.[SecondOrganisation_CompaniesHouseNumber], b.[SecondOrganisation_CompaniesHouseNumber]) -- added new sys gen subsidiary id
+	,coalesce(a.SubsidiaryOrganisation_ReferenceNumber, b.SubsidiaryOrganisation_ReferenceNumber) SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
+	--,coalesce(a.[SecondOrganisation_CompaniesHouseNumber], b.[SecondOrganisation_CompaniesHouseNumber]) -- added new sys gen subsidiary id
 	,coalesce(a.packaging_material, b.packaging_material) packaging_material
 	,coalesce(a.[from_nation], b.[from_nation]) [from_nation]
 	,coalesce(a.packaging_activity, b.packaging_activity) packaging_activity
@@ -144,8 +144,8 @@ FROM file1 a
 FULL JOIN file2 b
 	ON isnull(a.[organisation_id], '') = isnull(b.[organisation_id], '')
 		AND isnull(a.[subsidiary_id], '') = isnull(b.[subsidiary_id], '')
-		AND isnull(a.[SubsidiaryOrganisation_ReferenceNumber], '') = isnull(b.[SubsidiaryOrganisation_ReferenceNumber], '') -- added new subsidiary column
-		AND ISNULL(trim(a.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim(b.[SecondOrganisation_CompaniesHouseNumber]),'') -- added new subsidiary column
+		AND isnull(a.SubsidiaryOrganisation_ReferenceNumber, '') = isnull(b.SubsidiaryOrganisation_ReferenceNumber, '') -- added new subsidiary column
+		--AND ISNULL(trim(a.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim(b.[SecondOrganisation_CompaniesHouseNumber]),'') -- added new subsidiary column
 		AND isnull(a.[packaging_activity], '') = isnull(b.packaging_activity, '')
 		AND isnull(a.[packaging_type], '') = isnull(b.packaging_type, '')
 		AND isnull(a.[packaging_class], '') = isnull(b.packaging_class, '')
