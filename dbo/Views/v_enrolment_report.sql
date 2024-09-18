@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_enrolment_report]
-AS With enrolmentBase as (
+﻿CREATE VIEW [dbo].[v_enrolment_report] AS With enrolmentBase as (
 
 Select 
 	 ApprovedPerson_Email
@@ -58,7 +57,7 @@ LtstCS as (
 				,ComplianceSchemes_Name AS ComplianceSchemes_Name_lcs
 				,SelectedSchemes_IsDeleted AS SelectedSchemes_IsDeleted_lcs
 				,Case When 
-					Dense_Rank () over(partition by [FromOrganisation_ReferenceNumber] Order By cONVERT(DATETIME,substring([OrganisationConnections_CreatedOn],1,23)) Desc) = 1 
+					Row_Number () over(partition by [FromOrganisation_ReferenceNumber] Order By ISNULL(SelectedSchemes_IsDeleted, '0') asc, CONVERT(DATETIME,substring([OrganisationConnections_CreatedOn],1,23)) Desc) = 1
 						--And Isnull(SelectedSchemes_IsDeleted,0) = 0 
 					Then 1 
 					Else 0 
@@ -71,9 +70,9 @@ src as (
 		Select 	 
 			 eb.*
 			
-			,Case When DENSE_RANK() over(partition by [FromOrganisation_ReferenceNumber],ServiceRoles_Role
-				Order By Convert(DATETIME,substring(eb.[Enrolment_CreatedOn_str],1,23)) Desc)=1 
-					And Isnull(SelectedSchemes_IsDeleted,0) = 0 
+			,Case When Row_Number () over(partition by [FromOrganisation_ReferenceNumber],ServiceRoles_Role, SecurityQuery
+				Order By ISNULL(SelectedSchemes_IsDeleted, '0') asc, Convert(DATETIME,substring(isnull(eb.[OrganisationConnections_CreatedOn], Enrolment_CreatedOn_str) ,1,23)) Desc)=1 
+					And ISNULL(SelectedSchemes_IsDeleted,0) = 0 
 						then 'Latest Enrolment' 
 				Else 'Old Enrolment' 
 			End IsLatestEnrolment
