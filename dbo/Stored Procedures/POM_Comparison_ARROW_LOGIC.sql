@@ -1,9 +1,10 @@
-﻿CREATE PROC [dbo].[POM_Comparison_ARROW_LOGIC] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@organisation_id [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@Upper_Threshold [int],@Lower_Threshold [int],@Threshold_Type [nvarchar](100) AS
+﻿CREATE PROC [dbo].[POM_Comparison_ARROW_LOGIC] @filename1 [nvarchar](4000),@filename2 [nvarchar](4000),@ProducerCS [nvarchar](100),@OrganisationID [int],@compliance_scheme [nvarchar](200),@securityquery [nvarchar](200),@Upper_Threshold [int],@Lower_Threshold [int],@Threshold_Type [nvarchar](100) AS
 BEGIN
+IF object_id('tempdb..##POM_COMP_arrow') is not null BEGIN DROP TABLE ##POM_COMP_arrow END;
 
 WITH file1 AS (
     SELECT 
- [organisation_id],
+ [OrganisationID],
  [subsidiary_id],
  [organisation_size],
  [submission_period],
@@ -29,14 +30,14 @@ WITH file1 AS (
     WHERE nation = @securityquery
         AND FileName = @filename1
         AND (
-            (@producerCS = 'Producer' AND [organisation_id] = @organisation_id)
+            (@producerCS = 'Producer' AND [OrganisationID] = @OrganisationID)
             OR
             (@producerCS = 'Compliance Scheme' AND compliance_scheme = @compliance_scheme AND data_type = 'Member')
         )
 ),
 file2 AS (
 SELECT 
-	[organisation_id],
+	[OrganisationID],
 	[subsidiary_id],
 	[organisation_size],
 	[submission_period],
@@ -62,22 +63,22 @@ FROM [dbo].[t_POM_Submissions_POM_Comparison]
 WHERE nation = @securityquery
         AND FileName = @filename2
         AND (
-            (@producerCS = 'Producer' AND [organisation_id] = @organisation_id)
+            (@producerCS = 'Producer' AND [OrganisationID] = @OrganisationID)
             OR
             (@producerCS = 'Compliance Scheme' AND compliance_scheme = @compliance_scheme AND data_type = 'Member')
         )
 ),
 matching_orgs AS (
-    SELECT a.organisation_id
+    SELECT a.OrganisationID
     FROM file1 a
-    INNER JOIN file2 b ON a.organisation_id = b.organisation_id
+    INNER JOIN file2 b ON a.OrganisationID = b.OrganisationID
     WHERE a.organisation_size = b.organisation_size
 ),
 
 
 file_joined AS (
     SELECT 
-        COALESCE(a.[organisation_id], b.[organisation_id]) AS OrganisationName,
+        COALESCE(a.[OrganisationID], b.[OrganisationID]) AS OrganisationName,
 		COALESCE(a.[subsidiary_id], b.[subsidiary_id]) AS [subsidiary_id],
         COALESCE(a.packaging_material, b.packaging_material) AS packaging_material,
         COALESCE(a.[from_nation], b.[from_nation]) AS [from_nation],
@@ -107,8 +108,8 @@ file_joined AS (
         COALESCE(a.compliance_scheme, b.compliance_scheme) AS compliance_scheme,
         COALESCE(a.registration_type_code, b.registration_type_code) AS registration_type_code
     FROM file1 a
-    FULL OUTER JOIN file2 b ON ISNULL(a.[organisation_id], '') = ISNULL(b.[organisation_id], '')
-							AND a.[organisation_id] IN (SELECT organisation_id FROM matching_orgs)
+    FULL OUTER JOIN file2 b ON ISNULL(a.[OrganisationID], '') = ISNULL(b.[OrganisationID], '')
+							AND a.[OrganisationID] IN (SELECT OrganisationID FROM matching_orgs)
 							AND ISNULL(a.[subsidiary_id], '') = ISNULL(b.[subsidiary_id], '') 
 							AND ISNULL(a.[packaging_activity], '') = ISNULL(b.packaging_activity, '')
 							AND ISNULL(a.[packaging_type],'') = isnull(b.packaging_type,'')
@@ -4368,8 +4369,7 @@ WHERE b.breakdown_flag = 'all_pm_non_hh_pc'
 
 	 --delete from #POMCOMP_output where file1_quantity_kg_extrapolated = 0 and file2_quantity_kg_extrapolated =0 and up_down = ''
 
-
-
+	 
    -------------------------------------------
 -- OUTPUT TABLE USED FOR PAGINATED REPORT -
 -------------------------------------------
@@ -4377,8 +4377,10 @@ SELECT *
 	,@filename1 filename1
 	,@filename2 filename2
 	,@ProducerCS producerCS
-	,@organisation_id organisation_id
+	,@OrganisationID OrganisationID
 	,@compliance_scheme compliance_scheme
 	,@securityquery securityquery
 FROM #POMCOMP_output
+
+
 end;

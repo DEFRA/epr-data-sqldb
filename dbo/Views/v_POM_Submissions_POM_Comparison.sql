@@ -7,7 +7,8 @@
       ,[organisation_size]
       ,[Submission_Date]
       ,[submission_period]
-      ,a.[organisation_id]
+      --,a.[organisation_id] -- Change for the SPs 27/09/20024 to OrganisationID
+	  ,a.OrganisationID
       ,a.[subsidiary_id]
       ,[CH_Number]
       ,[Nation_Of_Enrolment]
@@ -26,6 +27,7 @@
       ,[Nation]
       ,a.[FromOrganisation_NationName]
       ,a.[FileName]
+
       ,' '[ServiceRoles_Role]
       ,a.[SubmittedBy]
       ,a.[filetype]

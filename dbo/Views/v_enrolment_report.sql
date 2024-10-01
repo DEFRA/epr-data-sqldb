@@ -40,6 +40,7 @@ Select
 	,ComplianceSchemes_Id
 	,[OrganisationConnections_CreatedOn]
 	--,OrganisationConnections_IsDeleted
+	,Persons_Id
 	
 
 From
@@ -56,8 +57,9 @@ LtstCS as (
 				,FromOrganisation_ReferenceNumber AS FromOrganisation_ReferenceNumber_lcs
 				,ComplianceSchemes_Name AS ComplianceSchemes_Name_lcs
 				,SelectedSchemes_IsDeleted AS SelectedSchemes_IsDeleted_lcs
+				,Persons_Id as Persons_Id_1
 				,Case When 
-					Row_Number () over(partition by [FromOrganisation_ReferenceNumber] Order By ISNULL(SelectedSchemes_IsDeleted, '0') asc, CONVERT(DATETIME,substring([OrganisationConnections_CreatedOn],1,23)) Desc) = 1
+					Row_Number () over(partition by [FromOrganisation_ReferenceNumber], Persons_Id Order By ISNULL(SelectedSchemes_IsDeleted, '0') asc, CONVERT(DATETIME,substring([OrganisationConnections_CreatedOn],1,23)) Desc) = 1
 						--And Isnull(SelectedSchemes_IsDeleted,0) = 0 
 					Then 1 
 					Else 0 
@@ -70,8 +72,8 @@ src as (
 		Select 	 
 			 eb.*
 			
-			,Case When Row_Number () over(partition by [FromOrganisation_ReferenceNumber],ServiceRoles_Role, SecurityQuery
-				Order By ISNULL(SelectedSchemes_IsDeleted, '0') asc, Convert(DATETIME,substring(isnull(eb.[OrganisationConnections_CreatedOn], Enrolment_CreatedOn_str) ,1,23)) Desc)=1 
+			,Case When Row_Number () over(partition by [FromOrganisation_ReferenceNumber],Persons_Id, SecurityQuery
+				Order By isnull(SelectedSchemes_IsDeleted, '0') asc, isnull(Convert(DATETIME,substring(eb.[OrganisationConnections_CreatedOn],1,23)), getdate()) )=1 
 					And ISNULL(SelectedSchemes_IsDeleted,0) = 0 
 						then 'Latest Enrolment' 
 				Else 'Old Enrolment' 
@@ -84,7 +86,7 @@ src as (
 			,LtstCS.ComplianceSchemes_Name_lcs AS Latest_ComplianceScheme		/** SN001: Added **/
 		From 
 			enrolmentBase eb  
-		inner Join LtstCS  on eb.FromOrganisation_ReferenceNumber=LtstCS.FromOrganisation_ReferenceNumber_lcs and LtstCS.Is_LatestCS=1 
+		inner Join LtstCS  on eb.FromOrganisation_ReferenceNumber=LtstCS.FromOrganisation_ReferenceNumber_lcs and LtstCS.Is_LatestCS=1 and LtstCS.Persons_Id_1 = eb.Persons_Id
 		
 )
 
