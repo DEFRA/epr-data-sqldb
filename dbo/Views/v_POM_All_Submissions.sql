@@ -57,7 +57,7 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName]
 				  ,'Direct' data_type
-				  , [organisation_id] OrganisationID -- added TS 12/09/2024
+				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
 			FROM t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
 											FROM v_POM_Operator_Submissions operators )
@@ -122,8 +122,8 @@ As
 				  ,[organisation_size]
 				  ,[Submission_Date]
 				  ,[submission_period]
-						,[organisation_id] AS SubmitterID  /**  SN001: Uncommented  **/
-						,[organisation_id]
+				  ,[organisation_id] AS SubmitterID  /**  SN001: Uncommented  **/
+				  ,[organisation_id]
 				  --,[organisation_id_producer] /**  SN001: commented  **/
 				  ,[subsidiary_id]
 				  ,[CH_Number]
@@ -154,8 +154,8 @@ As
 				  ,TransferNation
 				  ,[SubmtterEmail]
 				  ,[ServiceRoles_Name]
-				  ,[OriginalFileName] ,
-				  'Member'
+				  ,[OriginalFileName]
+				  ,'Member'
 				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
 				  from v_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
@@ -163,7 +163,7 @@ As
 	) A
 left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
 LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = A.[organisation_id]
+	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
 		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
 
 			and so.RelationToDate is NULL

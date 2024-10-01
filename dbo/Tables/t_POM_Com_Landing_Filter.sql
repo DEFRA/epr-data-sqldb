@@ -6,7 +6,7 @@
     [submission_period]      VARCHAR (34)    NULL,
     [filecode]               NVARCHAR (4000) NULL,
     [filename]               NVARCHAR (4000) NULL,
-    [organisation_id]        INT             NULL,
+    [OrganisationID]         INT             NULL,
     [Compliance_Scheme]      NVARCHAR (4000) NULL,
     [originalfilename]       NVARCHAR (4000) NULL,
     [submittedby]            NVARCHAR (4000) NOT NULL,
@@ -15,6 +15,8 @@
     [submission_date]        DATETIME        NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 

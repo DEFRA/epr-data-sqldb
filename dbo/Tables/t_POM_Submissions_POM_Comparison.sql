@@ -7,7 +7,7 @@
     [organisation_size]           NVARCHAR (4000) NULL,
     [Submission_Date]             DATETIME        NULL,
     [submission_period]           VARCHAR (34)    NULL,
-    [organisation_id]             INT             NULL,
+    [OrganisationID]              INT             NULL,
     [subsidiary_id]               NVARCHAR (4000) NULL,
     [CH_Number]                   NVARCHAR (4000) NULL,
     [Nation_Of_Enrolment]         NVARCHAR (4000) NULL,
@@ -41,6 +41,8 @@
     [registration_type_code]      VARCHAR (1)     NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 
