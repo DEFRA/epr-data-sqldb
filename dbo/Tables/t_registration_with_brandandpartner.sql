@@ -80,6 +80,7 @@
     [partner_last_name]                                              NVARCHAR (4000) NULL,
     [partner_phone_number]                                           NVARCHAR (4000) NULL,
     [partner_email]                                                  NVARCHAR (4000) NULL,
+    [SubsidiaryOrganisation_ReferenceNumber]                         NVARCHAR (4000) NULL,
     [Organisations_Id]                                               VARCHAR (20)    NULL,
     [FromOrganisation_TypeId]                                        INT             NULL,
     [FromOrganisation_Type]                                          NVARCHAR (4000) NULL,
@@ -262,6 +263,8 @@
     [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
 
 
 
