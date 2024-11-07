@@ -20,8 +20,6 @@ dbo,Organisations,INCR,ExternalId
 dbo,ServiceRoles,FULL,
 dbo,Persons,INCR,ExternalId
 dbo,DelegatedPersonEnrolments,FULL,
-dbo,PersonsConnections,INCR,ExternalId
-dbo,InterPersonRoles,Full,
 dbo,LaOrganisations,INCR,Id
 dbo,RegulatorComments,INCR,ExternalId
 dbo,ProducerTypes,FULL,
