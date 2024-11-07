@@ -254,5 +254,6 @@
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_for_enrolment.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_1.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_0.sql" />
+    <Build Include="dbo\Tables\batch_log_1.sql" />
   </ItemGroup>
 </Project>
