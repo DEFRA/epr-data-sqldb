@@ -2,180 +2,236 @@
 BEGIN
     -- Disable row count for performance
     SET NOCOUNT ON;
+	DECLARE @start_dt datetime;
+	DECLARE @batch_id INT;
+	DECLARE @cnt int;
 
+	select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 
-    -- Variables for SQL query generation
-    DECLARE @SqlQuery NVARCHAR(MAX) = ' ',
-            @tableviews NVARCHAR(MAX) = 'v_pom_codes,
-                                         v_POM,
-										 v_Producer_CS_Lookup,
-										 v_Producer_CS_Lookup_Pivot,
-										 v_Producer_CS_Lookup_Unpivot,
-										 v_rpd_data_SECURITY_FIX,
-										 v_POM_Submissions,
-										 v_registration_latest,
-										 v_POM_Filters,
-										 v_POM_Com_Landing_Filter,
-										 v_POM_Submissions_POM_Comparison,
-										 v_registration_with_brandandpartner',
-			@Counter INT = 1,
-            @TotalRows INT;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','procedure', NULL, @start_dt, getdate(), 'Started',@batch_id
 
+set @start_dt = getdate()
 
-    -- Drop the temporary table if it already exists
-    IF OBJECT_ID('tempdb..#TableList', 'U') IS NOT NULL
-        DROP TABLE #TableList;
-
-
-    -- Populate the temporary table
-    SELECT 
-		REPLACE(viewname, 'v_', '') AS ObjName,
-		ROW_NUMBER() OVER (ORDER BY CHARINDEX(viewname, @tableviews)) AS ProcessOrder
-    INTO #TableList
-    FROM (
-             SELECT CAST(value AS NVARCHAR(100)) ViewName
-             FROM STRING_SPLIT(REPLACE
-			                  (REPLACE
-							  (REPLACE
-							  (REPLACE
-							  (REPLACE
-								(@tableviews, 
-								 ' ', ''), 
-							     CHAR(10), ''), 
-								 CHAR(13), ''),
-								 CHAR(14), ''),
-								 CHAR(9), ''), 
-							  ',')
-         ) tl
-         JOIN information_schema.views vw ON vw.table_name = tl.viewname
-    WHERE vw.table_schema = 'dbo';
-
-
-    -- Set @TotalRows to the count of rows in #TableList
-    SELECT @TotalRows = COUNT(1)
-    FROM #TableList;
-
-
-    -- Iterate over the rows in #TableList to build the dynamic SQL
-    WHILE @Counter <= @TotalRows
+    IF OBJECT_ID('dbo.t_pom_codes', 'U') IS NOT NULL
     BEGIN
-        DECLARE @ObjName NVARCHAR(MAX);
+        DROP TABLE dbo.t_pom_codes;
+    END;	
+
+    SELECT *
+    INTO dbo.t_pom_codes
+    FROM dbo.v_pom_codes;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_pom_codes', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
 
-        SELECT @ObjName = ObjName
-		FROM #TableList
-		WHERE ProcessOrder = @Counter;;
+set @start_dt = getdate()
 
 
-        -- Build dynamic SQL for table creation and data insertion
-        SET @SqlQuery = @SqlQuery + '		   
-/*Load column structural changes in temp table, this also works for missing t_ table*/  
-SELECT * 
-INTO tempdb..#c_' + @ObjName + '
-FROM (
-    (
-	SELECT 
-		column_name,
-		data_type
-    FROM   information_schema.columns
-    WHERE  table_name = ''v_' + @ObjName + '''
-            AND table_schema = ''dbo''
-    EXCEPT
-	SELECT 
-		column_name,
-		data_type
-    FROM   information_schema.columns
-    WHERE  table_name = ''t_' + @ObjName + '''
-            AND table_schema = ''dbo''
-			)
-    UNION ALL
-	(
-	SELECT 
-		column_name,
-		data_type
-    FROM   information_schema.columns
-    WHERE  table_name = ''t_' + @ObjName + '''
-            AND table_schema = ''dbo''
-    EXCEPT
-	SELECT 
-		column_name,
-		data_type
-    FROM   information_schema.columns
-    WHERE  table_name = ''v_' + @ObjName + '''
-            AND table_schema = ''dbo''
-		)
-) c;
+    IF OBJECT_ID('dbo.t_POM', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM;
+    END;	
 
-/*1. If t_ table does not exist or structure is different, create t_ table from v_ view*/
- IF EXISTS (SELECT TOP 1 1 FROM tempdb..#c_' + @ObjName + ') 
-	/*Drop and recreate t_ table from v_ view*/
-	BEGIN 
-		IF OBJECT_ID(''dbo.t_' + @ObjName + ''', ''U'') IS NOT NULL
-		 BEGIN
-			DROP TABLE dbo.t_' + @ObjName + ';
-		 END;
+    SELECT *
+    INTO dbo.t_POM
+    FROM dbo.v_POM;
 
-		 SELECT *
-		 INTO dbo.t_' + @ObjName + '
-		 FROM dbo.v_' + @ObjName + ';
-	END;
- ELSE 
-	BEGIN
-	/*Insert new records into temp tables*/
-	SELECT * INTO tempdb..#n_' + @ObjName + ' FROM dbo.v_' + @ObjName + ' EXCEPT SELECT * FROM dbo.t_' + @ObjName + ';
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
-	/*2. If records have been added to v_ view*/
-		IF EXISTS (SELECT TOP 1 1 FROM tempdb..#n_' + @ObjName + ')
-		   BEGIN
-			  /*Insert the new records into t_' + @ObjName + '*/
-			  INSERT INTO dbo.t_' + @ObjName + '
-			  SELECT *
-			  FROM tempdb..#n_' + @ObjName + ';
-	       END;
-	END;
+set @start_dt = getdate()
 
-/*3. If records count does not match*/
-IF (
-	(SELECT COUNT(1) FROM dbo.t_' + @ObjName + ') 
-		> (SELECT COUNT(1) FROM dbo.v_' + @ObjName + ')
-	)
-	/*Drop and recreate t_ table from v_ view*/
-	BEGIN 
-			DROP TABLE dbo.t_' + @ObjName + ';
-			SELECT *
-			INTO dbo.t_' + @ObjName + '
-			FROM dbo.v_' + @ObjName + ';
-END;
+    IF OBJECT_ID('dbo.t_Producer_CS_Lookup', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_Producer_CS_Lookup;
+    END;	
 
-/*4. If t_ table exists, and structures are the same and the data is exactly the same, do nothing*/
-/*No action needed in this case*/
-
-/*Cleanup temporary tables*/
-IF OBJECT_ID(''tempdb..#c_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#c_' + @ObjName + ' END;
-IF OBJECT_ID(''tempdb..#n_' + @ObjName + ''', ''U'') IS NOT NULL BEGIN DROP TABLE tempdb..#n_' + @ObjName + ' END;
-';
+    SELECT *
+    INTO dbo.t_Producer_CS_Lookup
+    FROM dbo.v_Producer_CS_Lookup;
 
 
-
-        SET @Counter = @Counter + 1;
-    END;
-
-
-    -- Drop the temporary table outside of any transaction
-    IF OBJECT_ID('tempdb..#TableList', 'U') IS NOT NULL
-        DROP TABLE #TableList;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
 
-    -- Output the generated SQL query (commented out for production)
-    --SELECT @SqlQuery AS 'GeneratedSQLQuery';
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_Producer_CS_Lookup_Pivot', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_Producer_CS_Lookup_Pivot;
+    END;	
+
+    SELECT *
+    INTO dbo.t_Producer_CS_Lookup_Pivot
+    FROM dbo.v_Producer_CS_Lookup_Pivot;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup_Pivot', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_Producer_CS_Lookup_Unpivot', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_Producer_CS_Lookup_Unpivot;
+    END;	
+
+    SELECT *
+    INTO dbo.t_Producer_CS_Lookup_Unpivot
+    FROM dbo.v_Producer_CS_Lookup_Unpivot;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup_Unpivot', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_rpd_data_SECURITY_FIX', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_rpd_data_SECURITY_FIX;
+    END;	
+
+    SELECT *
+    INTO dbo.t_rpd_data_SECURITY_FIX
+    FROM dbo.v_rpd_data_SECURITY_FIX;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_rpd_data_SECURITY_FIX', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_Submissions', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_Submissions;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_Submissions
+    FROM dbo.v_POM_Submissions;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_registration_latest', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_registration_latest;
+    END;	
+
+    SELECT *
+    INTO dbo.t_registration_latest
+    FROM dbo.v_registration_latest;
 
 
-    -- Execute the dynamic SQL query
-    BEGIN TRY
-        EXEC sp_executesql @SqlQuery;
-    END TRY
-    BEGIN CATCH
-        -- Error handling
-        PRINT 'An error occurred during execution.';
-    END CATCH;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_latest', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_Filters', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_Filters;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_Filters
+    FROM dbo.v_POM_Filters;
+
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Filters', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_Com_Landing_Filter', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_Com_Landing_Filter;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_Com_Landing_Filter
+    FROM dbo.v_POM_Com_Landing_Filter;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_Submissions_POM_Comparison', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_Submissions_POM_Comparison;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_Submissions_POM_Comparison
+    FROM dbo.v_POM_Submissions_POM_Comparison;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_registration_with_brandandpartner', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_registration_with_brandandpartner;
+    END;	
+
+    SELECT *
+    INTO dbo.t_registration_with_brandandpartner
+    FROM dbo.v_registration_with_brandandpartner;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+--Recording count from each table
+select @cnt =count(1) from dbo.t_pom_codes;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_pom_codes', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_Producer_CS_Lookup;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_Producer_CS_Lookup_Pivot;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup_Pivot', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_Producer_CS_Lookup_Unpivot;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Producer_CS_Lookup_Unpivot', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_rpd_data_SECURITY_FIX;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_rpd_data_SECURITY_FIX', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM_Submissions;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_registration_latest;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_latest', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM_Filters;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Filters', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM_Com_Landing_Filter;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM_Submissions_POM_Comparison;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', @cnt, NULL, getdate(), 'Completed',@batch_id
+
 END;
