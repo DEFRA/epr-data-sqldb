@@ -248,6 +248,7 @@
     <Build Include="rpd\Tables\OrganisationRelationships.sql" />
     <Build Include="rpd\Tables\OrganisationRegistrationTypes.sql" />
     <Build Include="dbo\Views\v_SubsidiaryExtract.sql" />
+    <Build Include="dbo\Views\v_subsidiaryorganisations.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_for_enrolment.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_1.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_0.sql" />
