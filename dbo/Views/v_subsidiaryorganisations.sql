@@ -4,6 +4,7 @@
 	,R.SecondOrganisationId
 	,SO.ReferenceNumber as SecondOrganisation_ReferenceNumber
 	,sub.SubsidiaryId 
+	,SO.CompaniesHouseNumber as SecondOrganisation_CompaniesHouseNumber
 	,R.RelationFromDate
 	,R.RelationToDate
 	,R.RelationExpiryReason
