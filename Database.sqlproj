@@ -198,7 +198,6 @@
     <Build Include="dbo\Tables\t_POM_Submissions.sql" />
     <Build Include="dbo\Tables\t_POM.sql" />
     <Build Include="Security\rpd.sql" />
-    <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup_Unpivot.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup_Pivot.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base.sql" />
@@ -231,8 +230,6 @@
     <Build Include="dbo\Views\v_Enrolmentstatus.sql" />
     <Build Include="rpd\Tables\Submissions.sql" />
     <Build Include="rpd\Tables\SubmissionEvents.sql" />
-    <Build Include="dbo\Tables\t_pom_codes_1.sql" />
-    <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
     <Build Include="dbo\Views\v_Large_Producers.sql" />
     <Build Include="dbo\Views\v_extract_recent_pom_org_data.sql" />
     <Build Include="dbo\Views\v_enrolment_report.sql" />
@@ -250,7 +247,6 @@
     <Build Include="rpd\Tables\OrganisationRelationshipTypes.sql" />
     <Build Include="rpd\Tables\OrganisationRelationships.sql" />
     <Build Include="rpd\Tables\OrganisationRegistrationTypes.sql" />
-    <Build Include="dbo\Views\v_subsidiaryorganisations_1.sql" />
     <Build Include="dbo\Views\v_SubsidiaryExtract.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_for_enrolment.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_1.sql" />
