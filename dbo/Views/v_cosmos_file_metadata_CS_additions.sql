@@ -34,7 +34,7 @@ a.[SubmissionId]
 ,a.[BlobContainerName]
 ,a.[FileType]
 --,a.[Created]
-,CAST(CONVERT(datetimeoffset, created) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime) AS created--_in_gmt
+,CAST(CONVERT(datetimeoffset, created) AS datetime) AS created
 ,a.[OriginalFileName]
 ,a.[OrganisationId]
 ,a.[DataSourceType]
