@@ -12,6 +12,8 @@ As
 	
 		Updated 2024-07-08: [Initials]001: [Update text here]
 
+		Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
+
 	*****************************************************************************************************/
 	from
 	(
@@ -168,9 +170,9 @@ LEFT JOIN dbo.v_subsidiaryorganisations so
 
 			and so.RelationToDate is NULL
 )
-
+ -- JP001
 Select 
 	 v.*
-	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.[organisation_id] Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
+	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.[OrganisationID] Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
 From 
 	vPOM_AS v;

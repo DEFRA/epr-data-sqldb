@@ -185,6 +185,50 @@ set @start_dt = getdate()
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_All_Submissions', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_All_Submissions;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_All_Submissions
+    FROM dbo.v_POM_All_Submissions;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_enrolment_report', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_enrolment_report;
+    END;	
+
+    SELECT *
+    INTO dbo.t_enrolment_report
+    FROM dbo.v_enrolment_report;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolment_report', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_enrolled_not_registered', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_enrolled_not_registered;
+    END;	
+
+    SELECT *
+    INTO dbo.t_enrolled_not_registered
+    FROM dbo.enrolled_not_registered;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+
 --Recording count from each table
 select @cnt =count(1) from dbo.t_pom_codes;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -233,5 +277,20 @@ select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromVie
 select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_POM_All_Submissions;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_enrolment_report;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+
+select @cnt =count(1) from dbo.t_enrolled_not_registered;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+
 
 END;
