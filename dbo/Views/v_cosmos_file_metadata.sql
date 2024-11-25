@@ -23,14 +23,14 @@
 		a.[ComplianceSchemeId],
 		a.[RegistrationSetId],
         ROW_NUMBER() OVER (PARTITION BY a.[FileName] ORDER BY a.[load_ts] desc, roles_POI.LastUpdatedOn DESC) AS RowNum,
-		CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime) as LastUpdatedOn_History,
+		CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime) as LastUpdatedOn_History,
 		roles_POI.Service_Name as Service_Name_History
     FROM rpd.cosmos_file_metadata a
 	left join [dbo].[v_enrolment_history] roles_POI
 	on (
 		roles_POI.UserId = a.userid
-		and CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime)
-			<= CAST(CONVERT(datetimeoffset, a.[Created]) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime)
+		and CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime)
+			<= CAST(CONVERT(datetimeoffset, a.[Created]) AS datetime)
 		)
 )
 
@@ -44,7 +44,7 @@ a.[SubmissionId]
 ,a.[BlobContainerName]
 ,a.[FileType]
 --,a.[Created]
-,CAST(CONVERT(datetimeoffset, created) AT TIME ZONE 'UTC' AT TIME ZONE 'GMT Standard Time' AS datetime) AS created--_in_gmt
+,CAST(CONVERT(datetimeoffset, created) as datetime) AS created
 ,a.[OriginalFileName]
 ,a.[OrganisationId]
 ,a.[DataSourceType]
