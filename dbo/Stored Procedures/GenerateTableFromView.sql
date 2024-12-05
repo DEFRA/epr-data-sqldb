@@ -145,20 +145,6 @@ select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromVie
 
 set @start_dt = getdate()
 
-    IF OBJECT_ID('dbo.t_POM_Com_Landing_Filter', 'U') IS NOT NULL
-    BEGIN
-        DROP TABLE dbo.t_POM_Com_Landing_Filter;
-    END;	
-
-    SELECT *
-    INTO dbo.t_POM_Com_Landing_Filter
-    FROM dbo.v_POM_Com_Landing_Filter;
-
-INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', NULL, @start_dt, getdate(), 'Completed',@batch_id
-
-set @start_dt = getdate()
-
     IF OBJECT_ID('dbo.t_POM_Submissions_POM_Comparison', 'U') IS NOT NULL
     BEGIN
         DROP TABLE dbo.t_POM_Submissions_POM_Comparison;
@@ -170,6 +156,20 @@ set @start_dt = getdate()
 
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_POM_Com_Landing_Filter', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_POM_Com_Landing_Filter;
+    END;	
+
+    SELECT *
+    INTO dbo.t_POM_Com_Landing_Filter
+    FROM dbo.v_POM_Com_Landing_Filter;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
 set @start_dt = getdate()
 
@@ -266,13 +266,14 @@ select @cnt =count(1) from dbo.t_POM_Filters;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Filters', @cnt, NULL, getdate(), 'Completed',@batch_id
 
+select @cnt =count(1) from dbo.t_POM_Submissions_POM_Comparison;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', @cnt, NULL, getdate(), 'Completed',@batch_id
+
 select @cnt =count(1) from dbo.t_POM_Com_Landing_Filter;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-select @cnt =count(1) from dbo.t_POM_Submissions_POM_Comparison;
-INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
