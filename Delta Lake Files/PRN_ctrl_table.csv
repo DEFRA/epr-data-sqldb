@@ -1,0 +1,6 @@
+schema,table_name,load_type,primary_key
+dbo,Prn,INCR,Id
+dbo,PrnStatus,FULL,
+dbo,PrnStatusHistory,INCR,Id
+dbo,RecyclingTargets,FULL,
+dbo,ObligationCalculations,INCR,Id
