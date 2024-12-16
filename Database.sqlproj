@@ -258,5 +258,8 @@
     <Build Include="dbo\Views\v_Registration_Comparison_Landing_Page.sql" />
     <Build Include="dbo\Views\v_CompanyBrandPartnerFileUploadSet.sql" />
     <Build Include="dbo\Stored Procedures\Registration_Comparison_Change_Of_Member_and_Membership.sql" />
+    <Build Include="dbo\Tables\t_POM_Extract_Fix.sql" />
+    <Build Include="dbo\Tables\t_CompanyBrandPartnerFileUploadSet.sql" />
+    <Build Include="dbo\Stored Procedures\Generate_t_POM_Extract.sql" />
   </ItemGroup>
 </Project>
