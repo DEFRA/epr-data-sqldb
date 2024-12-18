@@ -66,6 +66,7 @@ ORG as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, cd.FileName as cd_filename
+					, fs.Regulator_Status
 			from [rpd].[CompanyDetails] cd
 			left join rpd.Organisations o on o.ReferenceNumber = cd.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = cd.FileName
@@ -73,17 +74,18 @@ ORG as
 			left join rpd.users u on u.USerId = cfm.UserId
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
+			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = cd.filename
 		) A
 ),
 f_org_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', '' as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
 	from ORG 
 	where First_submission = 1
  ),
 l_org_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', '' as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
 	from ORG 
 	where Last_submission = 1
  ),
@@ -128,6 +130,7 @@ POM as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, pm.FileName as pm_filename
+					, fs.Regulator_Status
 			from [rpd].[Pom] pm
 			left join rpd.Organisations o on o.ReferenceNumber = pm.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = pm.FileName
@@ -135,17 +138,18 @@ POM as
 			left join rpd.users u on u.USerId = cfm.UserId
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
+			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
 		) A
 ),
 f_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', '' as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
 	from POM 
 	where First_submission = 1
  ),
 l_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', '' as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
 	from POM 
 	where Last_submission = 1
  ),
@@ -286,6 +290,20 @@ agg_POM as
 		sum(packaging_material_weight)
 		FOR Type_Material in ([CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD])
 	) AS PivotTable
+),
+agg_units_POM as
+(
+	select FileName,organisation_id,[CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD]
+	FROM
+	(
+			select FileName, organisation_id, Packaging_type +'-'+ packaging_material as Type_Material, packaging_material_units
+			from rpd.pom
+	) as TablePivot
+	PIVOT
+	(
+		sum(packaging_material_units)
+		FOR Type_Material in ([CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD])
+	) AS PivotTable
 )
 select 
 	
@@ -392,14 +410,24 @@ select
 	,ISNULL(ap.[CW-PL],0) as [Self-managed consumer waste-Plastic]
 	,ISNULL(ap.[CW-ST],0) as [Self-managed consumer waste-Steel]
 	,ISNULL(ap.[CW-WD],0) as [Self-managed consumer waste-Wood]
-	,ISNULL(ap.[HDC-AL],0) as [Household drinks containers-Aluminium]
-	,ISNULL(ap.[HDC-FC],0) as [Household drinks containers-Fibre Composite]
-	,ISNULL(ap.[HDC-GL],0) as [Household drinks containers-Glass]
-	,ISNULL(ap.[HDC-OT],0) as [Household drinks containers-Other]
-	,ISNULL(ap.[HDC-PC],0) as [Household drinks containers-Paper / Card]
-	,ISNULL(ap.[HDC-PL],0) as [Household drinks containers-Plastic]
-	,ISNULL(ap.[HDC-ST],0) as [Household drinks containers-Steel]
-	,ISNULL(ap.[HDC-WD],0) as [Household drinks containers-Wood]
+
+	,ISNULL(ap.[HDC-AL],0) as [Household drinks containers-Aluminium (Kg)]
+	,ISNULL(aup.[HDC-AL],0) as [Household drinks containers-Aluminium (No.Units)]
+	,ISNULL(ap.[HDC-FC],0) as [Household drinks containers-Fibre Composite (Kg)]
+	,ISNULL(aup.[HDC-FC],0) as [Household drinks containers-Fibre Composite (No.Units)]
+	,ISNULL(ap.[HDC-GL],0) as [Household drinks containers-Glass (Kg)]
+	,ISNULL(aup.[HDC-GL],0) as [Household drinks containers-Glass (No.Units)]
+	,ISNULL(ap.[HDC-OT],0) as [Household drinks containers-Other (Kg)]
+	,ISNULL(aup.[HDC-OT],0) as [Household drinks containers-Other (No.Units)]
+	,ISNULL(ap.[HDC-PC],0) as [Household drinks containers-Paper / Card (Kg)]
+	,ISNULL(aup.[HDC-PC],0) as [Household drinks containers-Paper / Card (No.Units)]
+	,ISNULL(ap.[HDC-PL],0) as [Household drinks containers-Plastic (Kg)]
+	,ISNULL(aup.[HDC-PL],0) as [Household drinks containers-Plastic (No.Units)]
+	,ISNULL(ap.[HDC-ST],0) as [Household drinks containers-Steel (Kg)]
+	,ISNULL(aup.[HDC-ST],0) as [Household drinks containers-Steel (No.Units)]
+	,ISNULL(ap.[HDC-WD],0) as [Household drinks containers-Wood (Kg)]
+	,ISNULL(aup.[HDC-WD],0) as [Household drinks containers-Wood (No.Units)]
+
 	,ISNULL(ap.[HH-AL],0) as [Total Household packaging-Aluminium]
 	,ISNULL(ap.[HH-FC],0) as [Total Household packaging-Fibre Composite]
 	,ISNULL(ap.[HH-GL],0) as [Total Household packaging-Glass]
@@ -408,14 +436,24 @@ select
 	,ISNULL(ap.[HH-PL],0) as [Total Household packaging-Plastic]
 	,ISNULL(ap.[HH-ST],0) as [Total Household packaging-Steel]
 	,ISNULL(ap.[HH-WD],0) as [Total Household packaging-Wood]
-	,ISNULL(ap.[NDC-AL],0) as [Non-household drinks containers-Aluminium]
-	,ISNULL(ap.[NDC-FC],0) as [Non-household drinks containers-Fibre Composite]
-	,ISNULL(ap.[NDC-GL],0) as [Non-household drinks containers-Glass]
-	,ISNULL(ap.[NDC-OT],0) as [Non-household drinks containers-Other]
-	,ISNULL(ap.[NDC-PC],0) as [Non-household drinks containers-Paper / Card]
-	,ISNULL(ap.[NDC-PL],0) as [Non-household drinks containers-Plastic]
-	,ISNULL(ap.[NDC-ST],0) as [Non-household drinks containers-Steel]
-	,ISNULL(ap.[NDC-WD],0) as [Non-household drinks containers-Wood]
+
+	,ISNULL(ap.[NDC-AL],0) as [Non-household drinks containers-Aluminium (Kg)]
+	,ISNULL(aup.[NDC-AL],0) as [Non-household drinks containers-Aluminium (No.Units)]
+	,ISNULL(ap.[NDC-FC],0) as [Non-household drinks containers-Fibre Composite (Kg)]
+	,ISNULL(aup.[NDC-FC],0) as [Non-household drinks containers-Fibre Composite (No.Units)]
+	,ISNULL(ap.[NDC-GL],0) as [Non-household drinks containers-Glass (Kg)]
+	,ISNULL(aup.[NDC-GL],0) as [Non-household drinks containers-Glass (No.Units)]
+	,ISNULL(ap.[NDC-OT],0) as [Non-household drinks containers-Other (Kg)]
+	,ISNULL(aup.[NDC-OT],0) as [Non-household drinks containers-Other (No.Units)]
+	,ISNULL(ap.[NDC-PC],0) as [Non-household drinks containers-Paper / Card (Kg)]
+	,ISNULL(aup.[NDC-PC],0) as [Non-household drinks containers-Paper / Card (No.Units)]
+	,ISNULL(ap.[NDC-PL],0) as [Non-household drinks containers-Plastic (Kg)]
+	,ISNULL(aup.[NDC-PL],0) as [Non-household drinks containers-Plastic (No.Units)]
+	,ISNULL(ap.[NDC-ST],0) as [Non-household drinks containers-Steel (Kg)]
+	,ISNULL(aup.[NDC-ST],0) as [Non-household drinks containers-Steel (No.Units)]
+	,ISNULL(ap.[NDC-WD],0) as [Non-household drinks containers-Wood (Kg)]
+	,ISNULL(aup.[NDC-WD],0) as [Non-household drinks containers-Wood (No.Units)]
+
 	,ISNULL(ap.[NH-AL],0) as [Total Non-Household packaging-Aluminium]
 	,ISNULL(ap.[NH-FC],0) as [Total Non-Household packaging-Fibre Composite]
 	,ISNULL(ap.[NH-GL],0) as [Total Non-Household packaging-Glass]
@@ -473,4 +511,5 @@ left join Latest_pom_by_CS lpbc on lpbc.organisation_id = bs.[Org ID] and lpbc.C
 left join rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
 left join rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
 
-left join agg_POM ap on ap.FileName = lps.pm_filename and ap.organisation_id = lps.[Org ID];
+left join agg_POM ap on ap.FileName = lps.pm_filename and ap.organisation_id = lps.[Org ID]
+left join agg_units_POM aup on aup.FileName = lps.pm_filename and aup.organisation_id = lps.[Org ID];
