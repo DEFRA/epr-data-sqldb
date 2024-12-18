@@ -1,4 +1,11 @@
-﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS SELECT DISTINCT replacement.name AS [Org_Name],
+﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS SELECT
+/****************************************************************************************************************************
+	History:
+ 
+	Updated: 2024-11-18:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
+							
+******************************************************************************************************************************/
+DISTINCT replacement.name AS [Org_Name],
  original.org_name AS [Producer_Org_Name]
     ,original.[PCS_Or_Direct_Producer]
  --   ,csname.name Compliance_Scheme
@@ -19,6 +26,7 @@
     ,original.[packaging_class]
     ,original.[packaging_material]
     ,original.[packaging_sub_material]
+	,original.[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
     ,original.[from_nation]
     ,original.[to_nation]
     ,original.[quantity_kg]
