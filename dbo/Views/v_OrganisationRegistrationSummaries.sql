@@ -1,9 +1,10 @@
-﻿CREATE VIEW [dbo].[v_OrganisationRegistrationSummaries] AS WITH
+﻿CREATE VIEW [dbo].[v_OrganisationRegistrationSummaries]
+AS WITH
 	ProdCommentsRegulatorDecisionsCTE as (
 		SELECT
 			decisions.SubmissionId
 			,decisions.SubmissionEventId
-			,decisions.Created as DecisionDate
+			,decisions.SubmissionDate as DecisionDate
 			,decisions.Comments AS Comment
 			,decisions.RegistrationReferenceNumber AS RegistrationReferenceNumber
 			,CASE
@@ -12,7 +13,7 @@
 				WHEN decisions.decision IS NULL THEN 'Pending'
 				ELSE decisions.Decision
 			END AS SubmissionStatus
-			,null AS StatusPendingDate
+			,decisions.DecisionDate AS StatusPendingDate
 			,CASE WHEN decisions.Type = 'RegistrationApplicationSubmitted'
 				 THEN 1
 				 ELSE 0
@@ -24,7 +25,7 @@
 			) AS RowNum
 		FROM
 			rpd.SubmissionEvents as decisions
-		WHERE decisions.Type IN ( 'RegistrationApplicationSubmitted', 'RegulatorRegistrationDecision')
+		WHERE decisions.Type IN ( 'RegistrationApplicationSubmitted', 'RegulatorRegistrationDecision')		
 	)
 	,GrantedDecisionsCTE as (
 		SELECT *
@@ -57,35 +58,21 @@
 				,s.SubmissionPeriod
                 ,s.SubmissionId
                 ,s.OrganisationId AS InternalOrgId
-                ,se.DecisionDate AS SubmittedDateTime
+                ,s.Created AS SubmittedDateTime
                 ,CASE 
-					WHEN cs.NationId IS NOT NULL THEN cs.NationId
-					ELSE
-					CASE UPPER(org.NationCode)
-						WHEN 'EN' THEN 1
-						WHEN 'NI' THEN 2
-						WHEN 'SC' THEN 3
-						WHEN 'WS' THEN 4
-						WHEN 'WA' THEN 4
-					 END
+					UPPER(org.NationCode)
+					WHEN 'EN' THEN 1
+					WHEN 'SC' THEN 3
+					WHEN 'WA' THEN 4
+					WHEN 'NI' THEN 2
 				 END AS NationId
                 ,CASE
-					WHEN cs.NationId IS NOT NULL THEN
-						CASE cs.NationId
-							WHEN 1 THEN 'GB-ENG'
-							WHEN 2 THEN 'GB-NIR'
-							WHEN 3 THEN 'GB-SCT'
-							WHEN 4 THEN 'GB-WLS'
-						END
-					ELSE
-					CASE UPPER(org.NationCode)
-						WHEN 'EN' THEN 'GB-ENG'
-						WHEN 'NI' THEN 'GB-NIR'
-						WHEN 'SC' THEN 'GB-SCT'
-						WHEN 'WS' THEN 'GB-WLS'
-						WHEN 'WA' THEN 'GB-WLS'
-					END
-				 END AS NationCode
+                    UPPER(org.NationCode)
+                    WHEN 'EN' THEN 'GB-ENG'
+                    WHEN 'NI' THEN 'GB-NIR'
+                    WHEN 'SC' THEN 'GB-SCT'
+                    WHEN 'WA' THEN 'GB-WLS'
+                END AS NationCode
                 ,s.SubmissionType
                 ,s.UserId AS SubmittedUserId
                 ,CAST(
@@ -97,7 +84,7 @@
                 ) AS RelevantYear
                 ,CAST(
                     CASE
-                        WHEN se.DecisionDate > DATEFROMPARTS(CONVERT( int, SUBSTRING(
+                        WHEN s.Created > DATEFROMPARTS(CONVERT( int, SUBSTRING(
                                         s.SubmissionPeriod,
                                         PATINDEX('%[0-9][0-9][0-9][0-9]', s.SubmissionPeriod),
                                         4
@@ -109,23 +96,18 @@
 					WHEN 'S' THEN 'Small'
 					WHEN 'L' THEN 'Large'
 				END as ProducerSize
-				,CASE WHEN s.ComplianceSchemeId is not null THEN 1 ELSE 0 END as IsComplianceScheme
+				,o.IsComplianceScheme
                 ,ROW_NUMBER() OVER (
                     PARTITION BY s.OrganisationId,
-                    s.SubmissionPeriod, s.ComplianceSchemeId
-                    ORDER BY s.load_ts DESC
+                    s.SubmissionPeriod
+                    ORDER BY s.load_ts DESC -- mark latest submission synced from cosmos
                 ) AS RowNum
             FROM
                 [rpd].[Submissions] AS s
-                INNER JOIN [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] org 
-					ON org.SubmittingExternalId = s.OrganisationId 
-					and org.SubmissionPeriod = s.SubmissionPeriod
-					and org.SubmissionId = s.SubmissionId
+                INNER JOIN [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] org ON org.SubmittingExternalId = s.OrganisationId and org.SubmissionPeriod = s.SubmissionPeriod
 				INNER JOIN [rpd].[Organisations] o on o.ExternalId = s.OrganisationId
-				LEFT JOIN [rpd].[ComplianceSchemes] cs on cs.ExternalId = s.ComplianceSchemeId 
 				LEFT JOIN GrantedDecisionsCTE granteddecision on granteddecision.SubmissionId = s.SubmissionId 
-				INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId 
-					and se.IsProducerComment = 1
+				INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId and se.IsProducerComment = 1
             WHERE s.AppReferenceNumber IS NOT NULL
                 AND s.SubmissionType = 'Registration'
 				ANd s.IsSubmitted = 1
@@ -170,7 +152,8 @@
 	,AllSubmissionsAndDecisionsAndCommentCTE
     AS
     (
-        SELECT DISTINCT
+        SELECT
+            DISTINCT
             submissions.SubmissionId
             ,submissions.OrganisationId
 			,submissions.OrganisationInternalId
@@ -202,9 +185,9 @@
         FROM
             LatestOrganisationRegistrationSubmissionsCTE submissions
             LEFT JOIN LatestRelatedRegulatorDecisionsCTE decisions
-				ON decisions.SubmissionId = submissions.SubmissionId
+            ON decisions.SubmissionId = submissions.SubmissionId
             LEFT JOIN AllRelatedProducerCommentEventsCTE producercomments
-				ON producercomments.SubmissionId = submissions.SubmissionId
+            ON producercomments.SubmissionId = submissions.SubmissionId
     )
 SELECT
     DISTINCT *

@@ -1,12 +1,10 @@
-﻿CREATE VIEW [dbo].[v_PRN_Details] AS With st As (
+﻿CREATE VIEW [dbo].[v_PRN_Details]
+AS With st As (
 /****************************************************************************************************************************
 	History:
  
 	Created: 2024-11-20:	SN001:	Ticket - 464576:	Creation of View for PRN details for POwer BI reporting
 	Updated: 2024-12-13		SN002:						Typo on nation description
-	Updated: 2025-01-13		SN003:						Include Ability to map CSIds
-	Updated: 2025-01-29		SN004:	Ticket  - 501685	Remove Duplicate Status coming from PrnStatusHistory
-	Updated: 2025-01-30		SN005:	Ticket  - 501253	ComplianceSchemes not in Metafile data joined by Companies House no.
 
 ******************************************************************************************************************************/
 	Select 
@@ -14,7 +12,6 @@
 		,PrnIdFk				= sth.PrnIdFk
 		,PrnStatusName			= st.StatusName 
 		,PrnStatusDate			= sth.CreatedOn
-		,IsLatest				= Row_Number() Over (Partition By sth.PrnIdFk Order By sth.Id Desc)  /*** SN0004: Added ***/
 	From
 		rpd.PrnStatusHistory	sth
 	Left Join 
@@ -29,88 +26,12 @@ st_pvt As (
 		,PrnRejectedDate			= REJECTED	
 		,PrnCancelledDate			= CANCELLED	
 		,PrnAwaitingAcceptanceDate	= AWAITINGACCEPTANCE
-	From  st 
+	From  st
 	Pivot (		
 			Max(PrnStatusDate) for PrnStatusName In ([ACCEPTED],[REJECTED],[CANCELLED],[AWAITINGACCEPTANCE])
-	) stp Where IsLatest=1			/*** SN0004: Added ***/
+	) stp
 ), 
-org As (  /*** SN:003 ***/
-	Select
-		 o.ExternalID
-		,o.ReferenceNumber
-		,o.NationId
-		,o.IsComplianceScheme
-		,o.Town
-		,o.Postcode 
-		,RowNumber	=1
-	From
-		dbo.v_rpd_Organisations_Active	o
-),
-cs_ch As (  /*** SN005: Added ***/
-	Select
-	 cs.ExternalID
-	,o.ReferenceNumber
-	,o.NationId
-	,o.IsComplianceScheme
-	,o.Town
-	,o.Postcode 
-	,RowNumber	=1
-From
-	dbo.v_rpd_Organisations_Active	o
-Join
-	rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
-),
-csa As (
-	Select  
-		 ExternalID			= c.ComplianceSchemeId
-		,ReferenceNumber	= o.ReferenceNumber
-		,cs.NationId
-		,IsComplianceScheme = 1
-		,o.Town
-		,o.PostCode
-		,RowNumber			= Row_Number() Over(Partition by c.organisationid,c.submissionperiod order by CONVERT(DATETIME, Substring(c.[created], 1, 23)) desc ) 
-	From 
-		rpd.organisations o
-	Join 
-		rpd.cosmos_file_metadata	c	On o.externalid = c.organisationid
-	Join 
-		rpd.ComplianceSchemes		cs	On c.ComplianceSchemeId = cs.externalid And FileType = 'CompanyDetails'
-	Where 
-		o.IsComplianceScheme = 1 
-),
-org_csa As (
-	Select 
-		 org.ExternalID			
-		,org.ReferenceNumber	
-		,org.NationId
-		,org.IsComplianceScheme 
-		,org.Town
-		,org.PostCode
-	From 
-		org
-	Union
-	Select 
-		 csa.ExternalID			
-		,csa.ReferenceNumber	
-		,csa.NationId
-		,csa.IsComplianceScheme 
-		,csa.Town
-		,csa.PostCode
-	From 
-		csa 
-	Where csa.RowNumber = 1
-	Union
-	Select /*** SN005: Added ***/
-		 cs_ch.ExternalID			
-		,cs_ch.ReferenceNumber	
-		,cs_ch.NationId
-		,cs_ch.IsComplianceScheme 
-		,cs_ch.Town
-		,cs_ch.PostCode
-	From 
-		cs_ch 
-	
-), /*** SN:003 ***/
+
 prn As (
 	Select 
 		 p.Id
@@ -153,13 +74,13 @@ prn As (
 		rpd.Prn					p
 	Left Join
 		st_pvt					st
-			On p.Id = st.PrnIdFk 
+			On p.Id = st.PrnIdFk
 	Left Join
 		rpd.PrnStatus			s
 			On p.PrnStatusId = s.id
 )
 
-Select p.id,
+Select
 	 p.PrnNumber
 	,p.ExternalOrgId
 	,OrganisationId					= o.[ReferenceNumber]
@@ -208,5 +129,5 @@ Select p.id,
 From
 	prn											p
 Join
-	org_csa				o
+	dbo.v_rpd_Organisations_Active				o
 		on p.ExternalOrgId = o.ExternalID;

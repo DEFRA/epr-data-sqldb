@@ -260,5 +260,22 @@
     <Build Include="dbo\Tables\t_POM_Extract_Fix.sql" />
     <Build Include="dbo\Tables\t_CompanyBrandPartnerFileUploadSet.sql" />
     <Build Include="dbo\Stored Procedures\Generate_t_POM_Extract.sql" />
+    <Build Include="rpd\Tables\RecyclingTargets.sql" />
+    <Build Include="rpd\Tables\PrnStatusHistory.sql" />
+    <Build Include="rpd\Tables\PrnStatus.sql" />
+    <Build Include="rpd\Tables\Prn_.sql" />
+    <Build Include="rpd\Tables\ObligationCalculations.sql" />
+    <Build Include="dbo\Views\v_UploadedRegistrationDataBySubmissionPeriod.sql" />
+    <Build Include="dbo\Views\v_ProducerPaycalParameters.sql" />
+    <Build Include="dbo\Views\v_PRN_Obligations.sql" />
+    <Build Include="dbo\Views\v_PRN_Details.sql" />
+    <Build Include="dbo\Views\v_OrganisationRegistrationSummaries.sql" />
+    <Build Include="dbo\Views\v_ComplianceSchemeMembers.sql" />
+    <Build Include="dbo\Stored Procedures\sp_GetProducerDetailsByOrganisationId.sql" />
+    <Build Include="dbo\Stored Procedures\sp_GetCsoMemberDetailsByOrganisationId.sql" />
+    <Build Include="dbo\Stored Procedures\sp_FilterAndPaginateOrganisationRegistrationSummaries.sql" />
+    <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails.sql" />
+    <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
+    <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] AS WITH
+﻿CREATE VIEW [dbo].[v_UploadedRegistrationDataBySubmissionPeriod]
+AS WITH
     LatestUploadedData
     AS
     (
@@ -15,7 +16,7 @@
 			,CONVERT( BIT, CASE WHEN ComplianceSchemeId IS NULL THEN 0 ELSE 1 END) as IsComplianceUpload
 			,Created
 			,STRING_AGG(FileType, ',') AS FileTypes
-			,row_number() OVER (partition BY organisationid, SubmissionPeriod, ComplianceSchemeId ORDER BY created DESC) AS RowNum
+			,row_number() OVER (partition BY organisationid, SubmissionPeriod ORDER BY created DESC) AS RowNum
             FROM
                 rpd.cosmos_file_metadata
             WHERE SubmissionType = 'Registration'
@@ -24,6 +25,7 @@
 		) AS z
         WHERE z.RowNum = 1
     )
+--select * from LatestUploadedData order by ExternalId
 ,CompanyDetails
     AS
     (
@@ -32,7 +34,6 @@
 		,cd.organisation_id AS SubmittedReferenceNumber
 		,ISNULL(cd.subsidiary_id,'') AS CompanySubRef
 		,cd.organisation_name AS UploadOrgName
-		,lud.SubmissionId
 		,lud.SubmissionPeriod
 		,TRIM(cd.home_nation_code) as NationCode
 		,cd.companies_house_number
@@ -54,6 +55,7 @@
             INNER JOIN rpd.companydetails cd ON cfm.filename = cd.filename
         WHERE ISNULL(cd.subsidiary_id,'') = ''
     )
+--select * from CompanyDetails order by SubmittingExternalId
 ,PartnerFileDetails
     AS
     (
@@ -70,6 +72,7 @@
             LatestUploadedData lud
             INNER JOIN rpd.cosmos_file_metadata cfm ON cfm.registrationsetid = lud.registrationsetid AND UPPER(cfm.FileType) = 'PARTNERSHIPS'
     )
+--select * from partnerfiledetails order by externalid
 ,BrandFileDetails
     AS
     (
@@ -86,6 +89,7 @@
             LatestUploadedData lud
             INNER JOIN rpd.cosmos_file_metadata cfm ON cfm.registrationsetid = lud.registrationsetid AND UPPER(cfm.FileType) = 'PARTNERSHIPS'
     )
+--select * from brandfiledetails order by externalid
 ,CompanyAndFileDetails
     AS
     (
@@ -93,7 +97,6 @@
             cd.SubmittingExternalId
             ,SubmittedReferenceNumber
             ,UploadOrgName
-			,cd.SubmissionId
 			,cd.SubmissionPeriod
 			,cd.NationCode
             ,Packaging_activity_om

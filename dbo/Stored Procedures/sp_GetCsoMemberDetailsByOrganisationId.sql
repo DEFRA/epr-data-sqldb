@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[sp_GetCsoMemberDetailsByOrganisationId] @organisationId [INT],@complianceSchemeId [nvarchar](50) AS
+﻿CREATE PROC [dbo].[sp_GetCsoMemberDetailsByOrganisationId] @organisationId [INT] AS
 BEGIN
     SET NOCOUNT ON;
 
@@ -14,7 +14,7 @@ WITH LatestFile AS (
         AND metadata.FileType = 'CompanyDetails'
         AND metadata.IsSubmitted = 1
         AND metadata.SubmissionType = 'Registration'
-        AND metadata.ComplianceSchemeId = @complianceSchemeId
+        AND metadata.ComplianceSchemeId IS NOT NULL
     ORDER BY 
         metadata.Created DESC
 ),

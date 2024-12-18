@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_ComplianceSchemeMembers] AS WITH
+﻿CREATE VIEW [dbo].[v_ComplianceSchemeMembers]
+AS WITH
 		AllComplianceOrgFilesCTE
 		as
 		(
@@ -14,8 +15,7 @@
 				,CONVERT(DATETIME, Substring(c.[created], 1, 23)) as SortBy --For a given Organisation, in a given submission period, finding the most recently accepted org file based on the submission date--
 				,Row_Number() Over(
 					Partition by c.organisationid,
-					c.submissionperiod,
-					c.ComplianceSchemeId
+					c.submissionperiod
 					order by CONVERT(DATETIME, Substring(c.[created], 1, 23)) desc
 				) as RowNumber
 			FROM rpd.organisations o
