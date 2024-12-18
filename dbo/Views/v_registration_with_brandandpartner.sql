@@ -1,4 +1,6 @@
-﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS WITH CompanyDetails_with_regid AS
+﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS WITH 
+
+CompanyDetails_with_regid AS
 (
 select 
 	c_meta.RegistrationSetId,c.* 
@@ -26,6 +28,18 @@ From [rpd].[Partnerships] p
 
 
 SELECT distinct 
+
+/****************************************************************************************************************************
+
+	History:
+
+	Updated: 2024-11-18:	BL001:	Ticket - 460892:	Adding the new column [organisation_size]
+
+******************************************************************************************************************************/
+
+ 
+
+
 rbp.*
 ,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
 ,b.[Organisations_Id]
@@ -290,6 +304,7 @@ a.[organisation_id]
 ,a.[secondary_contact_person_job_title]
 ,a.[load_ts]
 ,a.[FileName]
+,a.[organisation_size]     /** BL001 new column added **/  
 
 --,br.[organisation_id]
 --,br.[subsidiary_id]
@@ -390,6 +405,7 @@ a.[organisation_id]
 ,a.[secondary_contact_person_job_title]
 ,a.[load_ts]
 ,a.[FileName]
+,a.[organisation_size]   /** BL001 new column added **/  
 
 
 --,null as [brand organisation_id]
@@ -492,6 +508,7 @@ a.[organisation_id]
 ,a.[secondary_contact_person_job_title]
 ,a.[load_ts]
 ,a.[FileName]
+,a.[organisation_size]    /** BL001 new column added **/  
 
 --,br.[organisation_id]
 --,br.[subsidiary_id]
