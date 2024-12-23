@@ -9,7 +9,7 @@ begin
             SELECT
                 *
             FROM
-                dbo.[v_OrganisationRegistrationSummaries_New] i
+                dbo.[v_OrganisationRegistrationSummaries] i
             WHERE (
             NationId = @NationId
                 OR @NationId = 0
