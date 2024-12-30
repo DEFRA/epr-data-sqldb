@@ -280,6 +280,6 @@
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
     <Build Include="dbo\Views\v_CrossValidation_FileDetails_Registration.sql" />
     <Build Include="dbo\Stored Procedures\CrossValidation.sql" />
-    <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod_1.sql" />
+    <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
   </ItemGroup>
 </Project>
