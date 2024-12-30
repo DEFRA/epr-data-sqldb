@@ -277,5 +277,11 @@
     <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_Registration.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_POM.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_ORG.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_Main.sql" />
+    <Build Include="dbo\Stored Procedures\CrossValidationGetLatestFile.sql" />
+    <Build Include="dbo\Stored Procedures\CrossValidation.sql" />
   </ItemGroup>
 </Project>
