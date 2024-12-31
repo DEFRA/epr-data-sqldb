@@ -31,7 +31,9 @@ SubsidiaryDetails AS (
     SELECT 
         CD.organisation_id, 
         COUNT(*) AS NumberOfSubsidiaries,
+
 		COUNT(CASE WHEN  CD.subsidiary_id IS NOT NULL AND cd.packaging_activity_om IN ('Primary', 'Secondary') THEN 1 ELSE 0 END) AS NumberOfSubsidiariesBeingOnlineMarketPlace
+
     FROM  
         [rpd].[CompanyDetails] CD
     WHERE 
@@ -48,7 +50,9 @@ SubsidiaryDetails AS (
 OrganisationDetails AS (
     SELECT 
         CD.organisation_id, 
+
         CASE WHEN  cd.packaging_activity_om IN ('Primary', 'Secondary') THEN 1  ELSE 0  END AS IsOnlineMarketPlace,
+
 		 cd.organisation_size 
     FROM  
         [rpd].[CompanyDetails] CD
