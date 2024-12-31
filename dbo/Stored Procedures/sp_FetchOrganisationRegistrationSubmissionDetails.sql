@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails] @SubmissionId [nvarchar](36) AS
+CREATE PROC [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails] @SubmissionId [nvarchar](36) AS
 BEGIN
 SET NOCOUNT ON;
 
@@ -23,34 +23,90 @@ DECLARE @IsComplianceScheme bit;
         INNER JOIN [rpd].[Organisations] O ON S.OrganisationId = O.ExternalId
     WHERE S.SubmissionId = @SubmissionId;
 
+	IF OBJECT_ID('tempdb..##ProdCommentsRegulatorDecisions') IS NOT NULL
+    BEGIN
+        DROP TABLE ##ProdCommentsRegulatorDecisions;
+    END;
+
+    DECLARE @ProdCommentsSQL NVARCHAR(MAX);
+
+	SET @ProdCommentsSQL = N'
+	SELECT
+        CONVERT( UNIQUEIDENTIFIER, TRIM(decisions.SubmissionId)) AS SubmissionId,
+        decisions.SubmissionEventId AS DecisionEventId,
+        decisions.Created AS DecisionDate,
+        decisions.Comments AS Comment,
+        decisions.UserId,
+        CASE
+            WHEN LTRIM(RTRIM(decisions.Decision)) = ''Accepted'' THEN ''Granted''
+            WHEN LTRIM(RTRIM(decisions.Decision)) = ''Rejected'' THEN ''Refused''
+            WHEN decisions.Decision IS NULL THEN ''Pending''
+            ELSE decisions.Decision
+        END AS SubmissionStatus,
+        CASE 
+            WHEN decisions.Type = ''RegistrationApplicationSubmitted'' THEN 1
+            ELSE 0
+        END AS IsProducerComment,
+	';
+
+	IF EXISTS (
+		SELECT 1
+		FROM sys.columns
+		WHERE [name] = 'RegistrationReferenceNumber' AND [object_id] = OBJECT_ID('rpd.SubmissionEvents')
+	)
+	BEGIN
+		SET @ProdCommentsSQL = CONCAT(@ProdCommentsSQL, N'        decisions.RegistrationReferenceNumber AS RegistrationReferenceNumber,
+		')
+	END
+	ELSE
+	BEGIN
+		SET @ProdCommentsSQL = CONCAT(@ProdCommentsSQL, N'        NULL AS RegistrationReferenceNumber,
+		');
+	END;
+
+	IF EXISTS (
+		SELECT 1
+		FROM sys.columns
+		WHERE [name] = 'DecisionDate' AND [object_id] = OBJECT_ID('rpd.SubmissionEvents')
+	)
+	BEGIN
+		SET @ProdCommentsSQL = CONCAT(@ProdCommentsSQL, N'        decisions.DecisionDate AS StatusPendingDate,
+		');
+	END
+	ELSE
+	BEGIN
+		SET @ProdCommentsSQL = CONCAT(@ProdCommentsSQL, N'    NULL AS StatusPendingDate,
+		');
+	END;
+	SET @ProdCommentsSQL = CONCAT(@ProdCommentsSQL, N'
+            ROW_NUMBER() OVER (
+                PARTITION BY decisions.SubmissionId, decisions.Type
+                ORDER BY decisions.Created DESC
+            ) AS RowNum
+        INTO ##ProdCommentsRegulatorDecisions
+        FROM rpd.SubmissionEvents AS decisions
+        WHERE decisions.Type IN (''RegistrationApplicationSubmitted'', ''RegulatorRegistrationDecision'')
+            AND decisions.SubmissionId = @SubId;
+	');
+
+	EXEC sp_executesql @ProdCommentsSQL, N'@SubId nvarchar(50)', @SubId = @SubmissionId;
+
     WITH
 		ProdCommentsRegulatorDecisionsCTE as (
 			SELECT
-				CONVERT( uniqueidentifier, TRIM(decisions.SubmissionId)) as  Submissionid
-				,decisions.SubmissionEventId AS DecisionEventId
-				,decisions.Created as DecisionDate
-				,decisions.Comments AS Comment
+				decisions.SubmissionId
+				,decisions.DecisionEventId
+				,decisions.DecisionDate
+				,decisions.Comment
 				,decisions.UserId
-				,decisions.RegistrationReferenceNumber AS RegistrationReferenceNumber
-				,CASE
-					WHEN LTRIM(RTRIM(decisions.Decision)) = 'Accepted' THEN 'Granted'
-					WHEN LTRIM(RTRIM(decisions.Decision)) = 'Rejected' THEN 'Refused'
-					WHEN decisions.decision IS NULL THEN 'Pending'
-					ELSE decisions.Decision
-				END AS SubmissionStatus
-				,decisions.DecisionDate AS StatusPendingDate
-				,CASE WHEN decisions.Type = 'RegistrationApplicationSubmitted'
-					 THEN 1
-					 ELSE 0
-				 END AS IsProducerComment
-				,ROW_NUMBER() OVER (
-					PARTITION BY decisions.SubmissionId, decisions.Type
-					ORDER BY decisions.Created DESC -- mark latest submissionEvent synced from cosmos
-				) AS RowNum
+				,decisions.RegistrationReferenceNumber
+				,decisions.SubmissionStatus
+				,decisions.StatusPendingDate
+				,IsProducerComment
+				,RowNum
 			FROM
-				rpd.SubmissionEvents as decisions
-			WHERE decisions.Type IN ( 'RegistrationApplicationSubmitted', 'RegulatorRegistrationDecision')		
-				AND decisions.SubmissionId = @SubmissionId
+				##ProdCommentsRegulatorDecisions as decisions
+			WHERE decisions.SubmissionId = @SubmissionId
 		)
 		,GrantedDecisionsCTE as (
 			SELECT TOP 1 *
@@ -101,7 +157,6 @@ DECLARE @IsComplianceScheme bit;
 					 END AS NationId
 					,CASE
 						UPPER(org.NationCode)
-
 						WHEN 'EN' THEN 'GB-ENG'
 						WHEN 'NI' THEN 'GB-NIR'
 						WHEN 'SC' THEN 'GB-SCT'
@@ -351,4 +406,10 @@ DECLARE @IsComplianceScheme bit;
         INNER JOIN [rpd].[Persons] p ON p.UserId = u.Id
         INNER JOIN [rpd].[PersonOrganisationConnections] poc ON poc.PersonId = p.Id
         INNER JOIN [rpd].[ServiceRoles] sr ON sr.Id = poc.PersonRoleId;
-END
+
+	IF OBJECT_ID('tempdb..##ProdCommentsRegulatorDecisions') IS NOT NULL
+    BEGIN
+        DROP TABLE ##ProdCommentsRegulatorDecisions;
+    END
+
+END;

@@ -1,10 +1,9 @@
-﻿CREATE VIEW [dbo].[v_OrganisationRegistrationSummaries]
-AS WITH
+﻿CREATE VIEW [dbo].[v_OrganisationRegistrationSummaries] AS WITH
 	ProdCommentsRegulatorDecisionsCTE as (
 		SELECT
 			decisions.SubmissionId
 			,decisions.SubmissionEventId
-			,decisions.SubmissionDate as DecisionDate
+			,decisions.Created as DecisionDate
 			,decisions.Comments AS Comment
 			,decisions.RegistrationReferenceNumber AS RegistrationReferenceNumber
 			,CASE
@@ -13,7 +12,7 @@ AS WITH
 				WHEN decisions.decision IS NULL THEN 'Pending'
 				ELSE decisions.Decision
 			END AS SubmissionStatus
-			,decisions.DecisionDate AS StatusPendingDate
+			,null AS StatusPendingDate
 			,CASE WHEN decisions.Type = 'RegistrationApplicationSubmitted'
 				 THEN 1
 				 ELSE 0
