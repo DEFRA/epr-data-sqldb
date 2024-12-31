@@ -1,4 +1,4 @@
-﻿CREATE PROC [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails] @SubmissionId [nvarchar](36) AS
+CREATE PROC [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails] @SubmissionId [nvarchar](36) AS
 BEGIN
 SET NOCOUNT ON;
 

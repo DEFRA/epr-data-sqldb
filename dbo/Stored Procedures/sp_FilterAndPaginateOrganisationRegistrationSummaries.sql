@@ -1,4 +1,5 @@
-﻿CREATE PROC [dbo].[sp_FilterAndPaginateOrganisationRegistrationSummaries] @OrganisationNameCommaSeparated [nvarchar](255),@OrganisationReferenceCommaSeparated [nvarchar](255),@SubmissionYearsCommaSeparated [nvarchar](255),@StatusesCommaSeparated [nvarchar](100),@OrganisationTypeCommaSeparated [nvarchar](255),@NationId [int],@AppRefNumbersCommaSeparated [nvarchar](2000),@PageSize [INT],@PageNumber [INT] AS
+CREATE PROC [dbo].[sp_FilterAndPaginateOrganisationRegistrationSummaries] @OrganisationNameCommaSeparated [nvarchar](255),@OrganisationReferenceCommaSeparated [nvarchar](255),@SubmissionYearsCommaSeparated [nvarchar](255),@StatusesCommaSeparated [nvarchar](100),@OrganisationTypeCommaSeparated [nvarchar](255),@NationId [int],@AppRefNumbersCommaSeparated [nvarchar](2000),@PageSize [INT],@PageNumber [INT] AS
+
 BEGIN
     SET NOCOUNT ON;
     IF EXISTS (
