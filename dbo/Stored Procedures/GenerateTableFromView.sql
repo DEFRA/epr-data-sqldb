@@ -201,17 +201,17 @@ select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromVie
 
 set @start_dt = getdate()
 
-    IF OBJECT_ID('dbo.t_enrolment_report', 'U') IS NOT NULL
+    IF OBJECT_ID('dbo.t_new_enrolment_report', 'U') IS NOT NULL
     BEGIN
-        DROP TABLE dbo.t_enrolment_report;
+        DROP TABLE dbo.t_new_enrolment_report;
     END;	
 
     SELECT *
-    INTO dbo.t_enrolment_report
-    FROM dbo.v_enrolment_report;
+    INTO dbo.t_new_enrolment_report
+    FROM dbo.v_new_enrolment_report;
 
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolment_report', NULL, @start_dt, getdate(), 'Completed',@batch_id
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
 
 set @start_dt = getdate()
@@ -255,7 +255,6 @@ set @start_dt = getdate()
 
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', NULL, @start_dt, getdate(), 'Completed',@batch_id
-
 
 --Recording count from each table
 select @cnt =count(1) from dbo.t_pom_codes;
@@ -311,9 +310,9 @@ select @cnt =count(1) from dbo.t_POM_All_Submissions;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-select @cnt =count(1) from dbo.t_enrolment_report;
+select @cnt =count(1) from dbo.t_new_enrolment_report;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 
 select @cnt =count(1) from dbo.t_enrolled_not_registered;
@@ -327,5 +326,7 @@ select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromVie
 select @cnt =count(1) from dbo.t_Registration_Comparison_Landing_Page;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+
 
 END;
