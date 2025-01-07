@@ -256,6 +256,35 @@ set @start_dt = getdate()
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_latest_accepted_orgfile_by_year', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_latest_accepted_orgfile_by_year;
+    END;	
+
+    SELECT *
+    INTO dbo.t_latest_accepted_orgfile_by_year
+    FROM dbo.v_latest_accepted_orgfile_by_year;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_latest_pending_or_accepted_orgfile_by_year', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_latest_pending_or_accepted_orgfile_by_year;
+    END;	
+
+    SELECT *
+    INTO dbo.t_latest_pending_or_accepted_orgfile_by_year
+    FROM dbo.v_latest_pending_or_accepted_orgfile_by_year;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+
 --Recording count from each table
 select @cnt =count(1) from dbo.t_pom_codes;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -328,5 +357,12 @@ INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[star
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 
+select @cnt =count(1) from dbo.t_latest_accepted_orgfile_by_year;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+select @cnt =count(1) from dbo.t_latest_pending_or_accepted_orgfile_by_year;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 END;
