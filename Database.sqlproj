@@ -278,5 +278,7 @@
     <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
+    <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
+    <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
   </ItemGroup>
 </Project>

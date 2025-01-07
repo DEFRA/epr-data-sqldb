@@ -36,16 +36,18 @@
 
     ,packaging_class
 	,organisation_size /** SN002 ^^^ **/
+	,concat(p.packaging_type,'-',packaging_class) as Ignore_column
     from rpd.Pom p
     where packaging_type in (
         'CW', 'OW', 'HH', 'NH',
         'HDC', 'NDC', 'PB', 'RU','SP' /**YM001 **/
-    )
+    ) 
 )
 
 select packaging_type_code
 ,packaging_type
 ,packaging_type_order
+,Ignore_column
 
 ,case
     when packaging_class = 'P1' then 'Primary packaging'
