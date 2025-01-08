@@ -62,7 +62,7 @@
 					UPPER(org.NationCode)
 					WHEN 'EN' THEN 1
 					WHEN 'SC' THEN 3
-					WHEN 'WA' THEN 4
+					WHEN 'WS' THEN 4
 					WHEN 'NI' THEN 2
 				 END AS NationId
                 ,CASE
@@ -70,7 +70,7 @@
                     WHEN 'EN' THEN 'GB-ENG'
                     WHEN 'NI' THEN 'GB-NIR'
                     WHEN 'SC' THEN 'GB-SCT'
-                    WHEN 'WA' THEN 'GB-WLS'
+                    WHEN 'WS' THEN 'GB-WLS'
                 END AS NationCode
                 ,s.SubmissionType
                 ,s.UserId AS SubmittedUserId
@@ -83,7 +83,7 @@
                 ) AS RelevantYear
                 ,CAST(
                     CASE
-                        WHEN s.Created > DATEFROMPARTS(CONVERT( int, SUBSTRING(
+                        WHEN se.DecisionDate > DATEFROMPARTS(CONVERT( int, SUBSTRING(
                                         s.SubmissionPeriod,
                                         PATINDEX('%[0-9][0-9][0-9][0-9]', s.SubmissionPeriod),
                                         4
@@ -103,7 +103,10 @@
                 ) AS RowNum
             FROM
                 [rpd].[Submissions] AS s
-                INNER JOIN [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] org ON org.SubmittingExternalId = s.OrganisationId and org.SubmissionPeriod = s.SubmissionPeriod
+                INNER JOIN [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] org 
+					ON org.SubmittingExternalId = s.OrganisationId 
+					and org.SubmissionPeriod = s.SubmissionPeriod
+					and org.SubmissionId = s.SubmissionId
 				INNER JOIN [rpd].[Organisations] o on o.ExternalId = s.OrganisationId
 				LEFT JOIN GrantedDecisionsCTE granteddecision on granteddecision.SubmissionId = s.SubmissionId 
 				INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId and se.IsProducerComment = 1
