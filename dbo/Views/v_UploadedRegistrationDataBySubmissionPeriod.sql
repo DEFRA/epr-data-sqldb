@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_UploadedRegistrationDataBySubmissionPeriod]
-AS WITH
+﻿CREATE VIEW [dbo].[v_UploadedRegistrationDataBySubmissionPeriod] AS WITH
     LatestUploadedData
     AS
     (
@@ -34,6 +33,7 @@ AS WITH
 		,cd.organisation_id AS SubmittedReferenceNumber
 		,ISNULL(cd.subsidiary_id,'') AS CompanySubRef
 		,cd.organisation_name AS UploadOrgName
+		,lud.SubmissionId
 		,lud.SubmissionPeriod
 		,TRIM(cd.home_nation_code) as NationCode
 		,cd.companies_house_number
@@ -97,6 +97,7 @@ AS WITH
             cd.SubmittingExternalId
             ,SubmittedReferenceNumber
             ,UploadOrgName
+			,cd.SubmissionId
 			,cd.SubmissionPeriod
 			,cd.NationCode
             ,Packaging_activity_om
