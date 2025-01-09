@@ -280,6 +280,7 @@
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
     <Build Include="dbo\Views\v_CrossValidation_FileDetails_Registration.sql" />
     <Build Include="dbo\Stored Procedures\CrossValidation.sql" />
+    <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
     <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
     <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
     <Build Include="dbo\Tables\t_latest_pending_or_accepted_orgfile_by_year.sql" />
@@ -288,6 +289,5 @@
     <Build Include="dbo\Views\v_latest_accepted_orgfile_by_year.sql" />
     <Build Include="dbo\Views\v_get_orgfile_submitted_year.sql" />
     <Build Include="dbo\Stored Procedures\sp_compare_org_file.sql" />
-    <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod_1.sql" />
   </ItemGroup>
 </Project>
