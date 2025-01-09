@@ -31,9 +31,7 @@ SubsidiaryDetails AS (
     SELECT 
         CD.organisation_id, 
         COUNT(*) AS NumberOfSubsidiaries,
-
-		COUNT(CASE WHEN  CD.subsidiary_id IS NOT NULL AND cd.packaging_activity_om IN ('Primary', 'Secondary') THEN 1 ELSE 0 END) AS NumberOfSubsidiariesBeingOnlineMarketPlace
-
+		COUNT(CASE WHEN  CD.subsidiary_id IS NOT NULL AND cd.packaging_activity_om IN ('Primary', 'Secondary') THEN 1 END) AS NumberOfSubsidiariesBeingOnlineMarketPlace
     FROM  
         [rpd].[CompanyDetails] CD
     WHERE 
@@ -50,9 +48,7 @@ SubsidiaryDetails AS (
 OrganisationDetails AS (
     SELECT 
         CD.organisation_id, 
-
         CASE WHEN  cd.packaging_activity_om IN ('Primary', 'Secondary') THEN 1  ELSE 0  END AS IsOnlineMarketPlace,
-
 		 cd.organisation_size 
     FROM  
         [rpd].[CompanyDetails] CD
@@ -70,7 +66,7 @@ OrganisationDetails AS (
 		CD.organisation_size 
 ) 
 
-SELECT ISNull(sc.NumberOfSubsidiariesBeingOnlineMarketPlace,0) as NumberOfSubsidiariesBeingOnlineMarketPlace,
+SELECT sc.NumberOfSubsidiariesBeingOnlineMarketPlace,
     cd.organisation_id AS OrganisationId,
     cd.organisation_size AS ProducerSize,
     sub.appreferencenumber AS ApplicationReferenceNumber,
