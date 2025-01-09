@@ -128,6 +128,7 @@
     <Folder Include="dbo\Views\" />
     <Folder Include="rpd\Views\" />
     <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="dbo\Functions\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\apps.sql" />
@@ -279,12 +280,9 @@
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
     <Build Include="dbo\Views\v_CrossValidation_FileDetails_Registration.sql" />
-    <Build Include="dbo\Views\v_CrossValidation_FileDetails_POM.sql" />
-    <Build Include="dbo\Views\v_CrossValidation_FileDetails_ORG.sql" />
-    <Build Include="dbo\Views\v_CrossValidation_FileDetails_Main.sql" />
-    <Build Include="dbo\Stored Procedures\CrossValidationGetLatestFile.sql" />
     <Build Include="dbo\Stored Procedures\CrossValidation.sql" />
     <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
     <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
+    <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod_1.sql" />
   </ItemGroup>
 </Project>
