@@ -289,5 +289,11 @@
     <Build Include="dbo\Views\v_latest_accepted_orgfile_by_year.sql" />
     <Build Include="dbo\Views\v_get_orgfile_submitted_year.sql" />
     <Build Include="dbo\Stored Procedures\sp_compare_org_file.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_POM_Data.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_POM.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_ORG.sql" />
+    <Build Include="dbo\Views\v_CrossValidation_FileDetails_Main.sql" />
+    <Build Include="dbo\Stored Procedures\CrossValidationGetLatestFile.sql" />
+    <Build Include="dbo\Stored Procedures\CrossValidation_Registration.sql" />
   </ItemGroup>
 </Project>
