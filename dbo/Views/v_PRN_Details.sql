@@ -1,10 +1,10 @@
-﻿CREATE VIEW [dbo].[v_PRN_Details]
-AS With st As (
+﻿CREATE VIEW [dbo].[v_PRN_Details] AS With st As (
 /****************************************************************************************************************************
 	History:
  
 	Created: 2024-11-20:	SN001:	Ticket - 464576:	Creation of View for PRN details for POwer BI reporting
 	Updated: 2024-12-13		SN002:						Typo on nation description
+	Updated: 2025-01-13		SN003:						Include Ability to map CSIds 
 
 ******************************************************************************************************************************/
 	Select 
@@ -31,7 +31,58 @@ st_pvt As (
 			Max(PrnStatusDate) for PrnStatusName In ([ACCEPTED],[REJECTED],[CANCELLED],[AWAITINGACCEPTANCE])
 	) stp
 ), 
-
+org As (  /*** SN:003 ***/
+	Select
+		 o.ExternalID
+		,o.ReferenceNumber
+		,o.NationId
+		,o.IsComplianceScheme
+		,o.Town
+		,o.Postcode 
+		,RowNumber	=1
+	From
+		dbo.v_rpd_Organisations_Active	o
+),
+csa As (
+	Select  
+		 ExternalID			= c.ComplianceSchemeId
+		,ReferenceNumber	= o.ReferenceNumber
+		,cs.NationId
+		,IsComplianceScheme = 1
+		,o.Town
+		,o.PostCode
+		,RowNumber			= Row_Number() Over(Partition by c.organisationid,c.submissionperiod order by CONVERT(DATETIME, Substring(c.[created], 1, 23)) desc ) 
+	From 
+		rpd.organisations o
+	Join 
+		rpd.cosmos_file_metadata	c	On o.externalid = c.organisationid
+	Join 
+		rpd.ComplianceSchemes		cs	On c.ComplianceSchemeId = cs.externalid And FileType = 'CompanyDetails'
+	Where 
+		o.IsComplianceScheme = 1 
+),
+org_csa As (
+	Select 
+		 org.ExternalID			
+		,org.ReferenceNumber	
+		,org.NationId
+		,org.IsComplianceScheme 
+		,org.Town
+		,org.PostCode
+	From 
+		org
+	Union
+	Select 
+		 csa.ExternalID			
+		,csa.ReferenceNumber	
+		,csa.NationId
+		,csa.IsComplianceScheme 
+		,csa.Town
+		,csa.PostCode
+	From 
+		csa 
+	Where csa.RowNumber = 1
+), /*** SN:003 ***/
 prn As (
 	Select 
 		 p.Id
@@ -129,5 +180,5 @@ Select
 From
 	prn											p
 Join
-	dbo.v_rpd_Organisations_Active				o
+	org_csa				o
 		on p.ExternalOrgId = o.ExternalID;
