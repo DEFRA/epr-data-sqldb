@@ -432,8 +432,4 @@ DECLARE @IsComplianceScheme bit;
         INNER JOIN [rpd].[PersonOrganisationConnections] poc ON poc.PersonId = p.Id
         INNER JOIN [rpd].[ServiceRoles] sr ON sr.Id = poc.PersonRoleId;
 
-	--IF OBJECT_ID('tempdb..##ProdCommentsRegulatorDecisions') IS NOT NULL
-    --BEGIN
-	--DROP TABLE ##ProdCommentsRegulatorDecisions;
-	--END
 END;
