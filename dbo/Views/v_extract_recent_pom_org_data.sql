@@ -1,4 +1,4 @@
-﻿CREATE VIEW [v_extract_recent_pom_org_data] AS with 
+﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_data] AS with 
 TwoRow as
 (
 	select 1 as RankId , 'Jan to June 2023 - H1' as SP, 2023 as Reporting_Year
@@ -66,7 +66,7 @@ ORG as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, cd.FileName as cd_filename
-					, fs.Regulator_Status
+					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Regulator_Status
 			from [rpd].[CompanyDetails] cd
 			left join rpd.Organisations o on o.ReferenceNumber = cd.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = cd.FileName
@@ -77,17 +77,44 @@ ORG as
 			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = cd.filename
 		) A
 ),
+ORG_REJECTED_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_rejected_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_rejected_submission
+	from ORG
+	where Regulator_Status = 'REJECTED' 
+),
+ORG_PENDING_ACCEPT_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_pending_accepted_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_pending_accepted_submission
+	from ORG
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') 
+),
+ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as
+(
+	select rej.*
+	from ORG_REJECTED_ONLY rej
+	left join ORG_PENDING_ACCEPT_ONLY pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	where pa.OrganisationId is null
+),
 f_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
-	from ORG 
-	where First_submission = 1
+	from ORG_PENDING_ACCEPT_ONLY 
+	where First_pending_accepted_submission = 1
+	union 
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED 
+	where Last_rejected_submission = 1
  ),
 l_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
-	from ORG 
-	where Last_submission = 1
+	from ORG_PENDING_ACCEPT_ONLY 
+	where Last_pending_accepted_submission = 1
  ),
 
 POM as
@@ -130,7 +157,7 @@ POM as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, pm.FileName as pm_filename
-					, fs.Regulator_Status
+					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Regulator_Status
 			from [rpd].[Pom] pm
 			left join rpd.Organisations o on o.ReferenceNumber = pm.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = pm.FileName
@@ -141,17 +168,44 @@ POM as
 			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
 		) A
 ),
+POM_REJECTED_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_rejected_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_rejected_submission
+	from POM
+	where Regulator_Status = 'REJECTED' 
+),
+POM_PENDING_ACCEPT_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_pending_accepted_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_pending_accepted_submission
+	from POM
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') 
+),
+POM_REJECTED_WITH_OUT_PENDING_ACCEPTED as
+(
+	select rej.*
+	from POM_REJECTED_ONLY rej
+	left join POM_PENDING_ACCEPT_ONLY pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	where pa.OrganisationId is null
+),
 f_pom_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
-	from POM 
-	where First_submission = 1
+	from POM_PENDING_ACCEPT_ONLY 
+	where First_pending_accepted_submission = 1
+	union
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	from POM_REJECTED_WITH_OUT_PENDING_ACCEPTED 
+	where Last_rejected_submission = 1
  ),
 l_pom_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
-	from POM 
-	where Last_submission = 1
+	from POM_PENDING_ACCEPT_ONLY 
+	where Last_pending_accepted_submission = 1
  ),
 Rank_On_CS_Submission as
 (
