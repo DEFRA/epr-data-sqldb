@@ -295,5 +295,6 @@
     <Build Include="dbo\Views\v_CrossValidation_FileDetails_Main.sql" />
     <Build Include="dbo\Stored Procedures\CrossValidationGetLatestFile.sql" />
     <Build Include="dbo\Stored Procedures\CrossValidation_Registration.sql" />
+    <Build Include="dbo\Tables\tblCheckpoint.sql" />
   </ItemGroup>
 </Project>
