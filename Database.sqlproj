@@ -284,5 +284,6 @@
     <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
     <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
     <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
+    <Build Include="dbo\Tables\tblCheckpoint.sql" />
   </ItemGroup>
 </Project>
