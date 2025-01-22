@@ -23,7 +23,7 @@
 				, m.[ComplianceSchemeId]
 				, cs.name AS CS_Name
 				, n.name as CS_nation
-				, '20'+ Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS RelevantYear
+				, '20'+ Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2))+1 AS RelevantYear
 				, Convert(datetime2,Replace(Replace(m.Created,'T', ' '),'Z', ' ')) AS Created_frmtDT
 				, o.Name as ProducerName
 				, o.NationId As ProducerNationId
@@ -32,9 +32,8 @@
 				left join [rpd].[ComplianceSchemes] cs on cs.externalid = m.[ComplianceSchemeId]
 				left join [rpd].[Nations] n on n.id = cs.[NationId]
 				left join rpd.Organisations o on o.ExternalId = m.OrganisationId
-		
-)
-,
+
+),
 
 all_CompanyDetails as
 (
@@ -88,10 +87,12 @@ select
 	ISNULL(cd.OrganisationId, p.OrganisationId) as OrganisationId,
 	cd.SubmissionPeriod, 
 	cd.SubmissionPeriod_id, 
-	cd.Submission_time as cd_Submission_time, 
+	cd.Submission_time as cd_Submission_time,
+	ISNULL(cd.Regulator_Status,'Pending') AS Org_Regulator_Status,
 	cd.FileType as cd_filetype, 
 	cd.filename as cd_filename,
-	p.Submission_time as pom_Submission_time, 
+	p.Submission_time as pom_Submission_time,
+	ISNULL(p.Regulator_Status, 'Pending') AS Pom_Regulator_Status,
 	p.FileType as pom_filetype, 
 	p.filename as pom_filename,
 	p.[ComplianceSchemeId] as pom_cs_id,
@@ -99,6 +100,7 @@ select
 	p.SubmissionPeriod_id as pom_id,
 	cd.[ComplianceSchemeId] as org_cs_id,
 	cd.RelevantYear,
+	
 	Case 
 		When p.[ComplianceSchemeId]  Is Null Then 'Direct Producer' 
 		Else 'Compliance Scheme' End CS_or_DP,
@@ -108,6 +110,7 @@ select
 	Concat(p.OriginalFileName,'_',format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOM,
 	ISNULL(cd_o.Name,p_o.Name) as ProducerName,
 	ISNULL(cd_o.NationId,p_o.NationId) as ProducerNationId
+	--ISNULL(p.Producer_Nation,p.Producer_Nation) as ProducerNationName
 	
 
 from DP_latest_CS_all_companydetails cd 
@@ -120,4 +123,7 @@ left join rpd.organisations p_o on cd.OrganisationId = p_o.ExternalId
 
 )
 
-select * from org_pom_combined;
+select *,
+		np.Name AS ProducerNationName
+from org_pom_combined opc
+join [rpd].[Nations] np on np.id = opc.ProducerNationId;
