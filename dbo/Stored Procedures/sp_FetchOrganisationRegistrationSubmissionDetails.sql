@@ -23,18 +23,6 @@ DECLARE @IsComplianceScheme bit;
         INNER JOIN [rpd].[Organisations] O ON S.OrganisationId = O.ExternalId
     WHERE S.SubmissionId = @SubmissionId;
 
-	--BEGIN TRY
-	--	IF OBJECT_ID('tempdb..#ProdCommentsRegulatorDecisions') IS NOT NULL
-	--	BEGIN
-	--		DROP TABLE #ProdCommentsRegulatorDecisions;
-	--	END;
-	--END TRY
-	--BEGIN CATCH
-	--	-- Log or handle the error
-	--	-- PRINT 'An error occurred while attempting to drop the table ##ProdCommentsRegulatorDecisions.';
-	--	-- PRINT ERROR_MESSAGE(); -- Print the error message for debugging purposes
-	--END CATCH;
-
     DECLARE @ProdCommentsSQL NVARCHAR(MAX);
 
 	SET @ProdCommentsSQL = N'
@@ -121,6 +109,11 @@ DECLARE @IsComplianceScheme bit;
 			WHERE IsProducerComment = 0
 					AND SubmissionStatus = 'Granted'
 			ORDER BY DecisionDate DESC
+		)
+		,ProducerSubmissionCTE as (
+			SELECT TOP 1 *
+			from ProdCommentsRegulatorDecisionsCTE producersubmission
+			WHERE IsProducerComment = 1
 		)
 		,UploadedDataCTE as (
 			select *
@@ -226,14 +219,16 @@ DECLARE @IsComplianceScheme bit;
 					,org.PartnerUploadFileName AS PartnershipFileName
 					,org.PartnerFileId AS PartnershipFileId
 					,org.PartnerBlobName AS PartnershipBlobName
+					,CASE WHEN se.DecisionDate > granteddecision.DecisionDate THEN 1 ELSE 0 END AS IsResubmission
 					,ROW_NUMBER() OVER (
-						PARTITION BY s.OrganisationId,
-						s.SubmissionPeriod
-						ORDER BY s.load_ts DESC -- mark latest submission synced from cosmos
+						PARTITION BY s.OrganisationId
+								     ,s.SubmissionPeriod
+									 ,s.ComplianceSchemeId
+						ORDER BY s.load_ts DESC
 					) AS RowNum
 				FROM
 					[rpd].[Submissions] AS s
-					INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId and se.IsProducerComment = 1
+					INNER JOIN ProducerSubmissionCTE se on se.SubmissionId = s.SubmissionId
 					INNER JOIN UploadedDataCTE org ON org.SubmittingExternalId = s.OrganisationId
 					INNER JOIN [rpd].[Organisations] o on o.ExternalId = s.OrganisationId
 					LEFT JOIN [rpd].[ComplianceSchemes] cs on cs.ExternalId = s.ComplianceSchemeId 
@@ -309,6 +304,7 @@ DECLARE @IsComplianceScheme bit;
 			,PartnershipFileName
 			,PartnershipFileId
 			,PartnershipBlobName
+			,IsResubmission
 			FROM
                 SubmissionDetails submission
                 LEFT JOIN LatestRelatedRegulatorDecisionsCTE decision ON decision.SubmissionId = submission.SubmissionId
@@ -421,6 +417,7 @@ DECLARE @IsComplianceScheme bit;
         ,r.BrandsFileId
         ,r.BrandsFileName
         ,r.BrandsBlobName
+		,IsResubmission
         ,acpp.FinalJson AS CSOJson
     FROM
         SubmissionOrganisationCommentsDetailsCTE r
@@ -431,9 +428,4 @@ DECLARE @IsComplianceScheme bit;
         INNER JOIN [rpd].[Persons] p ON p.UserId = u.Id
         INNER JOIN [rpd].[PersonOrganisationConnections] poc ON poc.PersonId = p.Id
         INNER JOIN [rpd].[ServiceRoles] sr ON sr.Id = poc.PersonRoleId;
-
-	--IF OBJECT_ID('tempdb..##ProdCommentsRegulatorDecisions') IS NOT NULL
-    --BEGIN
-	--DROP TABLE ##ProdCommentsRegulatorDecisions;
-	--END
 END;

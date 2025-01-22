@@ -24,7 +24,7 @@
 			) AS RowNum
 		FROM
 			rpd.SubmissionEvents as decisions
-		WHERE decisions.Type IN ( 'RegistrationApplicationSubmitted', 'RegulatorRegistrationDecision')		
+		WHERE decisions.Type IN ( 'RegistrationApplicationSubmitted', 'RegulatorRegistrationDecision')
 	)
 	,GrantedDecisionsCTE as (
 		SELECT *
@@ -112,8 +112,8 @@
 				,CASE WHEN s.ComplianceSchemeId is not null THEN 1 ELSE 0 END as IsComplianceScheme
                 ,ROW_NUMBER() OVER (
                     PARTITION BY s.OrganisationId,
-                    s.SubmissionPeriod
-                    ORDER BY s.load_ts DESC -- mark latest submission synced from cosmos
+                    s.SubmissionPeriod, s.ComplianceSchemeId
+                    ORDER BY s.load_ts DESC
                 ) AS RowNum
             FROM
                 [rpd].[Submissions] AS s
@@ -124,7 +124,8 @@
 				INNER JOIN [rpd].[Organisations] o on o.ExternalId = s.OrganisationId
 				LEFT JOIN [rpd].[ComplianceSchemes] cs on cs.ExternalId = s.ComplianceSchemeId 
 				LEFT JOIN GrantedDecisionsCTE granteddecision on granteddecision.SubmissionId = s.SubmissionId 
-				INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId and se.IsProducerComment = 1
+				INNER JOIN ProdCommentsRegulatorDecisionsCTE se on se.SubmissionId = s.SubmissionId 
+					and se.IsProducerComment = 1
             WHERE s.AppReferenceNumber IS NOT NULL
                 AND s.SubmissionType = 'Registration'
 				ANd s.IsSubmitted = 1
@@ -169,8 +170,7 @@
 	,AllSubmissionsAndDecisionsAndCommentCTE
     AS
     (
-        SELECT
-            DISTINCT
+        SELECT DISTINCT
             submissions.SubmissionId
             ,submissions.OrganisationId
 			,submissions.OrganisationInternalId
@@ -202,9 +202,9 @@
         FROM
             LatestOrganisationRegistrationSubmissionsCTE submissions
             LEFT JOIN LatestRelatedRegulatorDecisionsCTE decisions
-            ON decisions.SubmissionId = submissions.SubmissionId
+				ON decisions.SubmissionId = submissions.SubmissionId
             LEFT JOIN AllRelatedProducerCommentEventsCTE producercomments
-            ON producercomments.SubmissionId = submissions.SubmissionId
+				ON producercomments.SubmissionId = submissions.SubmissionId
     )
 SELECT
     DISTINCT *
