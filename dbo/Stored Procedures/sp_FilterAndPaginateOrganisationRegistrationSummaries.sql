@@ -1,28 +1,72 @@
-CREATE PROC [dbo].[sp_FilterAndPaginateOrganisationRegistrationSummaries] @OrganisationNameCommaSeparated [nvarchar](255),@OrganisationReferenceCommaSeparated [nvarchar](255),@SubmissionYearsCommaSeparated [nvarchar](255),@StatusesCommaSeparated [nvarchar](100),@OrganisationTypeCommaSeparated [nvarchar](255),@NationId [int],@AppRefNumbersCommaSeparated [nvarchar](2000),@PageSize [INT],@PageNumber [INT] AS
-
+﻿CREATE PROC [dbo].[sp_FilterAndPaginateOrganisationRegistrationSummaries] @OrganisationNameCommaSeparated [nvarchar](255),@OrganisationReferenceCommaSeparated [nvarchar](255),@SubmissionYearsCommaSeparated [nvarchar](255),@StatusesCommaSeparated [nvarchar](100),@OrganisationTypeCommaSeparated [nvarchar](255),@NationId [int],@AppRefNumbersCommaSeparated [nvarchar](2000),@PageSize [INT],@PageNumber [INT] AS
 BEGIN
     SET NOCOUNT ON;
     IF EXISTS (
-		SELECT
-        1
-    FROM
-        sys.columns
-    WHERE [name] = 'AppReferenceNumber' AND [object_id] = OBJECT_ID('rpd.Submissions')
+		SELECT 1
+		FROM sys.columns
+		WHERE [name] = 'AppReferenceNumber' AND [object_id] = OBJECT_ID('rpd.Submissions')
 	)
 	BEGIN
-        WITH
+		CREATE TABLE #TempTable (
+			SubmissionId NVARCHAR(150) NULL,
+			OrganisationId NVARCHAR(150) NULL,
+			OrganisationInternalId INT NULL,
+			OrganisationName NVARCHAR(500) NULL,
+			UploadedOrganisationName NVARCHAR(500) NULL,
+			OrganisationReferenceNumber NVARCHAR(25) NULL,
+			SubmittedUserId NVARCHAR(150) NULL,
+			IsComplianceScheme BIT,
+			OrganisationType NVARCHAR(50) NULL,
+			ProducerSize NVARCHAR(50) NULL,
+			ApplicationReferenceNumber NVARCHAR(50) NULL,
+			RegistrationReferenceNumber NVARCHAR(50) NULL,
+			SubmittedDateTime NVARCHAR(50) NULL,
+			RelevantYear INT NULL,
+			SubmissionPeriod NVARCHAR(500) NULL,
+			IsLateSubmission BIT,
+			SubmissionStatus NVARCHAR(20) NULL,
+			StatusPendingDate NVARCHAR(50) NULL,
+			RegulatorDecisionDate NVARCHAR(50) NULL,
+			RegulatorUserId NVARCHAR(150) NULL,
+			ProducerCommentDate NVARCHAR(50) NULL,
+			ProducerSubmissionEventId NVARCHAR(150) NULL,
+			RegulatorSubmissionEventId NVARCHAR(150) NULL,
+			NationId INT NULL,
+			NationCode NVARCHAR(10) NULL,
+            IsResubmission BIT NOT NULL
+		);
+		
+		exec dbo.sp_OrganisationRegistrationSummaries ;
+
+		WITH
             NormalFilterCTE
             AS
             (
                 SELECT
-                    *
-                FROM
-                    dbo.[v_OrganisationRegistrationSummaries] i
-                WHERE (
-            NationId = @NationId
+					SubmissionId,
+					OrganisationId,
+					OrganisationInternalId,
+					OrganisationName,
+					OrganisationReferenceNumber,
+					OrganisationType,
+					SubmissionStatus,
+					StatusPendingDate,
+					ApplicationReferenceNumber,
+					RegistrationReferenceNumber,
+					RelevantYear,
+					SubmittedDateTime,
+					RegulatorDecisionDate,
+					ProducerCommentDate,
+					RegulatorUserId,
+					NationId,
+					NationCode,
+                    IsResubmission
+			FROM #TempTable i
+            WHERE (
+				    NationId = @NationId
                     OR @NationId = 0
-        )
-                    AND (
+			)
+			AND (
             EXISTS (
                 SELECT
                         1
@@ -115,100 +159,95 @@ BEGIN
                     )
                 )
             )
-        )
-            )
-        ,SortedCTE
-            AS
-            (
-                SELECT
-                    *
-                ,ROW_NUMBER() OVER (
-            ORDER BY CASE
-                    WHEN SubmissionStatus = 'Cancelled' THEN 6
-                    WHEN SubmissionStatus = 'Refused' THEN 5
-                    WHEN SubmissionStatus = 'Granted' THEN 4
-                    WHEN SubmissionStatus = 'Queried' THEN 3
-                    WHEN SubmissionStatus = 'Pending' THEN 2
-                    WHEN SubmissionStatus = 'Updated' THEN 1
-                END,
-                SubmittedDateTime
-        ) AS RowNum
-                FROM
-                    NormalFilterCTE
-            )
-        ,TotalRowsCTE
-            AS
-            (
-                SELECT
-                    COUNT(*) AS TotalRows
-                FROM
-                    SortedCTE
-            )
-        ,PagedResultsCTE
-            AS
-            (
-                SELECT
-                    *
-                ,ROW_NUMBER() OVER (
-            ORDER BY RowNum
-        ) AS PagedRowNum
-                FROM
-                    SortedCTE
-            )
-        SELECT
-            SubmissionId
-        ,OrganisationId
-        ,OrganisationInternalId
-        ,OrganisationType
-        ,OrganisationName
-        ,OrganisationReferenceNumber AS OrganisationReference
-        ,SubmissionStatus
-        ,StatusPendingDate
-        ,ApplicationReferenceNumber
-        ,RegistrationReferenceNumber
-        ,RelevantYear
-        ,SubmittedDateTime
-        ,RegulatorDecisionDate AS RegulatorCommentDate
-        ,ProducerCommentDate
-        ,RegulatorUserId
-        ,NationId
-        ,NationCode
-        ,(
-        SELECT
-                COUNT(*)
-            FROM
-                SortedCTE
-    ) AS TotalItems
-        FROM
-            PagedResultsCTE
-        WHERE PagedRowNum > (
-        @PageSize * (
-            LEAST(
-                @PageNumber,
-                CEILING(
-                    (
-                        SELECT
-                TotalRows
-            FROM
-                TotalRowsCTE
-                    ) / (1.0 * @PageSize)
-                )
-            ) - 1
-        )
-    )
-            AND PagedRowNum <= @PageSize * LEAST(
-        @PageNumber,
-        CEILING(
-            (
-                SELECT
-                TotalRows
-            FROM
-                TotalRowsCTE
-            ) / (1.0 * @PageSize)
-        )
-    )
-        ORDER BY RowNum;
-    END
+			) )
+			,SortedCTE
+				AS
+				(
+					SELECT
+						*
+					,ROW_NUMBER() OVER (
+					ORDER BY CASE
+						WHEN SubmissionStatus = 'Cancelled' THEN 6
+						WHEN SubmissionStatus = 'Refused' THEN 5
+						WHEN SubmissionStatus = 'Granted' THEN 4
+						WHEN SubmissionStatus = 'Queried' THEN 3
+						WHEN SubmissionStatus = 'Pending' THEN 2
+						WHEN SubmissionStatus = 'Updated' THEN 1
+					END,
+					SubmittedDateTime
+			) AS RowNum
+					FROM
+						NormalFilterCTE
+				)
+			,TotalRowsCTE
+				AS
+				(
+					SELECT
+						COUNT(*) AS TotalRows
+					FROM
+						SortedCTE
+				)
+			,PagedResultsCTE
+				AS
+				(
+					SELECT
+						*
+					,ROW_NUMBER() OVER (
+				ORDER BY RowNum
+			) AS PagedRowNum
+					FROM
+						SortedCTE
+				)
+			SELECT
+				SubmissionId
+				,OrganisationId
+				,OrganisationInternalId
+				,OrganisationType
+				,OrganisationName
+				,OrganisationReferenceNumber as OrganisationReference
+				,SubmissionStatus
+				,StatusPendingDate
+				,ApplicationReferenceNumber
+				,RegistrationReferenceNumber
+				,RelevantYear
+				,SubmittedDateTime
+				,RegulatorDecisionDate AS RegulatorCommentDate
+				,ProducerCommentDate
+				,RegulatorUserId
+				,NationId
+				,NationCode
+                ,IsResubmission
+				,( SELECT COUNT(*) FROM SortedCTE ) AS TotalItems
+			FROM
+				PagedResultsCTE
+			WHERE PagedRowNum > (
+			@PageSize * (
+				LEAST(
+					@PageNumber,
+					CEILING(
+						(
+							SELECT
+					TotalRows
+				FROM
+					TotalRowsCTE
+						) / (1.0 * @PageSize)
+					)
+				) - 1
+			)
+		)
+		AND PagedRowNum <= @PageSize * LEAST(
+			@PageNumber,
+			CEILING(
+				(
+					SELECT
+					TotalRows
+				FROM
+					TotalRowsCTE
+				) / (1.0 * @PageSize)
+			)
+		)
+		ORDER BY RowNum;
+	END
 	ELSE
 	BEGIN
         SELECT
@@ -229,8 +268,8 @@ BEGIN
             ,CAST(NULL AS UNIQUEIDENTIFIER) AS RegulatorUserId
             ,CAST(NULL AS INT) AS NationId
             ,CAST(NULL AS NVARCHAR(10)) AS NationCode
+            ,CAST(0 AS BIT) AS IsResubmission
             ,0 AS TotalItems
         WHERE 1=0
     END;
-
 END;
