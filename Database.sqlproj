@@ -277,5 +277,6 @@
     <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Org_Comparison_Members.sql" />
+    <Build Include="dbo\Stored Procedures\sp_OrganisationRegistrationSummaries.sql" />
   </ItemGroup>
 </Project>
