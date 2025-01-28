@@ -1,65 +1,59 @@
-﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS SELECT
-/****************************************************************************************************************************
-	History:
- 
-	Updated: 2024-11-18:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
-							
-******************************************************************************************************************************/
-DISTINCT replacement.name AS [Org_Name],
- original.org_name AS [Producer_Org_Name]
-    ,original.[PCS_Or_Direct_Producer]
- --   ,csname.name Compliance_Scheme
- ,original.Compliance_Scheme
-    ,original.[Org_Type]
-    ,original.[Org_Sub_Type]
-    ,original.[organisation_size]
-    ,original.[Submission_Date]
-    ,original.[submission_period]
---   ,replacement.referenceNumber AS [organisation_id_operator]
-	,original.[organisation_id] AS [organisation_id_producer]
-	 ,replacement.referenceNumber AS organisation_id
-    ,original.[subsidiary_id]
-    ,original.[CH_Number]
-    ,original.[Nation_Of_Enrolment]
-    ,original.[packaging_activity]
-    ,original.[packaging_type]
-    ,original.[packaging_class]
-    ,original.[packaging_material]
-    ,original.[packaging_sub_material]
-	,original.[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
-    ,original.[from_nation]
-    ,original.[to_nation]
-    ,original.[quantity_kg]
-    ,original.[quantity_unit]
-    ,original.[Quantity_kg_extrapolated]
-    ,original.[Quantity_units_extrapolated]
-    ,original.[ToOrganisation_NationName]
-    ,original.[Nation]
-    ,original.[FromOrganisation_NationName]
-    ,original.[FileName]
-    ,original.[ServiceRoles_Role]
-    ,original.[SubmittedBy]
-    ,original.[filetype]
-    ,original.[Users_Email]
-    ,original.[Persons_Email]
-    ,original.[metafile]
-    ,original.[JOINFIELD]
-    ,original.[relative_move]
-    ,original.TransferNation
-    ,original.[SubmtterEmail]
-    ,original.[ServiceRoles_Name]
-    ,original.[OriginalFileName]
-	--,original.trading_name
-	--,original.registered_addr_line1
---,original.registered_addr_line2
---,original.registered_city
---,original.registered_addr_country
---,original.registered_addr_postcode
-FROM [dbo].[t_POM_Submissions] original
-	 join ( select cosmos.filename, cs.name, cs.companieshousenumber
-  from [dbo].[v_cosmos_file_metadata] cosmos
+﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS WITH original AS (SELECT
+	org_name AS [Producer_Org_Name]
+    ,[PCS_Or_Direct_Producer]
+	,Compliance_Scheme
+    ,[Org_Type]
+    ,[Org_Sub_Type]
+    ,[organisation_size]
+    ,[Submission_Date]
+    ,[submission_period]
+	,[organisation_id] AS [organisation_id_producer]
+	 --ement.referenceNumber AS organisation_id
+    ,[subsidiary_id]
+    ,[CH_Number]
+    ,[Nation_Of_Enrolment]
+    ,[packaging_activity]
+    ,[packaging_type]
+    ,[packaging_class]
+    ,[packaging_material]
+    ,[packaging_sub_material]
+	,[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
+    ,[from_nation]
+    ,[to_nation]
+    ,[quantity_kg]
+    ,[quantity_unit]
+    ,[Quantity_kg_extrapolated]
+    ,[Quantity_units_extrapolated]
+    ,[ToOrganisation_NationName]
+    ,[Nation]
+    ,[FromOrganisation_NationName]
+    ,[FileName]
+    ,[ServiceRoles_Role]
+    ,[SubmittedBy]
+    ,[filetype]
+    ,[Users_Email]
+    ,[Persons_Email]
+    ,[metafile]
+    ,[JOINFIELD]
+    ,[relative_move]
+    ,TransferNation
+    ,[SubmtterEmail]
+    ,[ServiceRoles_Name]
+    ,[OriginalFileName]
+	
+FROM [dbo].[t_POM_Submissions]
+),
+
+csname as (
+select cosmos.filename, cs.name, cs.companieshousenumber
+  from [dbo].[t_cosmos_file_metadata] cosmos
   join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
-  group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = original.filename
---     JOIN v_Producer_CS_Lookup replacement
---    ON original.organisation_id = replacement.Producer_Id;
-join dbo.v_rpd_Organisations_Active replacement on replacement.companieshousenumber = csname.companieshousenumber;
+  group by  cosmos.filename, cs.name,cs.companieshousenumber
+ )
+
+select original.*, 
+replacement.referenceNumber AS organisation_id,
+replacement.name AS [Org_Name]
+FROM original 
+JOIN csname on csname.filename = original.filename
+JOIN dbo.v_rpd_Organisations_Active replacement on replacement.companieshousenumber = csname.companieshousenumber;
