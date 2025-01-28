@@ -24,7 +24,9 @@
     [registered_addr_country]                        NVARCHAR (4000) NULL,
     [registered_addr_phone_number]                   NVARCHAR (4000) NULL,
     [approved_person_email]                          NVARCHAR (4000) NULL,
-    [delegated_person_email]                         NVARCHAR (4000) NULL
+    [delegated_person_email]                         NVARCHAR (4000) NULL,
+    [Subsidiary_RelationFromDate]                    DATETIME2 (7)   NULL,
+    [Subsidiary_RelationToDate]                      DATETIME2 (7)   NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
