@@ -69,13 +69,16 @@ AS (
 		cd.registered_addr_country,
 		cd.registered_addr_phone_number,
 		cd.approved_person_email,
-		cd.delegated_person_email
+		cd.delegated_person_email,
+		sub.RelationFromDate as Subsidiary_RelationFromDate,
+		sub.RelationToDate as Subsidiary_RelationToDate
 	FROM cd_org_combined com
 	LEFT JOIN rpd.CompanyDetails cd
 		ON com.meta_filename = cd.filename
 	LEFT JOIN dbo.v_subsidiaryorganisations sub
 		ON sub.FirstOrganisation_ReferenceNumber = cd.organisation_id
-			AND sub.SubsidiaryId = cd.subsidiary_id
+			AND (sub.SubsidiaryId = cd.subsidiary_id
+					or sub.SecondOrganisation_ReferenceNumber = cd.subsidiary_id)
 	LEFT JOIN rpd.Organisations o
 		ON o.ReferenceNumber = cd.subsidiary_id
 			--where file_submitted_organisation_IsComplianceScheme = 1 

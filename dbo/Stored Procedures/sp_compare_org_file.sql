@@ -14,7 +14,10 @@ BEGIN
 		),
 	year1
 	AS (
-		SELECT y1.CS_id AS y1_CS_id,
+		SELECT 
+			y1.file_submitted_organisation_reference as y1_file_submitted_organisation_reference,
+			y1.meta_filename as y1_meta_filename,
+			y1.CS_id AS y1_CS_id,
 			y1.organisation_id AS y1_organisation_id,
 			y1.subsidiary_id AS y1_subsidiary_id,
 			y1.subsidiary_id_sys_gen AS y1_subsidiary_id_sys_gen,
@@ -24,13 +27,26 @@ BEGIN
 			y1.companies_house_number AS y1_companies_house_number,
 			y1.organisation_size AS y1_organisation_size,
 			y1.Submission_time AS y1_Submission_time,
-			y1.Regulator_Status AS y1_Regulator_Status
+			y1.Regulator_Status AS y1_Regulator_Status,
+			y1.registered_addr_line1 AS y1_registered_addr_line1,
+			y1.registered_addr_line2 AS y1_registered_addr_line2,
+			y1.registered_city AS y1_registered_city,
+			y1.registered_addr_county AS y1_registered_addr_county,
+			y1.registered_addr_postcode AS y1_registered_addr_postcode,
+			y1.registered_addr_country AS y1_registered_addr_country,
+			y1.registered_addr_phone_number AS y1_registered_addr_phone_number,
+			y1.approved_person_email AS y1_approved_person_email,
+			y1.delegated_person_email AS y1_delegated_person_email
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
-		WHERE y1.ReportingYear = 2023
+		WHERE y1.ReportingYear = @Year1
+		and y1.Subsidiary_RelationToDate is null
 		),
 	year2
 	AS (
-		SELECT y2.CS_id AS y2_CS_id,
+		SELECT 
+			y2.file_submitted_organisation_reference as y2_file_submitted_organisation_reference,
+			y2.meta_filename as y2_meta_filename,
+			y2.CS_id AS y2_CS_id,
 			y2.organisation_id AS y2_organisation_id,
 			y2.subsidiary_id AS y2_subsidiary_id,
 			y2.subsidiary_id_sys_gen AS y2_subsidiary_id_sys_gen,
@@ -51,7 +67,8 @@ BEGIN
 			y2.approved_person_email AS y2_approved_person_email,
 			y2.delegated_person_email AS y2_delegated_person_email
 		FROM dbo.t_latest_pending_or_accepted_orgfile_by_year y2
-		WHERE y2.ReportingYear = 2024
+		WHERE y2.ReportingYear = @Year2
+		and y2.Subsidiary_RelationToDate is null
 		),
 	latest_in_year2
 	AS (
@@ -71,7 +88,12 @@ BEGIN
 		),
 	comparison_result_selected_columns
 	AS (
-		SELECT coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') AS CS_Name_or_DP,
+		SELECT 
+			cr.y1_file_submitted_organisation_reference,
+			cr.y1_meta_filename,
+			cr.y2_file_submitted_organisation_reference,
+			cr.y2_meta_filename,
+			coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') AS CS_Name_or_DP,
 			coalesce(cr.y1_organisation_id, cr.y2_organisation_id) AS org_id,
 			coalesce(cr.y1_organisation_name, cr.y2_organisation_name) AS org_name,
 			coalesce(cr.y1_subsidiary_id, cr.y2_subsidiary_id) AS sub_id,
@@ -82,6 +104,15 @@ BEGIN
 			cr.y1_Regulator_Status,
 			cr.y2_Submission_time,
 			cr.y2_Regulator_Status,
+			cr.y1_registered_addr_line1,
+			cr.y1_registered_addr_line2,
+			cr.y1_registered_city,
+			cr.y1_registered_addr_county,
+			cr.y1_registered_addr_postcode,
+			cr.y1_registered_addr_country,
+			cr.y1_registered_addr_phone_number,
+			cr.y1_approved_person_email,
+			cr.y1_delegated_person_email,
 			CASE 
 				WHEN (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL) OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL)
 					-- if not direct producer
@@ -94,7 +125,12 @@ BEGIN
 				END AS JL
 		FROM comparison_result cr
 		)
-	SELECT cr_sc.CS_Name_or_DP,
+	SELECT 
+		cr_sc.y1_file_submitted_organisation_reference,
+		cr_sc.y1_meta_filename,
+		cr_sc.y2_file_submitted_organisation_reference,
+		cr_sc.y2_meta_filename,
+		cr_sc.CS_Name_or_DP,
 		cr_sc.org_id,
 		cr_sc.org_name,
 		cr_sc.sub_id,
@@ -119,15 +155,15 @@ BEGIN
 			WHEN l_y2.y2_organisation_id IS NOT NULL
 				THEN l_y2.y2_organisation_name
 			END AS new_cs,
-		l_y2.y2_registered_addr_line1,
-		l_y2.y2_registered_addr_line2,
-		l_y2.y2_registered_city,
-		l_y2.y2_registered_addr_county,
-		l_y2.y2_registered_addr_postcode,
-		l_y2.y2_registered_addr_country,
-		l_y2.y2_registered_addr_phone_number,
-		l_y2.y2_approved_person_email,
-		l_y2.y2_delegated_person_email
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_line1 else cr_sc.y1_registered_addr_line1 end as registered_addr_line1,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_line2 else cr_sc.y1_registered_addr_line2 end as registered_addr_line2,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_city else cr_sc.y1_registered_city end as registered_city,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_county else cr_sc.y1_registered_addr_county end as registered_addr_county,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_postcode else cr_sc.y1_registered_addr_postcode end as registered_addr_postcode,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_country else cr_sc.y1_registered_addr_country end as registered_addr_country,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_phone_number else cr_sc.y1_registered_addr_phone_number end as registered_addr_phone_number,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_email else cr_sc.y1_approved_person_email end as approved_person_email,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_email else cr_sc.y1_delegated_person_email end as delegated_person_email
 	FROM comparison_result_selected_columns cr_sc
 	LEFT JOIN latest_in_year2 l_y2
 		ON cr_sc.org_id = l_y2.y2_organisation_id AND ISNULL(cr_sc.sub_id, '') = ISNULL(l_y2.y2_subsidiary_id, '') AND l_y2.rn = 1
