@@ -48,6 +48,7 @@
     [Decision_Date]                          NVARCHAR (4000) NULL,
     [Regulator_Rejection_Comments]           NVARCHAR (4000) NULL,
     [SubsidiaryOrganisation_ReferenceNumber] NVARCHAR (4000) NULL,
+    [subsidiary_name]                        NVARCHAR (4000) NULL,
     [IsLatest]                               INT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
