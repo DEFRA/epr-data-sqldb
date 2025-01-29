@@ -17,17 +17,13 @@
     [quantity_unit]                          FLOAT (53)      NULL,
     [load_ts]                                DATETIME2 (7)   NOT NULL,
     [FileName]                               NVARCHAR (4000) NULL,
+    [transitional_packaging_units]           FLOAT (53)      NULL,
     [Quantity_kg_extrapolated]               FLOAT (53)      NULL,
     [Quantity_units_extrapolated]            FLOAT (53)      NULL,
     [relative_move]                          VARCHAR (72)    NULL,
     [File_submitted_time]                    DATETIME        NULL,
-    [IsLatest]                               INT             NOT NULL
+    [IsLatest]                               INT             NOT NULL,
+    [PkgOrgJoinColumn]                       NVARCHAR (4000) NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
-
-
-
-
 

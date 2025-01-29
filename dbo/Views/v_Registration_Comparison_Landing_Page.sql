@@ -22,7 +22,7 @@
 	,'' AS Nation
 	,cset.[CompanyRegID]
   FROM [dbo].[t_CompanyBrandPartnerFileUploadSet] cset
-  JOIN [dbo].[v_cosmos_file_metadata] c ON cset.[CompanyFileName] = c.[FileName]
+  JOIN [dbo].[t_cosmos_file_metadata] c ON cset.[CompanyFileName] = c.[FileName]
   LEFT JOIN [rpd].[ComplianceSchemes] cs ON cs.[ExternalId] = cset.ComplianceSchemeId
   GROUP BY  cset.[CompanyOrgId]
 			,cset.[organisation_name] +' '+ ISNULL(cset.[companies_house_number],'') +' '+ CAST(cset.[CompanyOrgId] AS VARCHAR)

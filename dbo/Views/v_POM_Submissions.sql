@@ -72,16 +72,16 @@ p.filename JOINFIELD
 ,meta.[OriginalFileName]
 --,dsf.[from_nation] FromNation
 --,dsf.[tonation] ToNation
- FROM [dbo].[v_Pom] p
-   join [dbo].[v_rpd_data_SECURITY_FIX] dsf
+ FROM [dbo].[t_Pom] p
+   join [dbo].[t_rpd_data_SECURITY_FIX] dsf
  on p.[organisation_id]  = dsf.[FromOrganisation_ReferenceNumber] 
 left join [dbo].[v_PersonOrganisationConnections] po_con
 on po_con.Persons_Id = dsf.Persons_Id  
-   join [dbo].[v_cosmos_file_metadata] meta
+   join [dbo].[t_cosmos_file_metadata] meta
  on p.filename = meta.filename and (po_con.Users_UserId = meta.userid or meta.ComplianceSchemeId is not null)
 left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
 left	join ( select cosmos.filename, cs.name, cs.companieshousenumber
-  from [dbo].[v_cosmos_file_metadata] cosmos
+  from [dbo].[t_cosmos_file_metadata] cosmos
   join  dbo.v_rpd_ComplianceSchemes_Active cs on cs.externalid = cosmos.[ComplianceSchemeId]
   group by  cosmos.filename, cs.name,cs.companieshousenumber) csname on csname.filename = p.filename
 
