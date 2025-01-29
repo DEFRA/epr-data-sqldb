@@ -158,7 +158,7 @@ a.[Organisations_Id],a.[FromOrganisation_TypeId]
 ,a.Decision_Date
 ,a.Regulator_User_Name
 
-FROM [v_rpd_data_SECURITY_FIX] a -- Enrolment
+FROM [t_rpd_data_SECURITY_FIX] a -- Enrolment
 
 
 WHERE NOT EXISTS 

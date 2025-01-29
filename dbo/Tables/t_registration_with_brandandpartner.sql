@@ -74,6 +74,7 @@
     [secondary_contact_person_job_title]                             NVARCHAR (4000) NULL,
     [load_ts]                                                        DATETIME2 (7)   NOT NULL,
     [FileName]                                                       NVARCHAR (4000) NULL,
+    [organisation_size]                                              NVARCHAR (4000) NULL,
     [brand_name]                                                     NVARCHAR (4000) NULL,
     [brand_type_code]                                                NVARCHAR (4000) NULL,
     [partner_first_name]                                             NVARCHAR (4000) NULL,
@@ -263,10 +264,4 @@
     [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
-
-
-
-
 
