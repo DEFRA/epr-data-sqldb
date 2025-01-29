@@ -1,4 +1,4 @@
-﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS WITH original AS (SELECT
+﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS WITH original AS (SELECT distinct
 	org_name AS [Producer_Org_Name]
     ,[PCS_Or_Direct_Producer]
 	,Compliance_Scheme
