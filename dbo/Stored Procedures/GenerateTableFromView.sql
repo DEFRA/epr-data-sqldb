@@ -31,8 +31,37 @@ begin
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','procedure', NULL, @start_dt, getdate(), 'RC point '+cast(@recovery_checkpoint as varchar)+' identified',@batch_id
 end
 
-
 --Table 1
+if (@recovery_checkpoint < 1)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_cosmos_file_metadata', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_cosmos_file_metadata;
+		END;	
+
+		SELECT *
+		INTO dbo.t_cosmos_file_metadata
+		FROM dbo.v_cosmos_file_metadata;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_cosmos_file_metadata', NULL, @start_dt, getdate(), 'Tab 1 - Completed',@batch_id
+
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 1, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 1, getdate()
+	end
+end
+
+
+--Table 2
 if (@recovery_checkpoint < 1)
 begin
 	set @start_dt = getdate()
@@ -61,7 +90,7 @@ begin
 	end
 end
 
---Table 2
+--Table 3
 if (@recovery_checkpoint<2)
 begin
 	set @start_dt = getdate()
@@ -91,7 +120,7 @@ begin
 	end
 end
 
---Table 3
+--Table 4
 if (@recovery_checkpoint < 3)
 begin
 	set @start_dt = getdate()
@@ -121,7 +150,7 @@ begin
 	end
 end
 
---Table 4
+--Table 5
 if (@recovery_checkpoint < 4)
 begin
 	set @start_dt = getdate()
@@ -150,7 +179,7 @@ begin
 end
 
 
---Table 5
+--Table 6
 if (@recovery_checkpoint < 5)
 begin
 	set @start_dt = getdate()
@@ -178,7 +207,7 @@ begin
 	end
 end
 
---Table 6
+--Table 7
 if (@recovery_checkpoint < 6)
 begin
 	set @start_dt = getdate()
@@ -207,7 +236,7 @@ begin
 	end
 end
 
---Table 7
+--Table 8
 if (@recovery_checkpoint < 7)
 begin
 	set @start_dt = getdate()
@@ -236,7 +265,65 @@ begin
 	end
 end
 
---Table 8
+--Table 9
+if (@recovery_checkpoint < 7)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_POM_Operator_Submissions', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_POM_Operator_Submissions;
+		END;	
+
+		SELECT *
+		INTO dbo.t_POM_Operator_Submissions
+		FROM dbo.v_POM_Operator_Submissions;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Operator_Submissions', NULL, @start_dt, getdate(), 'Tab 7 - Completed',@batch_id
+
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 7, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 7, getdate()
+	end
+end
+
+--Table 10
+if (@recovery_checkpoint < 13)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_POM_All_Submissions', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_POM_All_Submissions;
+		END;	
+
+		SELECT *
+		INTO dbo.t_POM_All_Submissions
+		FROM dbo.v_POM_All_Submissions;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', NULL, @start_dt, getdate(), 'Tab 13 - Completed',@batch_id
+
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 13, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 13, getdate()
+	end
+end
+
+--Table 11
 if (@recovery_checkpoint < 8)
 begin
 	set @start_dt = getdate()
@@ -266,7 +353,7 @@ begin
 	end
 end
 
---Table 9
+--Table 12
 if (@recovery_checkpoint < 9)
 begin
 	set @start_dt = getdate()
@@ -296,7 +383,7 @@ begin
 	end
 end
 
---Table 10
+--Table 13
 if (@recovery_checkpoint < 10)
 begin
 	set @start_dt = getdate()
@@ -325,7 +412,7 @@ begin
 	end
 end
 
---Table 11
+--Table 14
 if (@recovery_checkpoint < 11)
 begin
 	set @start_dt = getdate()
@@ -354,7 +441,7 @@ begin
 	end
 end
 
---Table 12
+--Table 15
 if (@recovery_checkpoint < 12)
 begin
 	set @start_dt = getdate()
@@ -383,36 +470,9 @@ begin
 	end
 end
 
---Table 13
-if (@recovery_checkpoint < 13)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_POM_All_Submissions', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_POM_All_Submissions;
-		END;	
-
-		SELECT *
-		INTO dbo.t_POM_All_Submissions
-		FROM dbo.v_POM_All_Submissions;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', NULL, @start_dt, getdate(), 'Tab 13 - Completed',@batch_id
 
 
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 13, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 13, getdate()
-	end
-end
-
---Table 14
+--Table 16
 if (@recovery_checkpoint < 14)
 begin
 	set @start_dt = getdate()
@@ -441,7 +501,7 @@ begin
 	end
 end
 
---Table 15
+--Table 17
 if (@recovery_checkpoint < 15)
 begin
 	set @start_dt = getdate()
@@ -469,7 +529,7 @@ begin
 	end
 end
 
---Table 16
+--Table 18
 if (@recovery_checkpoint < 16)
 begin
 	set @start_dt = getdate()
@@ -498,7 +558,7 @@ begin
 end
 
 
---Table 17
+--Table 19
 if (@recovery_checkpoint < 17)
 begin
 	set @start_dt = getdate()
@@ -526,7 +586,7 @@ begin
 	end
 end
 
---Table 18
+--Table 20
 if (@recovery_checkpoint < 18)
 begin
 	set @start_dt = getdate()
@@ -554,7 +614,7 @@ begin
 	end
 end
 
---Table 19
+--Table 21
 if (@recovery_checkpoint < 19)
 begin
 	set @start_dt = getdate()
@@ -578,6 +638,10 @@ begin
 end
 
 	--Recording count from each table
+	select @cnt =count(1) from dbo.t_cosmos_file_metadata;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_cosmos_file_metadata', @cnt, NULL, getdate(), 'Completed',@batch_id
+
 	select @cnt =count(1) from dbo.t_pom_codes;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_pom_codes', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -605,6 +669,10 @@ end
 	select @cnt =count(1) from dbo.t_POM_Submissions;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_POM_Operator_Submissions;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Operator_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 	select @cnt =count(1) from dbo.t_registration_latest;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
