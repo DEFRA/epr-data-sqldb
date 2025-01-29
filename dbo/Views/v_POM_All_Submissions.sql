@@ -62,7 +62,7 @@ As
 				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
 			FROM t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
-											FROM v_POM_Operator_Submissions operators )
+											FROM t_POM_Operator_Submissions operators )
  
 			UNION
 			--add in operator
@@ -111,7 +111,7 @@ As
 				  ,[OriginalFileName], 
 				  'Operator'
 				  ,'' OrganisationID -- added TS 12/09/2024
-			FROM v_POM_Operator_Submissions
+			FROM t_POM_Operator_Submissions
  
 			UNION 
 
@@ -161,7 +161,7 @@ As
 				  ,[OriginalFileName]
 				  ,'Member'
 				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
-				  from v_POM_Operator_Submissions 
+				  from t_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
@@ -171,6 +171,9 @@ LEFT JOIN dbo.v_subsidiaryorganisations so
 		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
 
 			and so.RelationToDate is NULL
+/** JP002 added join on company details table to get subsidiary name **/
+left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
+and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')
 )
  -- JP001
 Select 
