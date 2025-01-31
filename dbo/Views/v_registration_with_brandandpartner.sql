@@ -1,5 +1,16 @@
 ﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS WITH 
 
+/****************************************************************************************************************************
+
+	History:
+
+	Updated: 2024-11-18:	BL001:	Ticket - 460892:	Adding the new column [organisation_size]
+	Updated: 2025-01-29:	SN002:	Ticket - 500601:	Adding SubmissionType and updated pos.created  (submissiondate) for new submissionTypes
+
+******************************************************************************************************************************/
+
+ 
+
 CompanyDetails_with_regid AS
 (
 select 
@@ -28,17 +39,6 @@ From [rpd].[Partnerships] p
 
 
 SELECT distinct 
-
-/****************************************************************************************************************************
-
-	History:
-
-	Updated: 2024-11-18:	BL001:	Ticket - 460892:	Adding the new column [organisation_size]
-
-******************************************************************************************************************************/
-
- 
-
 
 rbp.*
 ,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
@@ -206,7 +206,7 @@ rbp.*
 ,c.[BlobName]
 ,c.[BlobContainerName]
 ,c.[FileType]
-,c.[Created]
+,Created			= isnull(convert(datetime2,pos.Created,127) , c.Created)  /*** SN002: Added ***/
 ,c.[OriginalFileName]
 ,c.[OrganisationId]
 ,c.[DataSourceType]
@@ -224,7 +224,7 @@ rbp.*
 ,pos.[Regulator_Status]
 ,pos.[Regulator_User_Name]
 ,pos.[Regulator_Rejection_Comments]
-
+,pos.RegistrationType						/*** SN002: Added ***/
 FROM
 --1 Brand mapping
 (
