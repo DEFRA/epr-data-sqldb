@@ -108,6 +108,8 @@ select
 	p.CS_nation,
 	Concat(cd.OriginalFileName,'_',format(convert(datetime,cd.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(cd.Regulator_Status,'Pending')) AS DisplayFilenameCD,
 	Concat(p.OriginalFileName,'_',format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOM,
+	Concat(format(convert(datetime,cd.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',cd.OriginalFileName,'_',IsNull(cd.Regulator_Status,'Pending')) AS DisplayFilenameCDSort,
+	Concat(format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',p.OriginalFileName,'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOMSort,
 	ISNULL(cd_o.Name,p_o.Name) as ProducerName,
 	ISNULL(cd_o.NationId,p_o.NationId) as ProducerNationId
 	--ISNULL(p.Producer_Nation,p.Producer_Nation) as ProducerNationName
