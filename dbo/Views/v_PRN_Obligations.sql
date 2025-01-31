@@ -6,7 +6,7 @@ org As (
 	Created: 2024-11-20:	SN001:	Ticket - 464577:	Creation of View for Obligations for POwer BI reporting
 	Updated: 2024-11-28:	SN002:						Added Summ PrnTonnage and concatenated Address to reduce DAX usage4
 	Updated: 2025-01-13		SN003:						Include Ability to map CSIds 
-
+	Updated: 2025-01-30		SN004:	Ticket  - 501253	ComplianceSchemes not in Metafile data joined by Companies House no.
 
 ******************************************************************************************************************************/
 
@@ -29,6 +29,27 @@ org As (
 	From
 		dbo.v_rpd_Organisations_Active	o
 ),
+cs_ch As (  /*** SN004: Added ***/
+	Select
+	 cs.ExternalID
+	,o.ReferenceNumber
+	,o.NationId
+	,o.IsComplianceScheme
+	,o.Town
+	,o.Postcode
+	,o.SubBuildingName
+	,o.BuildingNumber
+	,o.BuildingName
+	,o.Street
+	,o.Country
+	,o.County
+	,o.ValidatedWithCompaniesHouse
+	,RowNumber	=1
+From
+	dbo.v_rpd_Organisations_Active	o
+Join
+	rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
+), /*** SN004: Added ***/
 csa As (
 	Select  
 		 ExternalID			= c.ComplianceSchemeId
@@ -89,7 +110,25 @@ org_csa As (
 	From 
 		csa 
 	Where csa.RowNumber = 1
-), /*** SN:003 ***/
+	 /*** SN004: Added ***/
+	Union
+	Select 
+		 csa.ExternalID			
+		,csa.ReferenceNumber	
+		,csa.NationId
+		,csa.IsComplianceScheme 
+		,csa.Town
+		,csa.PostCode
+		,csa.SubBuildingName
+		,csa.BuildingNumber
+		,csa.BuildingName
+		,csa.Street
+		,csa.Country
+		,csa.County
+		,csa.ValidatedWithCompaniesHouse
+	From 
+		csa 
+),
 obgns As (
 
 	Select
