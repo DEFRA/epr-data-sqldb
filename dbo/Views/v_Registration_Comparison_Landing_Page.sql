@@ -1,6 +1,6 @@
 ﻿CREATE VIEW [dbo].[v_Registration_Comparison_Landing_Page] AS SELECT 
      cset.[CompanyOrgId]
-	,cset.[organisation_name] +' '+ ISNULL(cset.[companies_house_number],'') +' '+ CAST(cset.[CompanyOrgId] AS VARCHAR) AS Organisation
+	,trim(cset.[organisation_name]) +' '+ ISNULL(RIGHT(REPLICATE('0', 8) + trim(replace(cset.[companies_house_number],'''','')), 8),'') +' '+ CAST(cset.[CompanyOrgId] AS VARCHAR) AS Organisation --TS_001
 	,cset.[CompanyOriginalFileName]
 	,c.[SubmissionPeriod]
 	,c.[IsSubmitted]
@@ -25,7 +25,7 @@
   JOIN [dbo].[t_cosmos_file_metadata] c ON cset.[CompanyFileName] = c.[FileName]
   LEFT JOIN [rpd].[ComplianceSchemes] cs ON cs.[ExternalId] = cset.ComplianceSchemeId
   GROUP BY  cset.[CompanyOrgId]
-			,cset.[organisation_name] +' '+ ISNULL(cset.[companies_house_number],'') +' '+ CAST(cset.[CompanyOrgId] AS VARCHAR)
+			,trim(cset.[organisation_name]) +' '+ ISNULL(RIGHT(REPLICATE('0', 8) + trim(replace(cset.[companies_house_number],'''','')), 8),'') +' '+ CAST(cset.[CompanyOrgId] AS VARCHAR) --TS_001
 			,cset.[CompanyOriginalFileName]
 			,c.[SubmissionPeriod]
 			,c.[IsSubmitted]
