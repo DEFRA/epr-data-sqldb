@@ -93,6 +93,14 @@ BEGIN
 			cr.y1_meta_filename,
 			cr.y2_file_submitted_organisation_reference,
 			cr.y2_meta_filename,
+			cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName,
+			cr.y1_organisation_id, cr.y2_organisation_id,
+			cr.y1_organisation_name, cr.y2_organisation_name,
+			cr.y1_subsidiary_id, cr.y2_subsidiary_id,
+			cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen,
+			cr.y1_companies_house_number, cr.y2_companies_house_number,
+			cr.y1_organisation_size, cr.y2_organisation_size,
+			/*
 			coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') AS CS_Name_or_DP,
 			coalesce(cr.y1_organisation_id, cr.y2_organisation_id) AS org_id,
 			coalesce(cr.y1_organisation_name, cr.y2_organisation_name) AS org_name,
@@ -100,6 +108,7 @@ BEGIN
 			coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) AS subsidiary_id_sys_gen,
 			coalesce(cr.y1_companies_house_number, cr.y2_companies_house_number) AS ch_number,
 			coalesce(cr.y1_organisation_size, cr.y2_organisation_size) AS org_size,
+			*/
 			cr.y1_Submission_time,
 			cr.y1_Regulator_Status,
 			cr.y2_Submission_time,
@@ -124,12 +133,29 @@ BEGIN
 					THEN 'No change'
 				END AS JL
 		FROM comparison_result cr
+		),
+		comparison_result_selected_columns_redefined_based_fields as
+		(
+		select 
+			*,
+			case when JL = 'Leaver' then coalesce(cr.y1_ComplianceSchemeName, 'Direct Producer')  when JL = 'Joiner' then coalesce(cr.y2_ComplianceSchemeName, 'Direct Producer')  else coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') end AS CS_Name_or_DP,
+			case when JL = 'Leaver' then cr.y1_organisation_id when JL = 'Joiner' then cr.y2_organisation_id else coalesce(cr.y1_organisation_id, cr.y2_organisation_id) end as org_id,
+			case when JL = 'Leaver' then cr.y1_organisation_name when JL = 'Joiner' then cr.y2_organisation_name else coalesce(cr.y1_organisation_name, cr.y2_organisation_name) end as org_name,
+			case when JL = 'Leaver' then cr.y1_subsidiary_id when JL = 'Joiner' then cr.y2_subsidiary_id else coalesce(cr.y1_subsidiary_id, cr.y2_subsidiary_id) end as sub_id,
+			case when JL = 'Leaver' then cr.y1_subsidiary_id_sys_gen when JL = 'Joiner' then cr.y2_subsidiary_id_sys_gen else coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) end as subsidiary_id_sys_gen,
+			case when JL = 'Leaver' then cr.y1_companies_house_number when JL = 'Joiner' then cr.y2_companies_house_number else coalesce(cr.y1_companies_house_number, cr.y2_companies_house_number) end as ch_number,
+			case when JL = 'Leaver' then cr.y1_organisation_size when JL = 'Joiner' then cr.y2_organisation_size else coalesce(cr.y1_organisation_size, cr.y2_organisation_size) end as org_size
+		from comparison_result_selected_columns cr
 		)
+
+
 	SELECT 
 		cr_sc.y1_file_submitted_organisation_reference,
 		cr_sc.y1_meta_filename,
 		cr_sc.y2_file_submitted_organisation_reference,
 		cr_sc.y2_meta_filename,
+
+		
 		cr_sc.CS_Name_or_DP,
 		cr_sc.org_id,
 		cr_sc.org_name,
@@ -137,6 +163,7 @@ BEGIN
 		cr_sc.subsidiary_id_sys_gen,
 		cr_sc.ch_number,
 		cr_sc.org_size,
+
 		e.date_of_enrolment,
 		cr_sc.y1_Submission_time,
 		cr_sc.y1_Regulator_Status,
@@ -164,7 +191,7 @@ BEGIN
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_phone_number else cr_sc.y1_registered_addr_phone_number end as registered_addr_phone_number,
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_email else cr_sc.y1_approved_person_email end as approved_person_email,
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_email else cr_sc.y1_delegated_person_email end as delegated_person_email
-	FROM comparison_result_selected_columns cr_sc
+	FROM comparison_result_selected_columns_redefined_based_fields cr_sc
 	LEFT JOIN latest_in_year2 l_y2
 		ON cr_sc.org_id = l_y2.y2_organisation_id AND ISNULL(cr_sc.sub_id, '') = ISNULL(l_y2.y2_subsidiary_id, '') AND l_y2.rn = 1
 	LEFT JOIN enrol e
