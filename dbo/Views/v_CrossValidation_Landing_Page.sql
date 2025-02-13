@@ -125,7 +125,7 @@ left join rpd.organisations p_o on cd.OrganisationId = p_o.ExternalId
 
 )
 
-select *,
+select opc.*,
 		np.Name AS ProducerNationName
 from org_pom_combined opc
 join [rpd].[Nations] np on np.id = opc.ProducerNationId;

@@ -214,13 +214,14 @@ begin
 					)
 
 
-					SELECT lp.*, op.*  
+					SELECT  
+						lp.*, 				
+						op.*  
 					FROM Org_Pom_submitted_files lp
 					LEFT JOIN Org_Pom_Data op
 
 					ON lp.landing_cd_filename= op.org_filename 
-					AND lp.landing_pom_filename = op.pom_filename 
-					AND lp.[file_submitted_organisation] = op.org_organisation_id;
+					AND lp.landing_pom_filename = op.pom_filename;
 
 		end;
 		
