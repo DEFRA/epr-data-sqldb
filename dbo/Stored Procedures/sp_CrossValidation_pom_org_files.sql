@@ -6,7 +6,7 @@ begin
 				WITH Org_Data AS 
 				(
 					SELECT 
-						[organisation_id] as org_organisation_id
+					   [organisation_id] as org_organisation_id
 					  ,[subsidiary_id] as org_subsidiary_id
 					  ,[organisation_name]
 					  ,[organisation_size] AS org_organisation_size
@@ -34,6 +34,7 @@ begin
 					  ,[packaging_activity_om] as Online_Market_Place_Org
 					  ,[packaging_activity_sl] as Seller_Org
 					  ,[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost
+					  ,[total_tonnage]
 					  ,[FileName] as org_filename
 					FROM [rpd].[CompanyDetails]
 					where FileName = @OrgFileName
@@ -46,6 +47,7 @@ begin
 							pvt.subsidiary_Id AS pom_subsidiary_id,
 							pvt.organisation_size AS pom_organisation_size,
 							pvt.fileName as pom_filename,
+							packaging_type,
 							[SO] AS Brand_Owner_Pom,
 							[IM] AS Importer_Pom,
 							[PF] AS Packer_Filler_Pom,
@@ -59,7 +61,8 @@ begin
 								FileName,
 								submission_period,
 								isnull(Packaging_activity,'No-activity') as Packaging_activity,
-								Packaging_material_weight
+								Packaging_material_weight,
+								packaging_type
 							FROM rpd.POM
 							where FileName in ( @PomFileName1, @PomFileName2)
 							) sub
@@ -106,15 +109,25 @@ begin
 		  
 				)
 
+					SELECT lp.*, op.*, 
+					   CASE 
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Not Complaint'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Not Complaint'
+						   -- WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Compliance'
+						   ELSE 'Complaint' 
+					   END AS Highlighted_liability_cost_flag,
 
-				SELECT lp.*, op.*  
+					   CASE
+					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Not Compliant'
+						   ELSE 'Complaint'
+						END AS Highlighted_small_producer_tonnage
+
 				FROM Org_Pom_submitted_files lp
 				full outer JOIN Org_Pom_Data op
-
 				ON lp.landing_cd_filename= op.org_filename 
-				and lp.landing_pom_filename = op.pom_filename; 
-				
+				and lp.landing_pom_filename = op.pom_filename
 		end;
+
 		if @CS_or_DP = 'All producers'
 		begin
 					WITH Org_Data AS 
@@ -148,6 +161,7 @@ begin
 						  ,[packaging_activity_om] as Online_Market_Place_Org
 						  ,[packaging_activity_sl] as Seller_Org
 						  ,[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost
+						  ,[total_tonnage]
 						  ,[FileName] as org_filename
 						FROM [rpd].[CompanyDetails]
 					),
@@ -159,6 +173,7 @@ begin
 								pvt.subsidiary_Id AS pom_subsidiary_id,
 								pvt.organisation_size AS pom_organisation_size,
 								pvt.fileName as pom_filename,
+								packaging_type,
 								[SO] AS Brand_Owner_Pom,
 								[IM] AS Importer_Pom,
 								[PF] AS Packer_Filler_Pom,
@@ -172,7 +187,8 @@ begin
 									FileName,
 									submission_period,
 									Packaging_activity,
-									Packaging_material_weight
+									Packaging_material_weight,
+									packaging_type
 								FROM rpd.POM
 								) sub
 							PIVOT(SUM(packaging_material_weight) FOR Packaging_Activity IN ([SO], [IM], [PF], [HL], [SE], [OM])) AS pvt
@@ -214,14 +230,26 @@ begin
 					)
 
 
-					SELECT  
-						lp.*, 				
-						op.*  
+					SELECT lp.*, op.*, 
+					   CASE 
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Not Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Not Compliant'
+						   -- WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Compliance'
+						   ELSE 'Complaint' 
+					   END AS Highlighted_liability_cost_flag,
+
+					   CASE
+					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Not Compliant'
+						   ELSE 'Complaint'
+						END AS Highlighted_small_producer_tonnage
+
+
 					FROM Org_Pom_submitted_files lp
 					LEFT JOIN Org_Pom_Data op
 
 					ON lp.landing_cd_filename= op.org_filename 
-					AND lp.landing_pom_filename = op.pom_filename;
+					AND lp.landing_pom_filename = op.pom_filename 
+					--AND lp.[file_submitted_organisation] = op.org_organisation_id;
 
 		end;
 		
