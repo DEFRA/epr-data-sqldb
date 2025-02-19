@@ -32,7 +32,7 @@ Select
 	,[Status]
 	,SelectedSchemes_IsDeleted
 	,Regulator_Rejection_Comments
-	,CONVERT(DATETIME,substring(Decision_Date,1,23)) AS Decision_Date
+	,FORMAT(CONVERT(DATETIME, REPLACE(LEFT(Decision_Date, 23), 'T', ' '), 121), 'dd/MM/yyyy HH:mm:ss') AS Decision_Date
 	,Regulator_User_Name
 	,Case When[FromOrganisation_IsComplianceScheme]=1 Then 'Compliance Scheme' Else 'Producer' End [PCS_or_DP]
 	,[Security_Id]
