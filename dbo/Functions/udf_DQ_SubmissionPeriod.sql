@@ -6,7 +6,7 @@ BEGIN
 
 	Created 2024-07-25: SN000:  New function to correctly format erroneous Submission Period Values. Ticket 416355
 	Updated 2024-12-19: SN001:	Updated to account for New values containing year for each month in string
-
+	Updated 2025-01-16: SN002:	Updated to account for Jul to July
 *****************************************************************************************************************/
 
     DECLARE @iYrPos	int, @FrmtSubmissionPeriod nvarchar(250), @SPYear int, @FrmtYear int, @nxtChr int
@@ -19,7 +19,7 @@ BEGIN
 			Set @SPYear					= Reverse(Substring(Reverse(@SubmissionPeriod),@iYrPos,@nxtChr))
 			Set @SubmissionPeriod		= Substring(@SubmissionPeriod,1,Len(@SubmissionPeriod)-(@nxtChr-1)) 
 			Set @FrmtYear				= Case When @SPYear	<2000 Then @SPYear + 2000 Else @SPYear End
-			Set @FrmtSubmissionPeriod	= Rtrim(Replace(Replace(Replace(Replace(Replace(@SubmissionPeriod,'Jan ','January '),'Jun ','June '),'Dec ', 'December'),'Mar ','March '),'Apr ','April '))
+			Set @FrmtSubmissionPeriod	= Rtrim(Replace(Replace(Replace(Replace(Replace(Replace(@SubmissionPeriod,'Jan ','January '),'Jun ','June '),'Dec ', 'December'),'Mar ','March '),'Apr ','April '),'Jul ','July '))
 			Set @FrmtSubmissionPeriod	= Concat(@FrmtSubmissionPeriod,' ', @FrmtYear)
 		/*** New Code SN001  ***/
 
