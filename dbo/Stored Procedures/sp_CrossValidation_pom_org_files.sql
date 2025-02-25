@@ -111,16 +111,16 @@ begin
 
 					SELECT lp.*, op.*, 
 					   CASE 
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Not Complaint'
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Not Complaint'
-						   -- WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Compliance'
-						   ELSE 'Complaint' 
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Non Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Non Compliant'
+						   ELSE 'Compliant' 
 					   END AS Highlighted_liability_cost_flag,
 
 					   CASE
-					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Not Compliant'
-						   ELSE 'Complaint'
-						END AS Highlighted_small_producer_tonnage
+					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN  op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						   ELSE 'N/A'
+						END AS Small_producer_total_tonnage
 
 				FROM Org_Pom_submitted_files lp
 				full outer JOIN Org_Pom_Data op
@@ -225,6 +225,11 @@ begin
 						  ,ProducerName
 						  ,[ProducerNationId]
 						  ,ProducerNationName
+						  ,ROW_NUMBER() OVER (
+												PARTITION BY file_submitted_organisation 
+												ORDER BY pom_Submission_time DESC
+											) AS pom_submission_rank
+
 					  FROM [dbo].[v_CrossValidation_Landing_Page]
 					  where RelevantYear = @RYear
 					)
@@ -232,25 +237,25 @@ begin
 
 					SELECT lp.*, op.*, 
 					   CASE 
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Not Compliant'
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Not Compliant'
-						   -- WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Compliance'
-						   ELSE 'Complaint' 
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Non Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Non Compliant'
+						   ELSE 'Compliant' 
 					   END AS Highlighted_liability_cost_flag,
 
 					   CASE
-					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Not Compliant'
-						   ELSE 'Complaint'
-						END AS Highlighted_small_producer_tonnage
+					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN  op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						   ELSE 'N/A'
+						END AS Small_producer_total_tonnage
 
 
 					FROM Org_Pom_submitted_files lp
 					LEFT JOIN Org_Pom_Data op
 
 					ON lp.landing_cd_filename= op.org_filename 
-					AND lp.landing_pom_filename = op.pom_filename 
-					--AND lp.[file_submitted_organisation] = op.org_organisation_id;
-
+					AND lp.landing_pom_filename = op.pom_filename 	
+					where pom_submission_rank = 1
+			
 		end;
 		
 END;
