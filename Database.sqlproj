@@ -272,8 +272,6 @@
     <Build Include="dbo\Views\v_PRN_Details.sql" />
     <Build Include="dbo\Views\v_OrganisationRegistrationSummaries.sql" />
     <Build Include="dbo\Views\v_ComplianceSchemeMembers.sql" />
-    <Build Include="dbo\Stored Procedures\sp_GetProducerDetailsByOrganisationId.sql" />
-    <Build Include="dbo\Stored Procedures\sp_GetCsoMemberDetailsByOrganisationId.sql" />
     <Build Include="dbo\Stored Procedures\sp_FilterAndPaginateOrganisationRegistrationSummaries.sql" />
     <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted.sql" />
@@ -284,5 +282,6 @@
     <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
     <Build Include="dbo\Tables\tblCheckpoint.sql" />
     <Build Include="dbo\Tables\t_cosmos_file_metadata.sql" />
+    <Build Include="dbo\Stored Procedures\sp_GetRegistrationFeeCalculationDetails.sql" />
   </ItemGroup>
 </Project>
