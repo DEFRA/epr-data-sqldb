@@ -1,12 +1,12 @@
 ﻿CREATE VIEW [dbo].[v_registration_with_brandandpartner] AS WITH 
 
 /****************************************************************************************************************************
-
 	History:
 
 	Updated: 2024-11-18:	BL001:	Ticket - 460892:	Adding the new column [organisation_size]
 	Updated: 2025-01-29:	SN002:	Ticket - 500601:	Adding SubmissionType and updated pos.created  (submissiondate) for new submissionTypes
-
+	Updated: 2025-02-12:	SN003:	Ticket - 506055:	Added case statement to apply registration_type for null values using SubmissionPeriod_year
+	Updated: 2025-02-17:	SN004:	Ticket - 506055:	Change to AC by customer.  NULL for Registration file submitted will now contain 'Uploaded' not NULL 
 ******************************************************************************************************************************/
 
  
@@ -36,10 +36,7 @@ From [rpd].[Partnerships] p
 		on p_meta.filename = p.filename
 )
 
-
-
 SELECT distinct 
-
 rbp.*
 ,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
 ,b.[Organisations_Id]
@@ -221,10 +218,18 @@ rbp.*
 ,c.SubmtterEmail
 ,c.ServiceRoles_Name
 ,pos.Decision_Date
-,pos.[Regulator_Status]
+--,pos.[Regulator_Status]			/*** SN004: Replaced with below case statement ***/
+,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 
+												Case When Right([dbo].[udf_DQ_SubmissionPeriod](c.[SubmissionPeriod]),4) < 2025 Then 'Pending' Else 'Uploaded' End
+											Else pos.Regulator_Status 
+									  End
 ,pos.[Regulator_User_Name]
 ,pos.[Regulator_Rejection_Comments]
-,pos.RegistrationType						/*** SN002: Added ***/
+--,pos.RegistrationType				/*** SN003: Replaced with below case statement ***/
+,RegistrationType					= Case	When pos.RegistrationType Is Null Then 
+												Case When Right([dbo].[udf_DQ_SubmissionPeriod](c.[SubmissionPeriod]),4) < 2025 Then 1 Else 2 End
+											Else pos.RegistrationType 
+									  End
 FROM
 --1 Brand mapping
 (
@@ -546,8 +551,8 @@ and  p.[partner_first_name] is null and  p.[subsidiary_id] is null
 
 ) as rbp
 
-JOIN [v_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
-JOIN [dbo].[v_cosmos_file_metadata] c ON rbp.FileName = c.FileName
+JOIN [t_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
+JOIN [dbo].[t_cosmos_file_metadata] c ON rbp.FileName = c.FileName
 LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active	 d ON c.ComplianceSchemeId = d.externalid
 LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = rbp.filename
 LEFT JOIN dbo.v_subsidiaryorganisations so 
