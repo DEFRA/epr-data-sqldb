@@ -39,7 +39,7 @@ SELECT  distinct
 	end [Org_Sub_Type],
 	row_number() over(partition by organisation_id, subsidiary_id order by cs.created desc) as RowNum
 	FROM rpd.CompanyDetails rv
-	join v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
+	join t_cosmos_file_metadata cs on cs.filename = rv.[FileName]
 --Joining to the view to ensure still handling for soft deletes - however not doing any filtering on the status
 --also filters out duplicate submissions of the same file
     INNER JOIN v_submitted_pom_org_file_status fs ON rv.[filename] = fs.[filename] WHERE fs.filetype = 'CompanyDetails'
@@ -68,7 +68,7 @@ mraccepted AS (
 --Orders on the decision date rather than the cs created which is the submitted date 
 	row_number() over(partition by organisation_id, subsidiary_id order by fs.Decision_Date desc) as RowNum
 	FROM rpd.CompanyDetails rv
-	join v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
+	join t_cosmos_file_metadata cs on cs.filename = rv.[FileName]
 	INNER JOIN v_submitted_pom_org_file_status fs ON rv.[filename] = fs.[filename] WHERE fs.filetype = 'CompanyDetails' AND fs.Regulator_Status = 'Accepted'
 )
 --The majority of the query is retrieving from subquery 1

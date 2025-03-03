@@ -90,7 +90,7 @@ SELECT * FROM (
     JOIN rpd.Nations csn
         ON cs.NationId = csn.Id
 
-    JOIN v_rpd_data_SECURITY_FIX sec
+    JOIN t_rpd_data_SECURITY_FIX sec
      on pom.[organisation_id]  = sec.[FromOrganisation_ReferenceNumber] 
       --  ON op.ReferenceNumber = sec.ToOrganisation_ReferenceNumber
         --AND cs.Id = sec.ComplianceSchemes_Id
