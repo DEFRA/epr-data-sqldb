@@ -295,5 +295,6 @@
     <Build Include="dbo\Tables\t_cosmos_file_metadata.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetRegistrationFeeCalculationDetails.sql" />
     <Build Include="Security\SqlAnalyticsConnector.sql" />
+    <Build Include="dbo\Views\v_get_orgfile_submitted_year_nation.sql" />
   </ItemGroup>
 </Project>
