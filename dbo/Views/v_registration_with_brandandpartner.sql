@@ -551,7 +551,7 @@ and  p.[partner_first_name] is null and  p.[subsidiary_id] is null
 
 ) as rbp
 
-JOIN [t_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
+JOIN dbo.[t_rpd_data_SECURITY_FIX] b ON rbp.organisation_id = b.FromOrganisation_ReferenceNumber --Enrolment
 JOIN [dbo].[t_cosmos_file_metadata] c ON rbp.FileName = c.FileName
 LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active	 d ON c.ComplianceSchemeId = d.externalid
 LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = rbp.filename

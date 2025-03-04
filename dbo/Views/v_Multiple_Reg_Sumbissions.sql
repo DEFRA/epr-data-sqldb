@@ -1,4 +1,4 @@
-﻿CREATE VIEW [dbo].[v_Multiple_Reg_Sumbissions] AS with cte_unique as(SElect organisation_id,filename  from registration group by  organisation_id,filename 
+﻿CREATE VIEW [dbo].[v_Multiple_Reg_Sumbissions] AS with cte_unique as(SElect organisation_id,filename  from dbo.registration group by  organisation_id,filename 
 ),
 
 cte_start as(
@@ -24,5 +24,5 @@ SELECT distinct
     t.SecurityQuery,
     t.ServiceRoles_Name,
     t.[OriginalFileName]
-FROM registration t
+FROM dbo.registration t
 join cte_start a on a.organisation_id = t.organisation_id;

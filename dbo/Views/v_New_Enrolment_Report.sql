@@ -357,7 +357,7 @@ select sec.FromOrganisation_Name
 		
 
 from cte_organisation_selected_scheme sec
-Left Join v_Enrolmentstatus ve on ve.EnrolmentID=sec.Enrolment_Id
+Left Join dbo.v_Enrolmentstatus ve on ve.EnrolmentID=sec.Enrolment_Id
 LEFT JOIN rpd.producerTypes ptf ON sec.Organisations_ProducerTypeId = ptf.id
 left join rpd.nations n on n.id = sec.ComplianceSchemes_NationId
 ),

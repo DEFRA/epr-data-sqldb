@@ -121,7 +121,7 @@ pom_result as
 		LEFT JOIN rpd.Nations csnation
 			ON cs.NationId = csnation.Id
 		left JOIN (SELECT FromOrganisation_ReferenceNumber, EnrolmentStatuses_EnrolmentStatus
-						FROM t_rpd_data_SECURITY_FIX
+						FROM dbo.t_rpd_data_SECURITY_FIX
 						GROUP BY FromOrganisation_ReferenceNumber, EnrolmentStatuses_EnrolmentStatus) e_status
 			ON e_status.FromOrganisation_ReferenceNumber = p.organisation_id
 		where p.filetype = 'pm'
@@ -211,7 +211,7 @@ org_result as
 				and isnull(cds.subsidiary_id,'') = isnull(rl.subsidiary_id,'')
 				and rl.Reporting_year = cd.SubmissionYear
 			left JOIN (SELECT FromOrganisation_ReferenceNumber, EnrolmentStatuses_EnrolmentStatus
-					FROM t_rpd_data_SECURITY_FIX
+					FROM dbo.t_rpd_data_SECURITY_FIX
 					GROUP BY FromOrganisation_ReferenceNumber, EnrolmentStatuses_EnrolmentStatus) e_status
 				ON e_status.FromOrganisation_ReferenceNumber = cd.organisation_id
 				WHERE cd.filetype = 'cd'
