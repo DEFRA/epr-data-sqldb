@@ -16,7 +16,7 @@ AS (
 		ON m.filename = st.FileName
 	LEFT JOIN rpd.ComplianceSchemes cs
 		ON cs.ExternalId = m.ComplianceSchemeId
-	WHERE UPPER(TRIM(ISNULL(Regulator_Status, ''))) = 'ACCEPTED'
+	WHERE UPPER(TRIM(ISNULL(Regulator_Status, ''))) in ('ACCEPTED','GRANTED')
 	),
 
 latest_CompanyDetails
