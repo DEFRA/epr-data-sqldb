@@ -41,6 +41,55 @@ begin
 				),
 
 
+						--pom_data AS (
+						--	SELECT
+						--		pvt.organisation_id AS pom_organisation_id,
+						--		pvt.subsidiary_Id AS pom_subsidiary_id,
+						--		pvt.organisation_size AS pom_organisation_size,
+						--		pvt.fileName AS pom_filename,
+						--		od.org_name,  -- Ensure organisation name is carried forward
+						--		[SO] AS Brand_Owner_Pom,
+						--		[IM] AS Importer_Pom,
+						--		[PF] AS Packer_Filler_Pom,
+						--		[HL] AS Service_Provider_Pom,
+						--		[SE] AS Distributor_Pom,
+						--		[OM] AS Online_Market_Place_Pom,
+						--		-- Compliance Check: Ensure check is done at org_name + FileName level
+						--		CASE 
+						--			WHEN EXISTS (
+						--				SELECT 1 
+						--				FROM rpd.POM p_inner
+						--				JOIN Org_Data od_inner 
+						--					ON p_inner.Organisation_Id = od_inner.org_organisation_id
+						--					AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
+						--				WHERE od_inner.org_name = od.org_name  -- Ensure org_name is matched
+						--				AND p_inner.FileName = pvt.fileName
+						--				AND p_inner.packaging_type IN ('HH', 'PB')  
+						--			) THEN 1 ELSE 0
+						--		END AS has_HH_PB
+						--	FROM (
+						--		-- Aggregate before pivoting
+						--		SELECT 
+						--			Organisation_Id,
+						--			subsidiary_Id,
+						--			organisation_size,
+						--			FileName,
+						--			submission_period,
+						--			isnull(Packaging_activity, 'No-activity') AS Packaging_activity,
+						--			SUM(Packaging_material_weight) AS Packaging_material_weight  
+						--		FROM rpd.POM
+						--		WHERE FileName IN (@PomFileName1, @PomFileName2)
+						--		GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
+						--	) sub
+						--	PIVOT(
+						--		SUM(packaging_material_weight) FOR Packaging_Activity 
+						--		IN ([SO], [IM], [PF], [HL], [SE], [OM])
+						--	) AS pvt
+						--	JOIN Org_Data od 
+						--		ON pvt.organisation_id = od.org_organisation_id 
+						--		AND ISNULL(pvt.subsidiary_Id, '') = ISNULL(od.org_subsidiary_id, '')
+						--),
+
 						pom_data AS (
 							SELECT
 								pvt.organisation_id AS pom_organisation_id,
@@ -54,6 +103,7 @@ begin
 								[HL] AS Service_Provider_Pom,
 								[SE] AS Distributor_Pom,
 								[OM] AS Online_Market_Place_Pom,
+								pvt.total_packaging_material_weight,  -- Add total weight column
 								-- Compliance Check: Ensure check is done at org_name + FileName level
 								CASE 
 									WHEN EXISTS (
@@ -75,8 +125,10 @@ begin
 									organisation_size,
 									FileName,
 									submission_period,
-									isnull(Packaging_activity, 'No-activity') AS Packaging_activity,
-									SUM(Packaging_material_weight) AS Packaging_material_weight  
+									ISNULL(Packaging_activity, 'No-activity') AS Packaging_activity,
+									SUM(Packaging_material_weight) AS Packaging_material_weight,
+									SUM(SUM(Packaging_material_weight)) OVER (PARTITION BY Organisation_Id, subsidiary_Id, FileName) 
+										AS total_packaging_material_weight  -- Compute total weight
 								FROM rpd.POM
 								WHERE FileName IN (@PomFileName1, @PomFileName2)
 								GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
@@ -90,6 +142,7 @@ begin
 								AND ISNULL(pvt.subsidiary_Id, '') = ISNULL(od.org_subsidiary_id, '')
 						),
 
+
 				org_pom_data AS (
 					SELECT 
 						cd.org_organisation_id,
@@ -98,6 +151,7 @@ begin
 						cd.org_organisation_size,
 						cd.Liable_to_Pay_Disposal_Cost,
 						cd.total_tonnage,
+						p.total_packaging_material_weight,  -- Include total weight column
 						cd.org_filename,
 						p.pom_organisation_id,
 						p.pom_subsidiary_id,
@@ -149,7 +203,7 @@ begin
 
 				SELECT lp.*, 
 					   op.*, 
-					   op.org_name, 
+					   --op.org_name, 
 					   CASE 
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
 						   THEN 'Non Compliant'
@@ -161,8 +215,8 @@ begin
 					   END AS Highlighted_liability_cost_flag,
 
 					   CASE
-						   WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
-						   WHEN op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						   WHEN op.total_packaging_material_weight > 50000 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN op.total_packaging_material_weight <= 50000 AND op.org_organisation_size = 'S' THEN 'Compliant'
 						   ELSE 'N/A'
 					   END AS Small_producer_total_tonnage
 				FROM Org_Pom_submitted_files lp
@@ -223,6 +277,9 @@ begin
 							[HL] AS Service_Provider_Pom,
 							[SE] AS Distributor_Pom,
 							[OM] AS Online_Market_Place_Pom,
+							-- Calculate the total packaging material weight across all activities
+							COALESCE([SO], 0) + COALESCE([IM], 0) + COALESCE([PF], 0) + 
+							COALESCE([HL], 0) + COALESCE([SE], 0) + COALESCE([OM], 0) AS total_packaging_material_weight,
 							-- Compliance Check: Ensure check is done at org_name + FileName level
 							CASE 
 								WHEN EXISTS (
@@ -254,6 +311,10 @@ begin
 						) AS pvt
 					),
 
+
+
+
+
 					org_pom_data AS (
 						SELECT 
 							cd.*, 
@@ -263,6 +324,8 @@ begin
 							ON cd.org_organisation_id = p.pom_organisation_id 
 							AND ISNULL(p.pom_subsidiary_id, '') = ISNULL(cd.org_subsidiary_id, '')
 					),
+
+
 
 					Org_Pom_submitted_files AS (
 						SELECT 
@@ -307,8 +370,8 @@ begin
 					    END AS Highlighted_liability_cost_flag,
 
 						CASE
-						   WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
-						   WHEN op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						   WHEN op.total_packaging_material_weight > 50000 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN op.total_packaging_material_weight <= 50000 AND op.org_organisation_size = 'S' THEN 'Compliant'
 						   ELSE 'N/A'
 						END AS Small_producer_total_tonnage
 					FROM Org_Pom_submitted_files lp
