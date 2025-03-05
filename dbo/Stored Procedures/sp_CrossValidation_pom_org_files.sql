@@ -8,7 +8,7 @@ begin
 					SELECT 
 					   [organisation_id] as org_organisation_id
 					  ,[subsidiary_id] as org_subsidiary_id
-					  ,[organisation_name]
+					  ,[organisation_name] AS org_name
 					  ,[organisation_size] AS org_organisation_size
 					  ,CASE 
 							WHEN [organisation_sub_type_code]  = 'LIC' THEN 'Licensor'
@@ -40,44 +40,82 @@ begin
 					where FileName = @OrgFileName
 				),
 
-				pom_data AS (
 
-
-				SELECT		pvt.organisation_id AS pom_organisation_id,
-							pvt.subsidiary_Id AS pom_subsidiary_id,
-							pvt.organisation_size AS pom_organisation_size,
-							pvt.fileName as pom_filename,
-							packaging_type,
-							[SO] AS Brand_Owner_Pom,
-							[IM] AS Importer_Pom,
-							[PF] AS Packer_Filler_Pom,
-							[HL] AS Service_Provider_Pom,
-							[SE] AS Distributor_Pom,
-							[OM] AS Online_Market_Place_Pom
-						FROM (
-							SELECT Organisation_Id ,
-								subsidiary_Id,
-								organisation_size,
-								FileName,
-								submission_period,
-								isnull(Packaging_activity,'No-activity') as Packaging_activity,
-								Packaging_material_weight,
-								packaging_type
-							FROM rpd.POM
-							where FileName in ( @PomFileName1, @PomFileName2)
+						pom_data AS (
+							SELECT
+								pvt.organisation_id AS pom_organisation_id,
+								pvt.subsidiary_Id AS pom_subsidiary_id,
+								pvt.organisation_size AS pom_organisation_size,
+								pvt.fileName AS pom_filename,
+								od.org_name,  -- Ensure organisation name is carried forward
+								[SO] AS Brand_Owner_Pom,
+								[IM] AS Importer_Pom,
+								[PF] AS Packer_Filler_Pom,
+								[HL] AS Service_Provider_Pom,
+								[SE] AS Distributor_Pom,
+								[OM] AS Online_Market_Place_Pom,
+								-- Compliance Check: Ensure check is done at org_name + FileName level
+								CASE 
+									WHEN EXISTS (
+										SELECT 1 
+										FROM rpd.POM p_inner
+										JOIN Org_Data od_inner 
+											ON p_inner.Organisation_Id = od_inner.org_organisation_id
+											AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
+										WHERE od_inner.org_name = od.org_name  -- Ensure org_name is matched
+										AND p_inner.FileName = pvt.fileName
+										AND p_inner.packaging_type IN ('HH', 'PB')  
+									) THEN 1 ELSE 0
+								END AS has_HH_PB
+							FROM (
+								-- Aggregate before pivoting
+								SELECT 
+									Organisation_Id,
+									subsidiary_Id,
+									organisation_size,
+									FileName,
+									submission_period,
+									isnull(Packaging_activity, 'No-activity') AS Packaging_activity,
+									SUM(Packaging_material_weight) AS Packaging_material_weight  
+								FROM rpd.POM
+								WHERE FileName IN (@PomFileName1, @PomFileName2)
+								GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
 							) sub
-						PIVOT(SUM(packaging_material_weight) FOR Packaging_Activity IN ([SO], [IM], [PF], [HL], [SE], [OM])) AS pvt
-				),
+							PIVOT(
+								SUM(packaging_material_weight) FOR Packaging_Activity 
+								IN ([SO], [IM], [PF], [HL], [SE], [OM])
+							) AS pvt
+							JOIN Org_Data od 
+								ON pvt.organisation_id = od.org_organisation_id 
+								AND ISNULL(pvt.subsidiary_Id, '') = ISNULL(od.org_subsidiary_id, '')
+						),
 
 				org_pom_data AS (
-
 					SELECT 
-							cd.*, 
-							p.*
+						cd.org_organisation_id,
+						cd.org_subsidiary_id,
+						cd.org_name,  -- Ensure organisation_name is carried forward
+						cd.org_organisation_size,
+						cd.Liable_to_Pay_Disposal_Cost,
+						cd.total_tonnage,
+						cd.org_filename,
+						p.pom_organisation_id,
+						p.pom_subsidiary_id,
+						p.pom_organisation_size,
+						p.pom_filename,
+						p.Brand_Owner_Pom,
+						p.Importer_Pom,
+						p.Packer_Filler_Pom,
+						p.Service_Provider_Pom,
+						p.Distributor_Pom,
+						p.Online_Market_Place_Pom,
+						p.has_HH_PB  -- Preserve compliance check flag
 					FROM Org_Data cd 
-					full outer JOIN pom_data p 
-						ON cd.org_organisation_id = p.pom_organisation_id and ISNULL(p.pom_subsidiary_id,'') = ISNULL(cd.org_subsidiary_id, '')
+					FULL OUTER JOIN pom_data p 
+						ON cd.org_organisation_id = p.pom_organisation_id 
+						AND ISNULL(p.pom_subsidiary_id, '') = ISNULL(cd.org_subsidiary_id, '')
 				),
+
 
 				Org_Pom_submitted_files AS 
 				(
@@ -109,153 +147,181 @@ begin
 		  
 				)
 
-					SELECT lp.*, op.*, 
+				SELECT lp.*, 
+					   op.*, 
+					   op.org_name, 
 					   CASE 
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Non Compliant'
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Non Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
+						   THEN 'Non Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.has_HH_PB = 1
+						   THEN 'Non Compliant'
+						   When  op.Liable_to_Pay_Disposal_Cost = 'Yes' AND  op.org_organisation_size = 'S' 
+						   THEN 'Non Compliant'
 						   ELSE 'Compliant' 
 					   END AS Highlighted_liability_cost_flag,
 
 					   CASE
-					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
-						   WHEN  op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						   WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
 						   ELSE 'N/A'
-						END AS Small_producer_total_tonnage
-
+					   END AS Small_producer_total_tonnage
 				FROM Org_Pom_submitted_files lp
-				full outer JOIN Org_Pom_Data op
-				ON lp.landing_cd_filename= op.org_filename 
-				and lp.landing_pom_filename = op.pom_filename
+				LEFT JOIN Org_Pom_Data op
+				ON lp.landing_cd_filename = op.org_filename 
+				AND lp.landing_pom_filename = op.pom_filename;
+
 		end;
 
-		if @CS_or_DP = 'All producers'
-		begin
+				IF @CS_or_DP = 'All producers'
+				BEGIN
+
 					WITH Org_Data AS 
 					(
 						SELECT 
-							[organisation_id] as org_organisation_id
-						  ,[subsidiary_id] as org_subsidiary_id
-						  ,[organisation_name]
-						  ,[organisation_size] AS org_organisation_size
-						  ,CASE 
-								WHEN [organisation_sub_type_code]  = 'LIC' THEN 'Licensor'
-								WHEN [organisation_sub_type_code]  = 'POB' THEN 'Pub operating business '
-								WHEN [organisation_sub_type_code]  = 'FRA' THEN 'Franchisor '
-								WHEN [organisation_sub_type_code]  = 'NAO' THEN 'Non-associated organisation'
-								WHEN [organisation_sub_type_code]  = 'HCY' THEN 'Holding company'
-								WHEN [organisation_sub_type_code]  = 'SUB' THEN 'Subsidiary'
-								WHEN [organisation_sub_type_code]  = 'LFR' THEN 'Licensee/Franchisee'
-								WHEN [organisation_sub_type_code]  = 'TEN' THEN 'Tenant'
-								WHEN [organisation_sub_type_code]  = 'OTH' THEN 'Others'
-							ELSE NULL END [Org_Sub_Type]
-						,CASE 
-							WHEN [subsidiary_id] is null THEN 'single'
-						  ELSE 'group' END AS single_or_group
-
-
-						  ,[packaging_activity_so] as Brand_Owner_Org
-						  ,[packaging_activity_pf] as Packer_Filler_Org
-						  ,[packaging_activity_im] as Importer_Org
-						  ,[packaging_activity_se] as Distributor_Org
-						  ,[packaging_activity_hl] as Service_Provider_Org
-						  ,[packaging_activity_om] as Online_Market_Place_Org
-						  ,[packaging_activity_sl] as Seller_Org
-						  ,[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost
-						  ,[total_tonnage]
-						  ,[FileName] as org_filename
+							[organisation_id] AS org_organisation_id,
+							[subsidiary_id] AS org_subsidiary_id,
+							[organisation_name],
+							[organisation_size] AS org_organisation_size,
+							CASE 
+								WHEN [organisation_sub_type_code] = 'LIC' THEN 'Licensor'
+								WHEN [organisation_sub_type_code] = 'POB' THEN 'Pub operating business '
+								WHEN [organisation_sub_type_code] = 'FRA' THEN 'Franchisor '
+								WHEN [organisation_sub_type_code] = 'NAO' THEN 'Non-associated organisation'
+								WHEN [organisation_sub_type_code] = 'HCY' THEN 'Holding company'
+								WHEN [organisation_sub_type_code] = 'SUB' THEN 'Subsidiary'
+								WHEN [organisation_sub_type_code] = 'LFR' THEN 'Licensee/Franchisee'
+								WHEN [organisation_sub_type_code] = 'TEN' THEN 'Tenant'
+								WHEN [organisation_sub_type_code] = 'OTH' THEN 'Others'
+								ELSE NULL 
+							END AS [Org_Sub_Type],
+							CASE 
+								WHEN [subsidiary_id] IS NULL THEN 'single'
+								ELSE 'group' 
+							END AS single_or_group,
+							[packaging_activity_so] AS Brand_Owner_Org,
+							[packaging_activity_pf] AS Packer_Filler_Org,
+							[packaging_activity_im] AS Importer_Org,
+							[packaging_activity_se] AS Distributor_Org,
+							[packaging_activity_hl] AS Service_Provider_Org,
+							[packaging_activity_om] AS Online_Market_Place_Org,
+							[packaging_activity_sl] AS Seller_Org,
+							[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost,
+					        [total_tonnage],
+							[FileName] AS org_filename
 						FROM [rpd].[CompanyDetails]
 					),
 
 					pom_data AS (
-
-
-					SELECT		pvt.organisation_id AS pom_organisation_id,
-								pvt.subsidiary_Id AS pom_subsidiary_id,
-								pvt.organisation_size AS pom_organisation_size,
-								pvt.fileName as pom_filename,
-								packaging_type,
-								[SO] AS Brand_Owner_Pom,
-								[IM] AS Importer_Pom,
-								[PF] AS Packer_Filler_Pom,
-								[HL] AS Service_Provider_Pom,
-								[SE] AS Distributor_Pom,
-								[OM] AS Online_Market_Place_Pom
-							FROM (
-								SELECT Organisation_Id ,
-									subsidiary_Id,
-									organisation_size,
-									FileName,
-									submission_period,
-									Packaging_activity,
-									Packaging_material_weight,
-									packaging_type
-								FROM rpd.POM
-								) sub
-							PIVOT(SUM(packaging_material_weight) FOR Packaging_Activity IN ([SO], [IM], [PF], [HL], [SE], [OM])) AS pvt
+						SELECT
+							pvt.organisation_id AS pom_organisation_id,
+							pvt.subsidiary_Id AS pom_subsidiary_id,
+							pvt.organisation_size AS pom_organisation_size,
+							pvt.fileName AS pom_filename,
+							[SO] AS Brand_Owner_Pom,
+							[IM] AS Importer_Pom,
+							[PF] AS Packer_Filler_Pom,
+							[HL] AS Service_Provider_Pom,
+							[SE] AS Distributor_Pom,
+							[OM] AS Online_Market_Place_Pom,
+							-- Compliance Check: Ensure check is done at org_name + FileName level
+							CASE 
+								WHEN EXISTS (
+									SELECT 1 
+									FROM rpd.POM p_inner
+									JOIN Org_Data od_inner 
+										ON p_inner.Organisation_Id = od_inner.org_organisation_id
+										AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '')
+									WHERE od_inner.organisation_name = od_inner.organisation_name  -- Ensure org_name is matched
+									AND p_inner.FileName = pvt.fileName
+									AND p_inner.packaging_type IN ('HH', 'PB')  
+								) THEN 1 ELSE 0
+							END AS has_HH_PB
+						FROM (
+							SELECT 
+								Organisation_Id,
+								subsidiary_Id,
+								organisation_size,
+								FileName,
+								submission_period,
+								Packaging_activity,
+								SUM(Packaging_material_weight) AS Packaging_material_weight
+							FROM rpd.POM
+							GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
+						) sub
+						PIVOT(
+							SUM(packaging_material_weight) FOR Packaging_Activity 
+							IN ([SO], [IM], [PF], [HL], [SE], [OM])
+						) AS pvt
 					),
 
 					org_pom_data AS (
-
 						SELECT 
-								cd.*, 
-								p.*
+							cd.*, 
+							p.*
 						FROM Org_Data cd 
 						LEFT JOIN pom_data p 
-							ON cd.org_organisation_id = p.pom_organisation_id and ISNULL(p.pom_subsidiary_id,'') = ISNULL(cd.org_subsidiary_id, '')
+							ON cd.org_organisation_id = p.pom_organisation_id 
+							AND ISNULL(p.pom_subsidiary_id, '') = ISNULL(cd.org_subsidiary_id, '')
 					),
 
-					Org_Pom_submitted_files AS 
-					(
-						SELECT [file_submitted_organisation]
-						  ,[file_submitted_organisation_IsComplianceScheme]
-						  ,[SubmissionPeriod] AS Org_SubmissionPeriod
-						  ,[cd_Submission_time] AS Org_Submission_Date
-						  ,Org_Regulator_Status
-						  ,[cd_filename] AS landing_cd_filename
-						  ,[pom_Submission_time] AS Pom_Submission_Date
-						  ,Pom_Regulator_Status
-						  ,[pom_filename] AS landing_pom_filename
-						  ,[pom_SubmissionPeriod] AS Pom_SubmissionPeriod
-						  ,[RelevantYear]
-						  ,[CS_or_DP]
-						  ,[CS_Name]
-						  ,[CS_nation]
-						  ,[DisplayFilenameCD]
-						  ,[DisplayFilenamePOM]
-						  ,ProducerName
-						  ,[ProducerNationId]
-						  ,ProducerNationName
-						  ,ROW_NUMBER() OVER (
-												PARTITION BY file_submitted_organisation 
-												ORDER BY pom_Submission_time DESC
-											) AS pom_submission_rank
-
-					  FROM [dbo].[v_CrossValidation_Landing_Page]
-					  where RelevantYear = @RYear
+					Org_Pom_submitted_files AS (
+						SELECT 
+							[file_submitted_organisation],
+							[file_submitted_organisation_IsComplianceScheme],
+							[SubmissionPeriod] AS Org_SubmissionPeriod,
+							[cd_Submission_time] AS Org_Submission_Date,
+							Org_Regulator_Status,
+							[cd_filename] AS landing_cd_filename,
+							[pom_Submission_time] AS Pom_Submission_Date,
+							Pom_Regulator_Status,
+							[pom_filename] AS landing_pom_filename,
+							[pom_SubmissionPeriod] AS Pom_SubmissionPeriod,
+							[RelevantYear],
+							[CS_or_DP],
+							[CS_Name],
+							[CS_nation],
+							[DisplayFilenameCD],
+							[DisplayFilenamePOM],
+							ProducerName,
+							[ProducerNationId],
+							ProducerNationName,
+							ROW_NUMBER() OVER (
+								PARTITION BY file_submitted_organisation 
+								ORDER BY pom_Submission_time DESC
+							) AS pom_submission_rank
+						FROM [dbo].[v_CrossValidation_Landing_Page]
+						WHERE RelevantYear = @RYear
 					)
 
-
-					SELECT lp.*, op.*, 
-					   CASE 
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.packaging_type Not IN ('HH', 'PB') THEN 'Non Compliant'
-						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.packaging_type IN ('HH', 'PB') THEN 'Non Compliant'
+					SELECT  
+						lp.*,  
+						op.*,  
+						CASE 
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
+						   THEN 'Non Compliant'
+						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.has_HH_PB = 1
+						   THEN 'Non Compliant'
+						   When  op.Liable_to_Pay_Disposal_Cost = 'Yes' AND  op.org_organisation_size = 'S' 
+						   THEN 'Non Compliant'
 						   ELSE 'Compliant' 
-					   END AS Highlighted_liability_cost_flag,
+					    END AS Highlighted_liability_cost_flag,
 
-					   CASE
-					       WHEN  op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
-						   WHEN  op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
+						CASE
+						   WHEN op.total_tonnage > 50 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
+						   WHEN op.total_tonnage <= 50 AND op.org_organisation_size = 'S' THEN 'Compliant'
 						   ELSE 'N/A'
 						END AS Small_producer_total_tonnage
-
-
 					FROM Org_Pom_submitted_files lp
 					LEFT JOIN Org_Pom_Data op
+						ON lp.landing_cd_filename = op.org_filename 
+						AND lp.landing_pom_filename = op.pom_filename
+					WHERE pom_submission_rank = 1
+					ORDER BY 
+						lp.Org_Submission_Date DESC, 
+						lp.pom_submission_rank ASC;
 
-					ON lp.landing_cd_filename= op.org_filename 
-					AND lp.landing_pom_filename = op.pom_filename 	
-					where pom_submission_rank = 1
-			
-		end;
+
+	end;
+
 		
 END;
