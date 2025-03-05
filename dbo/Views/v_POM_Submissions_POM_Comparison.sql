@@ -44,4 +44,4 @@
  --   when r.registration_type_code = 'IN' then 'Single'
   --  else '' end 
   ,''registration_type_code
-FROM [t_POM_All_Submissions] a;
+FROM dbo.[t_POM_All_Submissions] a;

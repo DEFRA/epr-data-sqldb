@@ -90,7 +90,7 @@ SELECT * FROM (
     JOIN rpd.Nations csn
         ON cs.NationId = csn.Id
 
-    JOIN t_rpd_data_SECURITY_FIX sec
+    JOIN dbo.t_rpd_data_SECURITY_FIX sec
      on pom.[organisation_id]  = sec.[FromOrganisation_ReferenceNumber] 
       --  ON op.ReferenceNumber = sec.ToOrganisation_ReferenceNumber
         --AND cs.Id = sec.ComplianceSchemes_Id
@@ -117,7 +117,7 @@ SELECT * FROM (
     ,'Producer' AS Submission_Type
     ,'PR_POM_START' AS StartPoint
 
-    FROM t_POM_Submissions pr_pom_start
+    FROM dbo.t_POM_Submissions pr_pom_start
 
     WHERE PCS_Or_Direct_Producer = 'Producer'
 ) pr_pom_start

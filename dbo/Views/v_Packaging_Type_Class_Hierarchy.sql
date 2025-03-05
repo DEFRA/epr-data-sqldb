@@ -1,6 +1,6 @@
 ﻿CREATE VIEW [dbo].[v_Packaging_Type_Class_Hierarchy] AS select distinct packaging_type,
 packaging_class
-from v_POM
+from dbo.v_POM
 where packaging_type in (
     'Total Household packaging'
     ,'Total Non-Household packaging'
