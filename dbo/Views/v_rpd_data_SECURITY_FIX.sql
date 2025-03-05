@@ -159,7 +159,7 @@
 	  ,ve.Regulator_User_Name
 	  
   FROM [dbo].[v_rpd_data_SECURITY_FIX_base] sec
-  LEFT JOIN t_Producer_CS_Lookup_Unpivot unpvt
+  LEFT JOIN dbo.t_Producer_CS_Lookup_Unpivot unpvt
   ON sec.FromOrganisation_ReferenceNumber = unpvt.Producer_Id
-  Left Join v_Enrolmentstatus ve
+  Left Join dbo.v_Enrolmentstatus ve
   on ve.EnrolmentID=sec.Enrolment_Id;

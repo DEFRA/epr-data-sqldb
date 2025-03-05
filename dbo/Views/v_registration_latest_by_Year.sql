@@ -52,7 +52,7 @@ from
 		
 		FROM 
 			   rpd.CompanyDetails rv
-				join v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
+				join dbo.v_cosmos_file_metadata cs on cs.filename = rv.[FileName]
 	) B
 
 

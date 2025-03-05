@@ -23,7 +23,12 @@
 				, m.[ComplianceSchemeId]
 				, cs.name AS CS_Name
 				, n.name as CS_nation
-				, '20'+ Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2))+1 AS RelevantYear
+				--, '20'+ Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2))+1 AS RelevantYear
+				,CASE 
+					WHEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) < 2025 
+					THEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) + 1
+					ELSE CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT)
+				END AS RelevantYear
 				, Convert(datetime2,Replace(Replace(m.Created,'T', ' '),'Z', ' ')) AS Created_frmtDT
 				, o.Name as ProducerName
 				, o.NationId As ProducerNationId

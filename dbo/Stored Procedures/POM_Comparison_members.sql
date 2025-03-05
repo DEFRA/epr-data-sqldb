@@ -214,7 +214,7 @@ SELECT DISTINCT fj.org_id
 		ELSE ''
 		END [registration_type_code2]
 FROM #file_joined fj
-LEFT JOIN t_registration_latest r
+LEFT JOIN dbo.t_registration_latest r
 	ON r.organisation_id = fj.org_id
 		AND r.subsidiary_id = fj.subsidiary_id
 

@@ -10,13 +10,16 @@ AS (
 		m.[RegistrationSetId],
 		m.[ComplianceSchemeId],
 		cs.Name AS ComplianceSchemeName,
-		cs.Id AS CS_id
+		cs.Id AS CS_id,
+		n.name as CS_Nation_name	--  TS_514441
 	FROM rpd.cosmos_file_metadata m
 	INNER JOIN dbo.v_submitted_pom_org_file_status st
 		ON m.filename = st.FileName
 	LEFT JOIN rpd.ComplianceSchemes cs
 		ON cs.ExternalId = m.ComplianceSchemeId
-	WHERE UPPER(TRIM(ISNULL(Regulator_Status, ''))) = 'ACCEPTED'
+	LEFT JOIN [rpd].[Nations] n 
+		ON n.id = cs.Nationid   --  TS_514441
+	WHERE UPPER(TRIM(ISNULL(Regulator_Status, ''))) in ('ACCEPTED','GRANTED')
 	),
 
 latest_CompanyDetails
@@ -38,6 +41,7 @@ cd_org_combined
 AS (
 	SELECT o.ReferenceNumber AS file_submitted_organisation_reference,
 		o.IsComplianceScheme AS file_submitted_organisation_IsComplianceScheme,
+		cd.CS_Nation_name,--  TS_514441
 		cd.meta_OrganisationId,
 		cd.SubmissionPeriod,
 		cd.ReportingYear,
@@ -71,7 +75,9 @@ AS (
 		cd.approved_person_email,
 		cd.delegated_person_email,
 		sub.RelationFromDate as Subsidiary_RelationFromDate,
-		sub.RelationToDate as Subsidiary_RelationToDate
+		sub.RelationToDate as Subsidiary_RelationToDate,
+		n.name AS Organisation_Nation_Name, --TS_514441
+		org.[NationId] AS Organisation_Nation_Id --TS_514441
 	FROM cd_org_combined com
 	LEFT JOIN rpd.CompanyDetails cd
 		ON com.meta_filename = cd.filename
@@ -81,6 +87,10 @@ AS (
 					or sub.SecondOrganisation_ReferenceNumber = cd.subsidiary_id)
 	LEFT JOIN rpd.Organisations o
 		ON o.ReferenceNumber = cd.subsidiary_id
+	LEFT JOIN rpd.Organisations org
+		ON org.ReferenceNumber = cd.organisation_id 
+	LEFT JOIN [rpd].[Nations] n 
+		ON n.id = org.Nationid  --  TS_514441
 			--where file_submitted_organisation_IsComplianceScheme = 1 
 	)
 SELECT *
