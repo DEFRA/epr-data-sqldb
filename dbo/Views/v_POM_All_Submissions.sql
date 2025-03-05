@@ -62,9 +62,9 @@ As
 				  ,[OriginalFileName]
 				  ,'Direct' data_type
 				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
-			FROM t_POM_Submissions direct  
+			FROM dbo.t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
-											FROM t_POM_Operator_Submissions operators )
+											FROM dbo.t_POM_Operator_Submissions operators )
  
 			UNION
 			--add in operator
@@ -113,7 +113,7 @@ As
 				  ,[OriginalFileName], 
 				  'Operator'
 				  ,'' OrganisationID -- added TS 12/09/2024
-			FROM t_POM_Operator_Submissions
+			FROM dbo.t_POM_Operator_Submissions
  
 			UNION 
 
@@ -163,7 +163,7 @@ As
 				  ,[OriginalFileName]
 				  ,'Member'
 				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
-				  from t_POM_Operator_Submissions 
+				  from dbo.t_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
