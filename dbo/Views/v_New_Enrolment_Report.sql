@@ -352,12 +352,12 @@ select sec.FromOrganisation_Name
 		,Enrolment_CreatedOn_str=sec.Enrolment_CreatedOn 
 		,ve.[Status]
 		,ve.Regulator_Rejection_Comments
-		,ve.Decision_Date
+		,FORMAT(CONVERT(DATETIME, REPLACE(LEFT(ve.Decision_Date, 23), 'T', ' '), 121), 'dd/MM/yyyy HH:mm:ss') AS Decision_Date
 		,ve.Regulator_User_Name
 		
 
 from cte_organisation_selected_scheme sec
-Left Join v_Enrolmentstatus ve on ve.EnrolmentID=sec.Enrolment_Id
+Left Join dbo.v_Enrolmentstatus ve on ve.EnrolmentID=sec.Enrolment_Id
 LEFT JOIN rpd.producerTypes ptf ON sec.Organisations_ProducerTypeId = ptf.id
 left join rpd.nations n on n.id = sec.ComplianceSchemes_NationId
 ),
