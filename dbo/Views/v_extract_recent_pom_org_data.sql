@@ -37,7 +37,7 @@ ORG as
 					, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
 							when cfm.SubmissionPeriod = 'July to December 2023' then 2
 							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
-							when cfm.SubmissionPeriod in ('July to December 2024','January to December 2025') then 4
+							when cfm.SubmissionPeriod in ('January to December 2025') then 4
 							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
 							when cfm.SubmissionPeriod = 'July to December 2025' then 6
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
@@ -49,7 +49,7 @@ ORG as
 							else 0
 							end as SubmissionPeriod
 					, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
-							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024','January to December 2025') then 2024
+							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','January to December 2025') then 2024
 							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
 							when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
