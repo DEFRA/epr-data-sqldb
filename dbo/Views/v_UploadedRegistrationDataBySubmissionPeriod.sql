@@ -84,7 +84,7 @@
 			,cfm.OriginalFileName AS BrandUploadFileName
         FROM
             LatestUploadedData lud
-            INNER JOIN rpd.cosmos_file_metadata cfm ON cfm.registrationsetid = lud.registrationsetid AND UPPER(cfm.FileType) = 'PARTNERSHIPS'
+            INNER JOIN rpd.cosmos_file_metadata cfm ON cfm.registrationsetid = lud.registrationsetid AND UPPER(cfm.FileType) = 'BRANDS'
     )
 ,CompanyAndFileDetails
     AS
