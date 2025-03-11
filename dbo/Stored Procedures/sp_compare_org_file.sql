@@ -35,11 +35,26 @@ BEGIN
 			y1.registered_addr_postcode AS y1_registered_addr_postcode,
 			y1.registered_addr_country AS y1_registered_addr_country,
 			y1.registered_addr_phone_number AS y1_registered_addr_phone_number,
-			y1.approved_person_email AS y1_approved_person_email,
-			y1.delegated_person_email AS y1_delegated_person_email
+			y1.approved_person_first_name as y1_approved_person_first_name,
+			y1.approved_person_last_name as y1_approved_person_last_name,
+			y1.approved_person_email as y1_approved_person_email,
+			y1.approved_person_phone_number as y1_approved_person_phone_number,
+			y1.delegated_person_first_name as y1_delegated_person_first_name,
+			y1.delegated_person_last_name as y1_delegated_person_last_name,
+			y1.delegated_person_email as y1_delegated_person_email,
+			y1.delegated_person_phone_number as y1_delegated_person_phone_number,
+			y1.primary_contact_person_first_name as y1_primary_contact_person_first_name,
+			y1.primary_contact_person_last_name as y1_primary_contact_person_last_name,
+			y1.primary_contact_person_email as y1_primary_contact_person_email,
+			y1.primary_contact_person_phone_number as y1_primary_contact_person_phone_number,
+			y1.joiner_date as y1_joiner_date,
+			y1.leaver_code as y1_leaver_code,
+			y1.leaver_date as y1_leaver_date,
+			y1.Organisation_change_reason as y1_Organisation_change_reason
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
 		WHERE y1.ReportingYear = @Year1
 		and y1.Subsidiary_RelationToDate is null
+		--and y1.leaver_code is null
 		),
 	year2
 	AS (
@@ -64,8 +79,22 @@ BEGIN
 			y2.registered_addr_postcode AS y2_registered_addr_postcode,
 			y2.registered_addr_country AS y2_registered_addr_country,
 			y2.registered_addr_phone_number AS y2_registered_addr_phone_number,
-			y2.approved_person_email AS y2_approved_person_email,
-			y2.delegated_person_email AS y2_delegated_person_email
+			y2.approved_person_first_name as y2_approved_person_first_name,
+			y2.approved_person_last_name as y2_approved_person_last_name,
+			y2.approved_person_email as y2_approved_person_email,
+			y2.approved_person_phone_number as y2_approved_person_phone_number,
+			y2.delegated_person_first_name as y2_delegated_person_first_name,
+			y2.delegated_person_last_name as y2_delegated_person_last_name,
+			y2.delegated_person_email as y2_delegated_person_email,
+			y2.delegated_person_phone_number as y2_delegated_person_phone_number,
+			y2.primary_contact_person_first_name as y2_primary_contact_person_first_name,
+			y2.primary_contact_person_last_name as y2_primary_contact_person_last_name,
+			y2.primary_contact_person_email as y2_primary_contact_person_email,
+			y2.primary_contact_person_phone_number as y2_primary_contact_person_phone_number,
+			y2.joiner_date as y2_joiner_date,
+			y2.leaver_code as y2_leaver_code,
+			y2.leaver_date as y2_leaver_date,
+			y2.Organisation_change_reason as y2_Organisation_change_reason
 		FROM dbo.t_latest_pending_or_accepted_orgfile_by_year y2
 		WHERE y2.ReportingYear = @Year2
 		and y2.Subsidiary_RelationToDate is null
@@ -120,8 +149,34 @@ BEGIN
 			cr.y1_registered_addr_postcode,
 			cr.y1_registered_addr_country,
 			cr.y1_registered_addr_phone_number,
+
+			cr.y1_approved_person_first_name,
+			cr.y1_approved_person_last_name,
 			cr.y1_approved_person_email,
+			cr.y1_approved_person_phone_number,
+			cr.y2_approved_person_first_name,
+			cr.y2_approved_person_last_name,
+			cr.y2_approved_person_email,
+			cr.y2_approved_person_phone_number,
+
+			cr.y1_delegated_person_first_name,
+			cr.y1_delegated_person_last_name,
 			cr.y1_delegated_person_email,
+			cr.y1_delegated_person_phone_number,
+			cr.y2_delegated_person_first_name,
+			cr.y2_delegated_person_last_name,
+			cr.y2_delegated_person_email,
+			cr.y2_delegated_person_phone_number,
+
+			cr.y1_primary_contact_person_first_name,
+			cr.y1_primary_contact_person_last_name,
+			cr.y1_primary_contact_person_email,
+			cr.y1_primary_contact_person_phone_number,
+			cr.y2_primary_contact_person_first_name,
+			cr.y2_primary_contact_person_last_name,
+			cr.y2_primary_contact_person_email,
+			cr.y2_primary_contact_person_phone_number,
+
 			CASE 
 				WHEN (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL) OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL)
 					-- if not direct producer
@@ -132,6 +187,7 @@ BEGIN
 				WHEN ISNULL(cr.y1_CS_id, '') = ISNULL(cr.y2_CS_id, '') AND (cr.y1_organisation_id = cr.y2_organisation_id)
 					THEN 'No change'
 				END AS JL
+
 		FROM comparison_result cr
 		),
 		comparison_result_selected_columns_redefined_based_fields as
@@ -189,8 +245,21 @@ BEGIN
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_postcode else cr_sc.y1_registered_addr_postcode end as registered_addr_postcode,
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_country else cr_sc.y1_registered_addr_country end as registered_addr_country,
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_registered_addr_phone_number else cr_sc.y1_registered_addr_phone_number end as registered_addr_phone_number,
+
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_first_name else cr_sc.y1_approved_person_first_name end as approved_person_first_name,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_last_name else cr_sc.y1_approved_person_last_name end as approved_person_last_name,
 		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_email else cr_sc.y1_approved_person_email end as approved_person_email,
-		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_email else cr_sc.y1_delegated_person_email end as delegated_person_email
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_approved_person_phone_number else cr_sc.y1_approved_person_phone_number end as approved_person_phone_number,
+
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_first_name else cr_sc.y1_delegated_person_first_name end as delegated_person_first_name,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_last_name else cr_sc.y1_delegated_person_last_name end as delegated_person_last_name,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_email else cr_sc.y1_delegated_person_email end as delegated_person_email,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_delegated_person_phone_number else cr_sc.y1_delegated_person_phone_number end as delegated_person_phone_number,
+
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_primary_contact_person_first_name else cr_sc.y1_primary_contact_person_first_name end as primary_contact_person_first_name,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_primary_contact_person_last_name else cr_sc.y1_primary_contact_person_last_name end as primary_contact_person_last_name,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_primary_contact_person_email else cr_sc.y1_primary_contact_person_email end as primary_contact_person_email,
+		case when l_y2.y2_organisation_id is not null then l_y2.y2_primary_contact_person_phone_number else cr_sc.y1_primary_contact_person_phone_number end as primary_contact_person_phone_number 
 	FROM comparison_result_selected_columns_redefined_based_fields cr_sc
 	LEFT JOIN latest_in_year2 l_y2
 		ON cr_sc.org_id = l_y2.y2_organisation_id AND ISNULL(cr_sc.sub_id, '') = ISNULL(l_y2.y2_subsidiary_id, '') AND l_y2.rn = 1
