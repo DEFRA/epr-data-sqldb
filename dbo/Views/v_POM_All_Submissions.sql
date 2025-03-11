@@ -10,7 +10,8 @@ As
 		Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
 								Ticket 412287 for Release 5.0
 	
-		Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
+		Updated 2024-07-08: [Initials]001: [Update text here]
+
 		Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
 
 	*****************************************************************************************************/
@@ -35,7 +36,6 @@ As
 				  ,[packaging_class]
 				  ,[packaging_material]
 				  ,[packaging_sub_material]
-				  ,[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
 				  ,[from_nation]
 				  ,[to_nation]
 				  ,[quantity_kg]
@@ -86,7 +86,6 @@ As
 				  ,[packaging_class]
 				  ,[packaging_material]
 				  ,[packaging_sub_material]
-				  ,[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
 				  ,[from_nation]
 				  ,[to_nation]
 				  ,[quantity_kg]
@@ -136,7 +135,6 @@ As
 				  ,[packaging_class]
 				  ,[packaging_material]
 				  ,[packaging_sub_material]
-				  ,[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
 				  ,[from_nation]
 				  ,[to_nation]
 				  ,[quantity_kg]

@@ -1,10 +1,4 @@
 ﻿CREATE VIEW [dbo].[v_POM_Submissions] AS SELECT distinct
-/****************************************************************************************************************************
-	History:
- 
-	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
-
-******************************************************************************************************************************/
 dsf.FromOrganisation_Name [Org_Name]
 /*,Case 
     When dsf.[FromOrganisation_IsComplianceScheme] = 'True' then 'Compliance Scheme'
@@ -43,7 +37,6 @@ else NULL end [Org_Sub_Type]
 ,p.[packaging_class]
 ,p.[packaging_material] 
 ,p.[packaging_sub_material] 
-,p.[transitional_packaging_units] /**YM001 : Added new column transitional_packaging_units **/
 ,p.[from_nation]
 ,p.[to_nation]
 ,p.[quantity_kg]

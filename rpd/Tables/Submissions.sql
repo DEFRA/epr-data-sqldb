@@ -5,7 +5,6 @@
     [IsSubmitted]            BIT             NULL,
     [Comments]               NVARCHAR (4000) NULL,
     [IsResubmissionRequired] BIT             NULL,
-    [AppReferenceNumber]     NVARCHAR (4000) NULL,
     [DataSourceType]         NVARCHAR (4000) NULL,
     [SubmissionEventId]      NVARCHAR (4000) NULL,
     [SubmissionPeriod]       NVARCHAR (4000) NULL,
@@ -23,4 +22,8 @@
     [load_ts]                DATETIME2 (7)   NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
+
+
+
 
