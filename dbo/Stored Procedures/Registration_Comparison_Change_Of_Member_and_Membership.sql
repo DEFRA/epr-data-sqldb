@@ -104,7 +104,7 @@ SELECT CompanyOrgId
       ,PartnerOriginalFileName
       ,PartnerFileType
       ,PartnerRegID
-  FROM dbo.v_CompanyBrandPartnerFileUploadSet
+  FROM dbo.t_CompanyBrandPartnerFileUploadSet
   WHERE CompanyRegID = @CompanyRegID_1
   ),
   file2 AS (
@@ -212,7 +212,7 @@ SELECT CompanyOrgId
       ,PartnerOriginalFileName
       ,PartnerFileType
       ,PartnerRegID
-  FROM dbo.v_CompanyBrandPartnerFileUploadSet
+  FROM dbo.t_CompanyBrandPartnerFileUploadSet
   WHERE CompanyRegID = @CompanyRegID_2
   ),
 
@@ -920,11 +920,12 @@ SELECT CompanyOrgId
 	FROM file1 f1
 
 	FULL OUTER JOIN file2  f2 ON f2.CompanyOrgId = f1.CompanyOrgId AND ISNULL(f1.subsidiary_id,'') = ISNULL(f2.subsidiary_id,'') AND ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber,'') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber,'')
+	and  ISNULL(f1.companies_house_number,'') = ISNULL(f2.companies_house_number,'')
 	)
 
 
 	 
-	 SELECT 
+	 SELECT DISTINCT
 		-- Organisation ID
 		CASE 
 			WHEN CompanyOrgId_1 IS NULL THEN CompanyOrgId_2
@@ -1003,8 +1004,8 @@ SELECT CompanyOrgId
 								,'service_of_notice_addr_phone_number' ) THEN 'Address change'
 	
 			WHEN column_name IN (
-								'CompanyOrgId'
-								,'organisation_name'
+								--'CompanyOrgId'
+								'organisation_name'
 								,'companies_house_number'
 								,'organisation_type_code'
 								--,'subsidiary_id' 
@@ -1045,6 +1046,10 @@ SELECT CompanyOrgId
 			WHEN column_name IN ('subsidiary_id') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Subsidiary change'
+					ELSE 'Organisation change' END
+			WHEN column_name IN ('CompanyOrgId') THEN 
+				CASE 
+					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
 					ELSE 'Organisation change' END
 
 		ELSE 'Other change' END Change_Category,
@@ -2352,9 +2357,9 @@ SELECT CompanyOrgId
 				CompanyOrgId_1,
 				CompanyOrgId_2,
 				subsidiary_id_1,
+				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				subsidiary_id_2,
 				system_generated_subsidiary_id_1,
 				system_generated_subsidiary_id_2,
 				companies_house_number_1,

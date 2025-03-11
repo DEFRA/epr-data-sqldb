@@ -254,6 +254,7 @@
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_1.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_0.sql" />
     <Build Include="dbo\Tables\batch_log.sql" />
+    <Build Include="dbo\Tables\t_CompanyBrandPartnerFileUploadSet.sql" />
     <Build Include="dbo\Views\v_Registration_Comparison_Landing_Page.sql" />
     <Build Include="dbo\Views\v_CompanyBrandPartnerFileUploadSet.sql" />
     <Build Include="dbo\Stored Procedures\Registration_Comparison_Change_Of_Member_and_Membership.sql" />
