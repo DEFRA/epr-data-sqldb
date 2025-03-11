@@ -87,11 +87,11 @@ AS (
 		sub.RelationFromDate as Subsidiary_RelationFromDate,
 		sub.RelationToDate as Subsidiary_RelationToDate,
 		n.name AS Organisation_Nation_Name, --TS_514441
-		org.[NationId] AS Organisation_Nation_Id, --TS_514441
-		cd.joiner_date,
-		cd.leaver_code,
-		cd.leaver_date,
-		'' as Organisation_change_reason
+		org.[NationId] AS Organisation_Nation_Id --TS_514441
+		--cd.joiner_date,
+		--cd.leaver_code,
+		--cd.leaver_date,
+		--'' as Organisation_change_reason
 	FROM cd_org_combined com
 	LEFT JOIN rpd.CompanyDetails cd
 		ON com.meta_filename = cd.filename

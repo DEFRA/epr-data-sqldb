@@ -46,11 +46,11 @@ BEGIN
 			y1.primary_contact_person_first_name as y1_primary_contact_person_first_name,
 			y1.primary_contact_person_last_name as y1_primary_contact_person_last_name,
 			y1.primary_contact_person_email as y1_primary_contact_person_email,
-			y1.primary_contact_person_phone_number as y1_primary_contact_person_phone_number,
-			y1.joiner_date as y1_joiner_date,
-			y1.leaver_code as y1_leaver_code,
-			y1.leaver_date as y1_leaver_date,
-			y1.Organisation_change_reason as y1_Organisation_change_reason
+			y1.primary_contact_person_phone_number as y1_primary_contact_person_phone_number
+			--y1.joiner_date as y1_joiner_date,
+			--y1.leaver_code as y1_leaver_code,
+			--y1.leaver_date as y1_leaver_date,
+			--y1.Organisation_change_reason as y1_Organisation_change_reason
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
 		WHERE y1.ReportingYear = @Year1
 		and y1.Subsidiary_RelationToDate is null
@@ -90,11 +90,11 @@ BEGIN
 			y2.primary_contact_person_first_name as y2_primary_contact_person_first_name,
 			y2.primary_contact_person_last_name as y2_primary_contact_person_last_name,
 			y2.primary_contact_person_email as y2_primary_contact_person_email,
-			y2.primary_contact_person_phone_number as y2_primary_contact_person_phone_number,
-			y2.joiner_date as y2_joiner_date,
-			y2.leaver_code as y2_leaver_code,
-			y2.leaver_date as y2_leaver_date,
-			y2.Organisation_change_reason as y2_Organisation_change_reason
+			y2.primary_contact_person_phone_number as y2_primary_contact_person_phone_number
+			--y2.joiner_date as y2_joiner_date,
+			--y2.leaver_code as y2_leaver_code,
+			--y2.leaver_date as y2_leaver_date,
+			--y2.Organisation_change_reason as y2_Organisation_change_reason
 		FROM dbo.t_latest_pending_or_accepted_orgfile_by_year y2
 		WHERE y2.ReportingYear = @Year2
 		and y2.Subsidiary_RelationToDate is null
