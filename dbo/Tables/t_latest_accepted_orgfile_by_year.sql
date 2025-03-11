@@ -39,11 +39,7 @@
     [Subsidiary_RelationFromDate]                    DATETIME2 (7)   NULL,
     [Subsidiary_RelationToDate]                      DATETIME2 (7)   NULL,
     [Organisation_Nation_Name]                       NVARCHAR (4000) NULL,
-    [Organisation_Nation_Id]                         INT             NULL,
-    [joiner_date]                                    NVARCHAR (4000) NULL,
-    [leaver_code]                                    NVARCHAR (4000) NULL,
-    [leaver_date]                                    NVARCHAR (4000) NULL,
-    [Organisation_change_reason]                     VARCHAR (1)     NOT NULL
+    [Organisation_Nation_Id]                         INT             NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
