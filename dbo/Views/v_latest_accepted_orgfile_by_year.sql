@@ -72,12 +72,26 @@ AS (
 		cd.registered_addr_postcode,
 		cd.registered_addr_country,
 		cd.registered_addr_phone_number,
+		cd.approved_person_first_name,
+		cd.approved_person_last_name,
 		cd.approved_person_email,
+		cd.approved_person_phone_number,
+		cd.delegated_person_first_name,
+		cd.delegated_person_last_name,
 		cd.delegated_person_email,
+		cd.delegated_person_phone_number,
+		cd.primary_contact_person_first_name,
+		cd.primary_contact_person_last_name,
+		cd.primary_contact_person_email,
+		cd.primary_contact_person_phone_number,
 		sub.RelationFromDate as Subsidiary_RelationFromDate,
 		sub.RelationToDate as Subsidiary_RelationToDate,
 		n.name AS Organisation_Nation_Name, --TS_514441
-		org.[NationId] AS Organisation_Nation_Id --TS_514441
+		org.[NationId] AS Organisation_Nation_Id, --TS_514441
+		cd.joiner_date,
+		cd.leaver_code,
+		cd.leaver_date,
+		'' as Organisation_change_reason
 	FROM cd_org_combined com
 	LEFT JOIN rpd.CompanyDetails cd
 		ON com.meta_filename = cd.filename
