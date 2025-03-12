@@ -50,7 +50,7 @@ all_CompanyDetails as
 		and (
 			[ComplianceSchemeId] is not null or 
 				(
-					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('ACCEPTED', 'PENDING')
+					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('PENDING', 'ACCEPTED', 'GRANTED', 'queried')
 
 				)
 			)	
@@ -71,7 +71,7 @@ all_pom as
 		and (
 			[ComplianceSchemeId] is not null or 
 				(
-					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('ACCEPTED', 'PENDING')
+					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('PENDING', 'ACCEPTED', 'GRANTED', 'queried')
 				)
 			)	
 	
