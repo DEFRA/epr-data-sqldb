@@ -89,7 +89,7 @@ LEFT JOIN (
     SELECT o.ReferenceNumber AS Producer_ReferenceNumber
     ,n.Name AS TransferNation
 
-    FROM dbo.v_rpd_Organisations_Active o
+    FROM [dbo].[v_rpd_Organisations_Active_Pom] o
 
     JOIN rpd.Nations n
     ON o.TransferNationId = n.Id

@@ -49,7 +49,7 @@
 ,PkgOrgJoinColumn = Concat(p.packaging_type,'-',organisation_size)	/**SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn**/
 
 FROm rpd.POM p
---FROM dbo.v_rpd_Pom_Active p
+JOIN [dbo].[v_rpd_Organisations_Active_Pom] oap ON oap.referencenumber = p.organisation_id
 LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
 								AND sp.Type = 'submission_period'
 LEFT JOIN dbo.t_PoM_Codes pa ON pa.Code = p.packaging_activity 
