@@ -297,5 +297,6 @@
     <Build Include="Security\SqlAnalyticsConnector.sql" />
     <Build Include="dbo\Views\v_get_orgfile_submitted_year_nation.sql" />
     <Build Include="dbo\Stored Procedures\sp_PRN_Delta_Extract.sql" />
+    <Build Include="dbo\Views\v_rpd_Organisations_Active_Pom.sql" />
   </ItemGroup>
 </Project>
