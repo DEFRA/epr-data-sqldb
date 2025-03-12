@@ -40,56 +40,6 @@ begin
 					where FileName = @OrgFileName
 				),
 
-
-						--pom_data AS (
-						--	SELECT
-						--		pvt.organisation_id AS pom_organisation_id,
-						--		pvt.subsidiary_Id AS pom_subsidiary_id,
-						--		pvt.organisation_size AS pom_organisation_size,
-						--		pvt.fileName AS pom_filename,
-						--		od.org_name,  -- Ensure organisation name is carried forward
-						--		[SO] AS Brand_Owner_Pom,
-						--		[IM] AS Importer_Pom,
-						--		[PF] AS Packer_Filler_Pom,
-						--		[HL] AS Service_Provider_Pom,
-						--		[SE] AS Distributor_Pom,
-						--		[OM] AS Online_Market_Place_Pom,
-						--		-- Compliance Check: Ensure check is done at org_name + FileName level
-						--		CASE 
-						--			WHEN EXISTS (
-						--				SELECT 1 
-						--				FROM rpd.POM p_inner
-						--				JOIN Org_Data od_inner 
-						--					ON p_inner.Organisation_Id = od_inner.org_organisation_id
-						--					AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
-						--				WHERE od_inner.org_name = od.org_name  -- Ensure org_name is matched
-						--				AND p_inner.FileName = pvt.fileName
-						--				AND p_inner.packaging_type IN ('HH', 'PB')  
-						--			) THEN 1 ELSE 0
-						--		END AS has_HH_PB
-						--	FROM (
-						--		-- Aggregate before pivoting
-						--		SELECT 
-						--			Organisation_Id,
-						--			subsidiary_Id,
-						--			organisation_size,
-						--			FileName,
-						--			submission_period,
-						--			isnull(Packaging_activity, 'No-activity') AS Packaging_activity,
-						--			SUM(Packaging_material_weight) AS Packaging_material_weight  
-						--		FROM rpd.POM
-						--		WHERE FileName IN (@PomFileName1, @PomFileName2)
-						--		GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
-						--	) sub
-						--	PIVOT(
-						--		SUM(packaging_material_weight) FOR Packaging_Activity 
-						--		IN ([SO], [IM], [PF], [HL], [SE], [OM])
-						--	) AS pvt
-						--	JOIN Org_Data od 
-						--		ON pvt.organisation_id = od.org_organisation_id 
-						--		AND ISNULL(pvt.subsidiary_Id, '') = ISNULL(od.org_subsidiary_id, '')
-						--),
-
 						pom_data AS (
 							SELECT
 								pvt.organisation_id AS pom_organisation_id,
@@ -312,9 +262,6 @@ begin
 					),
 
 
-
-
-
 					org_pom_data AS (
 						SELECT 
 							cd.*, 
@@ -378,7 +325,10 @@ begin
 					LEFT JOIN Org_Pom_Data op
 						ON lp.landing_cd_filename = op.org_filename 
 						AND lp.landing_pom_filename = op.pom_filename
-					WHERE pom_submission_rank = 1
+					WHERE 
+					    pom_submission_rank = 1
+					    AND UPPER(TRIM(ISNULL(Org_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED')
+                        AND UPPER(TRIM(ISNULL(Pom_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED')
 					ORDER BY 
 						lp.Org_Submission_Date DESC, 
 						lp.pom_submission_rank ASC;
