@@ -1,5 +1,12 @@
 ﻿CREATE PROC [dbo].[sp_compare_org_file] @Year1 [INT],@Year2 [INT] AS
 BEGIN
+
+	
+	set @Year1 = case when @Year1 < 2026 then @Year1 - 1 else @Year1 end;
+	set @Year2 = case when @Year1 < 2026 then @Year2 - 1 else @Year2 end;
+
+	
+
 	WITH enrol
 	AS (
 		SELECT o.ReferenceNumber,
@@ -17,6 +24,7 @@ BEGIN
 		SELECT 
 			y1.file_submitted_organisation_reference as y1_file_submitted_organisation_reference,
 			y1.meta_filename as y1_meta_filename,
+			y1.SubmissionPeriod as y1_SubmissionPeriod,
 			y1.CS_id AS y1_CS_id,
 			y1.organisation_id AS y1_organisation_id,
 			y1.subsidiary_id AS y1_subsidiary_id,
@@ -61,6 +69,7 @@ BEGIN
 		SELECT 
 			y2.file_submitted_organisation_reference as y2_file_submitted_organisation_reference,
 			y2.meta_filename as y2_meta_filename,
+			y2.SubmissionPeriod as y2_SubmissionPeriod,
 			y2.CS_id AS y2_CS_id,
 			y2.organisation_id AS y2_organisation_id,
 			y2.subsidiary_id AS y2_subsidiary_id,
@@ -120,8 +129,10 @@ BEGIN
 		SELECT 
 			cr.y1_file_submitted_organisation_reference,
 			cr.y1_meta_filename,
+			cr.y1_SubmissionPeriod,
 			cr.y2_file_submitted_organisation_reference,
 			cr.y2_meta_filename,
+			cr.y2_SubmissionPeriod,
 			cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName,
 			cr.y1_organisation_id, cr.y2_organisation_id,
 			cr.y1_organisation_name, cr.y2_organisation_name,
@@ -205,12 +216,13 @@ BEGIN
 		)
 
 
-	SELECT 
+	SELECT @Year1 as y1, @Year2 as y2,
 		cr_sc.y1_file_submitted_organisation_reference,
 		cr_sc.y1_meta_filename,
+		cr_sc.y1_SubmissionPeriod,
 		cr_sc.y2_file_submitted_organisation_reference,
 		cr_sc.y2_meta_filename,
-
+		cr_sc.y2_SubmissionPeriod,
 		
 		cr_sc.CS_Name_or_DP,
 		cr_sc.org_id,
@@ -269,6 +281,6 @@ BEGIN
 END
 	/*
 
-exec dbo.sp_compare_org_file 2023, 2024
+exec dbo.sp_compare_org_file 2024, 2025
 
 */
