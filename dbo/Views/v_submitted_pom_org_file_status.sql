@@ -14,7 +14,7 @@
 	Updated: 2025-02-06:	YM001:	Ticket - 506054		Rejected to Refused Status change registration file for relevant_year 2025 onwards
 	Updated: 2025-02-11:	YM002:	Ticket - 506055		Changing the decision as Pending from null for the 2nd submission under the ticket 506055
 	Updated: 2025-02-18:	SN003:	Ticket - 510914		Remove values Comment, DecisionDate, User values for RegulatorRegistration 'Pending/Upload' rows
-	Updated: 2025-03-19:	SN003:	Ticket - 512853		Bring the Registration file status as 'Uploaded' if not fully submitted in front end. This is the status before pending.
+	Updated: 2025-03-19:	PM004:	Ticket - 512853		Bring the Registration file status as 'Uploaded' if not fully submitted in front end. This is the status before pending.
 ******************************************************************************************************************************/
 RegSubDate As
 /*** SN002: Added 501408 - Retrieves rows with regulator SubmissionDate values  Lastest type='RegistrationApplicationSubmitted' ***/
