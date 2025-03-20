@@ -1,6 +1,6 @@
 ﻿CREATE VIEW [dbo].[v_submitted_pom_org_file_status] AS With
 /****************************************************************************************************************************
-	History:
+	History: 
  
 	Updated: 2025-01-27:	SN001:	Ticket - 500601:	Additional SQL added to v_submitted_pom_org_file_status capture status of records.  
 	Updated: 2025-01-29:	SN002:	Ticket - 501408:	Additonal SQL required to get correct sumbission date for New Regulator process
@@ -14,6 +14,7 @@
 	Updated: 2025-02-06:	YM001:	Ticket - 506054		Rejected to Refused Status change registration file for relevant_year 2025 onwards
 	Updated: 2025-02-11:	YM002:	Ticket - 506055		Changing the decision as Pending from null for the 2nd submission under the ticket 506055
 	Updated: 2025-02-18:	SN003:	Ticket - 510914		Remove values Comment, DecisionDate, User values for RegulatorRegistration 'Pending/Upload' rows
+	Updated: 2025-03-19:	PM004:	Ticket - 512853		Bring the Registration file status as 'Uploaded' if not fully submitted in front end. This is the status before pending.
 ******************************************************************************************************************************/
 RegSubDate As
 /*** SN002: Added 501408 - Retrieves rows with regulator SubmissionDate values  Lastest type='RegistrationApplicationSubmitted' ***/
@@ -110,6 +111,29 @@ se.AppReferenceNumber is not null
 Where
 se.[type] in ( 'RegistrationApplicationSubmitted') And se.ApplicationReferenceNumber is not null
 ),
+Reg_set as
+(
+select distinct RegistrationSetId, Fileid
+from [rpd].[SubmissionEvents]
+where RegistrationSetId is not null and Fileid is not null
+),
+UploadedRegFiles as
+(
+	select rs.RegistrationSetId, ses.FileId, max(ses.Created) as uploaded_ts
+	from [rpd].[Submissions] s
+	inner join [rpd].[SubmissionEvents] ses on ses.SubmissionId = s.SubmissionId
+	left join Reg_set rs on rs.Fileid = ses.FileId
+	where s.SubmissionType = 'Registration'
+	and reverse(substring(reverse(trim(s.SubmissionPeriod)),1,2)) in ('25','26','27','28')
+	and ses.[Type] in ('Submitted')
+	group by  rs.RegistrationSetId, ses.FileId
+),
+se_with_reg as
+(
+	select distinct se.*, Reg_set.RegistrationSetId
+	from se
+	left join Reg_set on Reg_set.fileid = se.fileid
+),
 submitted_file_status AS (
 SELECT distinct
 		 c.[SubmissionId]
@@ -119,8 +143,8 @@ SELECT distinct
 		,c.[FileType]
 		,c.[OriginalFileName]
 		,c.[TargetDirectoryName]
-		,se.Decision_Date		
-		,se.Regulator_Status
+		,case when se.Regulator_Status is NULL and ugf.FileId is not NULL then ugf.uploaded_ts else se.Decision_Date end as Decision_Date
+		,case when se.Regulator_Status is NULL and ugf.FileId is not NULL then 'Uploaded' else se.Regulator_Status end as Regulator_Status
 		,'' AS [RegulatorDecision] --not represented in Cosmos DB
 		,Regulator_User_Name = Case When RegistrationType=2 and Regulator_Status='Pending' Then NULL Else ISNULL(p.[FirstName],'') +' '+ ISNULL(p.[LastName],'') End
 		,Regulator_Rejection_Comments = se.Regulator_Rejection_Comments
@@ -130,11 +154,45 @@ SELECT distinct
 		,Row_Number() Over(Partition by c.[filename] order by se.Decision_Date desc) as RowNumber
 		,se.Created
 		,se.RegistrationType
+		,c.SubmissionPeriod
 FROM [rpd].[cosmos_file_metadata] c
-  Left Join se on se.fileid = c.fileid 
-				/*** SN:001 Removed: and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision') ***/
+  Left Join se on se.FileId = c.FileId 
+  				/*** SN:001 Removed: and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision') ***/
   Left Join [rpd].[Users] u on se.[Userid] = u.[userid] and u.[isdeleted] = 0
   Left Join rpd.[persons] p on u.[id] =p.[userid] and p.[isdeleted] = 0
+  left join UploadedRegFiles ugf on ugf.RegistrationSetId = c.RegistrationSetId
+  where c.FileType = 'Pom'
+
+  union
+
+SELECT distinct
+		 c.[SubmissionId]
+		,c.[RegistrationSetId]
+		,c.[OrganisationId]	
+		,c.[FileName]
+		,c.[FileType]
+		,c.[OriginalFileName]
+		,c.[TargetDirectoryName]
+		,case when se.Regulator_Status is NULL and ugf.FileId is not NULL then ugf.uploaded_ts else se.Decision_Date end as Decision_Date
+		,case when se.Regulator_Status is NULL and ugf.FileId is not NULL then 'Uploaded' else se.Regulator_Status end as Regulator_Status
+		,'' AS [RegulatorDecision] --not represented in Cosmos DB
+		,Regulator_User_Name = Case When RegistrationType=2 and Regulator_Status='Pending' Then NULL Else ISNULL(p.[FirstName],'') +' '+ ISNULL(p.[LastName],'') End
+		,Regulator_Rejection_Comments = se.Regulator_Rejection_Comments
+		,'' AS [RejectionComments] --not represented in Cosmos DB
+		,se.[type]
+		,se.[UserId]
+		,Row_Number() Over(Partition by c.[filename] order by se.Decision_Date desc) as RowNumber
+		,se.Created
+		,se.RegistrationType
+		,c.SubmissionPeriod
+FROM [rpd].[cosmos_file_metadata] c
+  Left join se_with_reg se on se.RegistrationSetId = c.RegistrationSetId
+  				/*** SN:001 Removed: and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision') ***/
+  Left Join [rpd].[Users] u on se.[Userid] = u.[userid] and u.[isdeleted] = 0
+  Left Join rpd.[persons] p on u.[id] =p.[userid] and p.[isdeleted] = 0
+  left join UploadedRegFiles ugf on ugf.RegistrationSetId = c.RegistrationSetId
+  where c.FileType <> 'Pom'
+
 ) 
 select distinct sfs.SubmissionId
 		,sfs.[RegistrationSetId]
@@ -154,5 +212,6 @@ select distinct sfs.SubmissionId
 		,sfs.[RowNumber]
 		,sfs.Created
 		,sfs.RegistrationType
+		,sfs.SubmissionPeriod
  from submitted_file_status sfs
 where sfs.[RowNumber] = 1;
