@@ -11,4 +11,6 @@ dbo,PrnStatus,FULL,
 dbo,PrnStatusHistory,INCR,Id
 dbo,RecyclingTargets,FULL,
 dbo,ObligationCalculations,INCR,Id
+dbo,Material,INCR,Id
+dbo,PRNMaterialMapping,INCR,Id
 
