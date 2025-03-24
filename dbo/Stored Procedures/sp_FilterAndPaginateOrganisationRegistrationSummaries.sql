@@ -7,6 +7,9 @@ BEGIN
 		WHERE [name] = 'AppReferenceNumber' AND [object_id] = OBJECT_ID('rpd.Submissions')
 	)
 	BEGIN
+		IF OBJECT_ID('tempdb..#TempTable') IS NOT NULL
+			DROP TABLE #TempTable;
+
 		CREATE TABLE #TempTable (
 			SubmissionId NVARCHAR(150) NULL,
 			OrganisationId NVARCHAR(150) NULL,
@@ -33,7 +36,7 @@ BEGIN
 			RegulatorSubmissionEventId NVARCHAR(150) NULL,
 			NationId INT NULL,
 			NationCode NVARCHAR(10) NULL,
-            IsResubmission BIT NOT NULL
+			IsResubmission BIT NOT NULL
 		);
 		
 		exec dbo.sp_OrganisationRegistrationSummaries ;
