@@ -40,7 +40,7 @@
     [Subsidiary_RelationToDate]                      DATETIME2 (7)   NULL,
     [Organisation_Nation_Name]                       NVARCHAR (4000) NULL,
     [Organisation_Nation_Id]                         INT             NULL,
-    [leaver_code]                                    NVARCHAR (4000) NOT NULL,
+    [leaver_code]                                    NVARCHAR (4000) NULL,
     [leaver_date]                                    NVARCHAR (4000) NULL,
     [Organisation_change_reason]                     NVARCHAR (4000) NULL,
     [joiner_date]                                    NVARCHAR (4000) NULL
