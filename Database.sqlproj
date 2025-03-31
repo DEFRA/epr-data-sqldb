@@ -250,7 +250,6 @@
     <Build Include="rpd\Tables\OrganisationRelationships.sql" />
     <Build Include="rpd\Tables\OrganisationRegistrationTypes.sql" />
     <Build Include="dbo\Views\v_SubsidiaryExtract.sql" />
-    <Build Include="dbo\Views\v_subsidiaryorganisations.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_for_enrolment.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_1.sql" />
     <Build Include="dbo\Views\v_rpd_data_SECURITY_FIX_base_isdeleted_0.sql" />
@@ -279,7 +278,6 @@
     <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
     <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
     <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
-    <Build Include="dbo\Tables\t_latest_pending_or_accepted_orgfile_by_year.sql" />
     <Build Include="dbo\Tables\t_latest_accepted_orgfile_by_year.sql" />
     <Build Include="dbo\Views\v_latest_pending_or_accepted_orgfile_by_year.sql" />
     <Build Include="dbo\Views\v_latest_accepted_orgfile_by_year.sql" />
@@ -298,5 +296,7 @@
     <Build Include="dbo\Views\v_get_orgfile_submitted_year_nation.sql" />
     <Build Include="dbo\Stored Procedures\sp_PRN_Delta_Extract.sql" />
     <Build Include="dbo\Views\v_rpd_Organisations_Active_Pom.sql" />
+    <Build Include="dbo\Views\v_subsidiaryorganisations.sql" />
+    <Build Include="dbo\Tables\t_latest_pending_or_accepted_orgfile_by_year.sql" />
   </ItemGroup>
 </Project>
