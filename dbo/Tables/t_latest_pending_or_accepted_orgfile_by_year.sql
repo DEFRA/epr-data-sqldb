@@ -4,7 +4,7 @@
     [CS_Nation_name]                                 NVARCHAR (4000) NULL,
     [meta_OrganisationId]                            NVARCHAR (4000) NULL,
     [SubmissionPeriod]                               NVARCHAR (4000) NULL,
-    [ReportingYear]                                  INT             NULL,
+    [ReportingYear]                                  NVARCHAR (4)    NULL,
     [Submission_time]                                DATETIME        NULL,
     [FileType]                                       NVARCHAR (4000) NULL,
     [meta_filename]                                  NVARCHAR (4000) NULL,
@@ -39,11 +39,7 @@
     [Subsidiary_RelationFromDate]                    DATETIME2 (7)   NULL,
     [Subsidiary_RelationToDate]                      DATETIME2 (7)   NULL,
     [Organisation_Nation_Name]                       NVARCHAR (4000) NULL,
-    [Organisation_Nation_Id]                         INT             NULL,
-    [leaver_code]                                    NVARCHAR (4000) NOT NULL,
-    [leaver_date]                                    NVARCHAR (4000) NULL,
-    [Organisation_change_reason]                     NVARCHAR (4000) NULL,
-    [joiner_date]                                    NVARCHAR (4000) NULL
+    [Organisation_Nation_Id]                         INT             NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
