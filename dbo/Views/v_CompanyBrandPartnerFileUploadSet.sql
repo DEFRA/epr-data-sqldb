@@ -78,6 +78,7 @@ from
       ,cd.[secondary_contact_person_job_title]
       ,cd.[load_ts]
       ,cd.[FileName] CompanyFileName
+	  ,cd.[organisation_size]
 	  ,c.OriginalFileName CompanyOriginalFileName
 	  ,c.FileType CompanyFileType
 	  ,c.Created As SubmissionDateTime
