@@ -1,11 +1,17 @@
 ﻿CREATE PROC [dbo].[sp_compare_org_file] @Year1 [INT],@Year2 [INT] AS
 BEGIN
 
+	DECLARE @start_dt datetime;
+	DECLARE @batch_id INT;
+	set @start_dt = getdate()
+
+	select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_compare_org_file','procedure', NULL, @start_dt, NULL, concat('Started','-',@Year1,'-',@Year2),@batch_id
 	
 	set @Year1 = case when @Year1 < 2026 then @Year1 - 1 else @Year1 end;
 	set @Year2 = case when @Year1 < 2026 then @Year2 - 1 else @Year2 end;
-
-	
 
 	WITH enrol
 	AS (
@@ -54,15 +60,15 @@ BEGIN
 			y1.primary_contact_person_first_name as y1_primary_contact_person_first_name,
 			y1.primary_contact_person_last_name as y1_primary_contact_person_last_name,
 			y1.primary_contact_person_email as y1_primary_contact_person_email,
-			y1.primary_contact_person_phone_number as y1_primary_contact_person_phone_number
-			--y1.joiner_date as y1_joiner_date,
-			--y1.leaver_code as y1_leaver_code,
-			--y1.leaver_date as y1_leaver_date,
-			--y1.Organisation_change_reason as y1_Organisation_change_reason
+			y1.primary_contact_person_phone_number as y1_primary_contact_person_phone_number,
+			y1.leaver_code as y1_leaver_code,
+			y1.leaver_date as y1_leaver_date,
+			y1.Organisation_change_reason as y1_Organisation_change_reason,
+			y1.joiner_date as y1_joiner_date
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
 		WHERE y1.ReportingYear = @Year1
 		and y1.Subsidiary_RelationToDate is null
-		--and y1.leaver_code is null
+		and y1.leaver_code = '' 
 		),
 	year2
 	AS (
@@ -99,11 +105,11 @@ BEGIN
 			y2.primary_contact_person_first_name as y2_primary_contact_person_first_name,
 			y2.primary_contact_person_last_name as y2_primary_contact_person_last_name,
 			y2.primary_contact_person_email as y2_primary_contact_person_email,
-			y2.primary_contact_person_phone_number as y2_primary_contact_person_phone_number
-			--y2.joiner_date as y2_joiner_date,
-			--y2.leaver_code as y2_leaver_code,
-			--y2.leaver_date as y2_leaver_date,
-			--y2.Organisation_change_reason as y2_Organisation_change_reason
+			y2.primary_contact_person_phone_number as y2_primary_contact_person_phone_number,
+			y2.leaver_code as y2_leaver_code,
+			y2.leaver_date as y2_leaver_date,
+			y2.Organisation_change_reason as y2_Organisation_change_reason,
+			y2.joiner_date as y2_joiner_date
 		FROM dbo.t_latest_pending_or_accepted_orgfile_by_year y2
 		WHERE y2.ReportingYear = @Year2
 		and y2.Subsidiary_RelationToDate is null
@@ -189,15 +195,23 @@ BEGIN
 			cr.y2_primary_contact_person_phone_number,
 
 			CASE 
-				WHEN (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL) OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL)
+				WHEN   (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL AND ISNULL(cr.y2_leaver_code,'') = '') 
+					OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL and ISNULL(cr.y2_leaver_code,'') = '')
 					-- if not direct producer
 					THEN 'Joiner'
-				WHEN (cr.y1_CS_id IS NOT NULL AND cr.y2_CS_id IS NULL) OR (cr.y1_organisation_id IS NOT NULL AND cr.y2_organisation_id IS NULL)
+				WHEN   (cr.y1_CS_id IS NOT NULL AND cr.y2_CS_id IS NULL) 
+				    OR (cr.y1_organisation_id IS NOT NULL AND cr.y2_organisation_id IS NULL) 
+					OR (ISNULL(cr.y2_leaver_code,'') <> '')
 					--if not direct producer
 					THEN 'Leaver'
-				WHEN ISNULL(cr.y1_CS_id, '') = ISNULL(cr.y2_CS_id, '') AND (cr.y1_organisation_id = cr.y2_organisation_id)
+				WHEN ISNULL(cr.y1_CS_id, '') = ISNULL(cr.y2_CS_id, '') AND (cr.y1_organisation_id = cr.y2_organisation_id) AND (ISNULL(cr.y2_leaver_code,'') = '')
 					THEN 'No change'
-				END AS JL
+				END AS JL,
+
+			cr.y2_leaver_code,
+			cr.y2_leaver_date,
+			cr.y2_Organisation_change_reason,
+			cr.y2_joiner_date
 
 		FROM comparison_result cr
 		),
@@ -205,13 +219,13 @@ BEGIN
 		(
 		select 
 			*,
-			case when JL = 'Leaver' then coalesce(cr.y1_ComplianceSchemeName, 'Direct Producer')  when JL = 'Joiner' then coalesce(cr.y2_ComplianceSchemeName, 'Direct Producer')  else coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') end AS CS_Name_or_DP,
-			case when JL = 'Leaver' then cr.y1_organisation_id when JL = 'Joiner' then cr.y2_organisation_id else coalesce(cr.y1_organisation_id, cr.y2_organisation_id) end as org_id,
-			case when JL = 'Leaver' then cr.y1_organisation_name when JL = 'Joiner' then cr.y2_organisation_name else coalesce(cr.y1_organisation_name, cr.y2_organisation_name) end as org_name,
-			case when JL = 'Leaver' then cr.y1_subsidiary_id when JL = 'Joiner' then cr.y2_subsidiary_id else coalesce(cr.y1_subsidiary_id, cr.y2_subsidiary_id) end as sub_id,
-			case when JL = 'Leaver' then cr.y1_subsidiary_id_sys_gen when JL = 'Joiner' then cr.y2_subsidiary_id_sys_gen else coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) end as subsidiary_id_sys_gen,
-			case when JL = 'Leaver' then cr.y1_companies_house_number when JL = 'Joiner' then cr.y2_companies_house_number else coalesce(cr.y1_companies_house_number, cr.y2_companies_house_number) end as ch_number,
-			case when JL = 'Leaver' then cr.y1_organisation_size when JL = 'Joiner' then cr.y2_organisation_size else coalesce(cr.y1_organisation_size, cr.y2_organisation_size) end as org_size
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then coalesce(cr.y1_ComplianceSchemeName, 'Direct Producer') when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then coalesce(cr.y2_ComplianceSchemeName, 'Direct Producer') else coalesce(cr.y1_ComplianceSchemeName, cr.y2_ComplianceSchemeName, 'Direct Producer') end AS CS_Name_or_DP,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_id when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_id else coalesce(cr.y1_organisation_id, cr.y2_organisation_id) end as org_id,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_name when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_name else coalesce(cr.y1_organisation_name, cr.y2_organisation_name) end as org_name,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_subsidiary_id when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_subsidiary_id else coalesce(cr.y1_subsidiary_id, cr.y2_subsidiary_id) end as sub_id,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_subsidiary_id_sys_gen when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_subsidiary_id_sys_gen else coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) end as subsidiary_id_sys_gen,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_companies_house_number when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_companies_house_number else coalesce(cr.y1_companies_house_number, cr.y2_companies_house_number) end as ch_number,
+			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_size when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_size else coalesce(cr.y1_organisation_size, cr.y2_organisation_size) end as org_size
 		from comparison_result_selected_columns cr
 		)
 
@@ -238,6 +252,12 @@ BEGIN
 		cr_sc.y2_Submission_time,
 		cr_sc.y2_Regulator_Status,
 		cr_sc.JL,
+
+		cr_sc.y2_leaver_code,
+		cr_sc.y2_leaver_date,
+		cr_sc.y2_Organisation_change_reason,
+		cr_sc.y2_joiner_date,
+
 		CASE 
 			WHEN l_y2.y2_CS_id IS NOT NULL
 				THEN 'Compliance scheme'
@@ -276,8 +296,10 @@ BEGIN
 	LEFT JOIN latest_in_year2 l_y2
 		ON cr_sc.org_id = l_y2.y2_organisation_id AND ISNULL(cr_sc.sub_id, '') = ISNULL(l_y2.y2_subsidiary_id, '') AND l_y2.rn = 1
 	LEFT JOIN enrol e
-		ON e.ReferenceNumber = cr_sc.org_id
+		ON e.ReferenceNumber = cr_sc.org_id;
 
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_compare_org_file','procedure', NULL, @start_dt, getdate(), 'Completed',@batch_id
 END
 	/*
 
