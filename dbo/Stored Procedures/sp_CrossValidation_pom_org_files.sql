@@ -46,7 +46,6 @@ begin
 								pvt.subsidiary_Id AS pom_subsidiary_id,
 								pvt.organisation_size AS pom_organisation_size,
 								pvt.fileName AS pom_filename,
-								od.org_name,  -- Ensure organisation name is carried forward
 								[SO] AS Brand_Owner_Pom,
 								[IM] AS Importer_Pom,
 								[PF] AS Packer_Filler_Pom,
@@ -95,25 +94,8 @@ begin
 
 				org_pom_data AS (
 					SELECT 
-						cd.org_organisation_id,
-						cd.org_subsidiary_id,
-						cd.org_name,  -- Ensure organisation_name is carried forward
-						cd.org_organisation_size,
-						cd.Liable_to_Pay_Disposal_Cost,
-						cd.total_tonnage,
-						p.total_packaging_material_weight,  -- Include total weight column
-						cd.org_filename,
-						p.pom_organisation_id,
-						p.pom_subsidiary_id,
-						p.pom_organisation_size,
-						p.pom_filename,
-						p.Brand_Owner_Pom,
-						p.Importer_Pom,
-						p.Packer_Filler_Pom,
-						p.Service_Provider_Pom,
-						p.Distributor_Pom,
-						p.Online_Market_Place_Pom,
-						p.has_HH_PB  -- Preserve compliance check flag
+						cd.*,
+						p.*
 					FROM Org_Data cd 
 					FULL OUTER JOIN pom_data p 
 						ON cd.org_organisation_id = p.pom_organisation_id 
@@ -153,7 +135,6 @@ begin
 
 				SELECT lp.*, 
 					   op.*, 
-					   --op.org_name, 
 					   CASE 
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
 						   THEN 'Non Compliant'
@@ -172,7 +153,10 @@ begin
 				FROM Org_Pom_submitted_files lp
 				LEFT JOIN Org_Pom_Data op
 				ON lp.landing_cd_filename = op.org_filename 
-				AND lp.landing_pom_filename = op.pom_filename;
+				AND lp.landing_pom_filename = op.pom_filename
+				WHERE 
+				UPPER(TRIM(ISNULL(lp.Org_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED')
+				AND UPPER(TRIM(ISNULL(lp.Pom_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED');
 
 		end;
 
