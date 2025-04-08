@@ -4,7 +4,7 @@ As
 
 	select A.*, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
 	,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
-	,case when A.subsidiary_id is null then null else cd.organisation_name end as subsidiary_name /** JP002 added subsidiary name column**/
+	,Null as subsidiary_name
 	/***************************************************************************************************
 	History:
 
@@ -64,7 +64,7 @@ As
 				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
 			FROM dbo.t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
-											FROM dbo.v_POM_Operator_Submissions operators )
+							FROM dbo.v_POM_Operator_Submissions operators )
  
 			UNION
 			--add in operator
@@ -112,7 +112,7 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName], 
 				  'Operator'
-				  ,'' OrganisationID -- added TS 12/09/2024
+				  ,CAST(NULL AS INT) AS OrganisationID -- added TS 12/09/2024
 			FROM dbo.v_POM_Operator_Submissions
  
 			UNION 
@@ -174,8 +174,8 @@ LEFT JOIN dbo.v_subsidiaryorganisations so
 
 			and so.RelationToDate is NULL
 /** JP002 added join on company details table to get subsidiary name **/
-left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
-and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')
+--left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
+--and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')
 )
  -- JP001
 Select 
