@@ -75,7 +75,6 @@ SELECT CompanyOrgId
       ,secondary_contact_person_phone_number
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
-	  ,organisation_size
       ,load_ts
       ,CompanyFileName
       ,CompanyOriginalFileName
@@ -184,7 +183,6 @@ SELECT CompanyOrgId
       ,secondary_contact_person_phone_number
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
-	  ,organisation_size
       ,load_ts
       ,CompanyFileName
       ,CompanyOriginalFileName
@@ -235,8 +233,6 @@ SELECT CompanyOrgId
   ,f2.subsidiary_id AS file2_subsidiary_id
   ,f1.CSORPD AS file1_CSORPD
   ,f2.CSORPD AS file2_CSORPD
-  ,f1.organisation_size AS organisation_size_1
-  ,f2.organisation_size AS organisation_size_2
 
 	,CASE 
 		WHEN ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') THEN 'No Change'
@@ -920,15 +916,6 @@ SELECT CompanyOrgId
 		ELSE 'Changed' 
 	END AS change_status_CompanyOrgId
 
-	,f1.organisation_size AS file1_organisation_size
-	,f2.organisation_size AS file2_organisation_size
-	,CASE
-		WHEN ISNULL(f1.organisation_size, '') = ISNULL(f2.organisation_size, '') THEN 'No Change'
-		WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
-		WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
-		ELSE 'Changed' 
-	END AS change_status_organisation_size
-
 	
 	FROM file1 f1
 
@@ -1021,7 +1008,6 @@ SELECT CompanyOrgId
 								'organisation_name'
 								,'companies_house_number'
 								,'organisation_type_code'
-								,'organisation_size'
 								--,'subsidiary_id' 
 								
 								
@@ -1068,15 +1054,13 @@ SELECT CompanyOrgId
 
 		ELSE 'Other change' END Change_Category,
 
-		CASE
+		CASE 
 			WHEN (file1_CSORPD = 'Compliance Scheme' or  file2_CSORPD = 'Compliance Scheme') and subsidiary_id_1 is null and subsidiary_id_2 is null THEN 'Member'
 			WHEN file1_CSORPD = 'Producer' and subsidiary_id_1 is null and subsidiary_id_2 is null THEN 'Parent'
 		Else 'Child' END Parent_or_Member_and_Child
 
 		,file1_CSORPD
 		,file2_CSORPD
-		,organisation_size_1
-		,organisation_size_2
 
 		FROM (
 			SELECT 
@@ -1097,9 +1081,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 
 			FROM resultfile
 			UNION ALL
@@ -1121,7 +1103,7 @@ SELECT CompanyOrgId
 			--	file1_CSORPD,
 			--	file2_CSORPD,
 			--	main_activity_sic_1,
-			--	main_activity_sic_2, organisation_size_1, organisation_size_2
+			--	main_activity_sic_2
 			--FROM resultfile
 			--UNION ALL
 			SELECT 
@@ -1142,9 +1124,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1165,9 +1145,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1188,9 +1166,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1211,9 +1187,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1234,9 +1208,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1257,9 +1229,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1280,9 +1250,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1303,9 +1271,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1326,9 +1292,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1349,9 +1313,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1372,9 +1334,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1395,9 +1355,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1419,9 +1377,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 	
 			UNION ALL
@@ -1443,9 +1399,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1466,9 +1420,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1490,9 +1442,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1513,9 +1463,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1536,9 +1484,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile	
 			UNION ALL
 			SELECT 
@@ -1559,9 +1505,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1582,9 +1526,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1605,9 +1547,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1628,9 +1568,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1651,9 +1589,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1674,9 +1610,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1697,9 +1631,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1720,9 +1652,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1743,9 +1673,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1766,9 +1694,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1789,9 +1715,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1812,9 +1736,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1835,9 +1757,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1858,9 +1778,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1881,9 +1799,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1904,9 +1820,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1927,9 +1841,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1950,9 +1862,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1973,9 +1883,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1996,9 +1904,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2019,9 +1925,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2042,9 +1946,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2065,9 +1967,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2088,9 +1988,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2111,9 +2009,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2134,9 +2030,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2158,9 +2052,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2181,9 +2073,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2204,9 +2094,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2227,9 +2115,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2250,9 +2136,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2274,9 +2158,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2297,9 +2179,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2320,9 +2200,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2343,9 +2221,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 				
 			UNION ALL
@@ -2367,9 +2243,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2390,9 +2264,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2413,9 +2285,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2436,9 +2306,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2460,9 +2328,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2484,9 +2350,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2507,9 +2371,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2530,9 +2392,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2553,9 +2413,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2576,9 +2434,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2599,9 +2455,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2622,9 +2476,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2645,9 +2497,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2668,9 +2518,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2691,9 +2539,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2714,9 +2560,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2737,9 +2581,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2760,9 +2602,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2783,9 +2623,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2806,9 +2644,7 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2829,34 +2665,10 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-                main_activity_sic_2,
-				organisation_size_1,
-				organisation_size_2
+				main_activity_sic_2
 			FROM resultfile
-			UNION ALL
-			SELECT 
-				CompanyOrgId_1,
-				CompanyOrgId_2,
-				subsidiary_id_1,
-				subsidiary_id_2,
-				organisation_name_1,
-				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
-				companies_house_number_1,
-				companies_house_number_2,
-				'organisation_size' AS column_name, 
-				file1_organisation_size AS file1_value,
-				file2_organisation_size AS file2_value,
-				change_status_CompanyOrgId AS change_status,
-				file1_CSORPD,
-				file2_CSORPD,
-				main_activity_sic_1,
-				main_activity_sic_2, 
-				organisation_size_1,
-				organisation_size_2
-			FROM resultfile
-
+			
 		) AS unpivoted_table
+
 
 END

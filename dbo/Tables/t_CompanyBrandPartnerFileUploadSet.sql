@@ -75,7 +75,6 @@
     [secondary_contact_person_job_title]     NVARCHAR (4000) NULL,
     [load_ts]                                DATETIME2 (7)   NOT NULL,
     [CompanyFileName]                        NVARCHAR (4000) NULL,
-    [organisation_size]                      NVARCHAR (4000) NULL,
     [CompanyOriginalFileName]                NVARCHAR (4000) NULL,
     [CompanyFileType]                        NVARCHAR (4000) NULL,
     [SubmissionDateTime]                     NVARCHAR (4000) NULL,
