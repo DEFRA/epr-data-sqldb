@@ -76,7 +76,10 @@ SELECT CompanyOrgId
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
 	  ,organisation_size
-      ,load_ts
+	  ,leaver_code
+	  ,leaver_date
+	  ,organisation_change_reason
+	  ,joiner_date
       ,CompanyFileName
       ,CompanyOriginalFileName
       ,CompanyFileType
@@ -185,7 +188,10 @@ SELECT CompanyOrgId
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
 	  ,organisation_size
-      ,load_ts
+	  ,leaver_code
+	  ,leaver_date
+	  ,organisation_change_reason
+	  ,joiner_date
       ,CompanyFileName
       ,CompanyOriginalFileName
       ,CompanyFileType
@@ -237,22 +243,37 @@ SELECT CompanyOrgId
   ,f2.CSORPD AS file2_CSORPD
   ,f1.organisation_size AS organisation_size_1
   ,f2.organisation_size AS organisation_size_2
+  ,f1.leaver_code AS leaver_code_1
+  ,f2.leaver_code AS leaver_code_2
+  ,f1.joiner_date AS joiner_date_1
+  ,f2.joiner_date AS joiner_date_2
+  ,f1.leaver_date AS leaver_date_1
+  ,f2.leaver_date AS leaver_date_2
+		
 
 	,CASE 
-		WHEN ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') THEN 'No Change'
-		WHEN f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL THEN 'Added'
-		WHEN f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL THEN 'Removed'
-		ELSE 'Changed' 
-	END AS change_status_subsidiary_id
+		WHEN 
+		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') OR
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL)
+		THEN 'No Change'
 
-	--,f1.SubsidiaryOrganisation_ReferenceNumber AS file1_SubsidiaryOrganisation_ReferenceNumber
-	--,f2.SubsidiaryOrganisation_ReferenceNumber AS file2_SubsidiaryOrganisation_ReferenceNumber
-	--,CASE 
-	--	WHEN ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber, '') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber, '') THEN 'No Change'
-	--	WHEN f1.SubsidiaryOrganisation_ReferenceNumber IS NULL AND f2.SubsidiaryOrganisation_ReferenceNumber IS NOT NULL THEN 'Added'
-	--	WHEN f1.SubsidiaryOrganisation_ReferenceNumber IS NOT NULL AND f2.SubsidiaryOrganisation_ReferenceNumber IS NULL THEN 'Removed'
-	--	ELSE 'Changed' 
-	--END AS change_status_SubsidiaryOrganisation_ReferenceNumber
+		WHEN 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL) OR -- 1 VS 1 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL) OR -- 2 VS 1
+			(f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 1 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NULL) OR -- 2 VS 1
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL) -- 2 VS 2
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_subsidiary_id
+
 
 	,f1.organisation_name AS file1_organisation_name
 	,f2.organisation_name AS file2_organisation_name
@@ -924,19 +945,43 @@ SELECT CompanyOrgId
 	,f2.organisation_size AS file2_organisation_size
 	,CASE
 		WHEN ISNULL(f1.organisation_size, '') = ISNULL(f2.organisation_size, '') THEN 'No Change'
-		WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
-		WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
+		--WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
+		--WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_organisation_size
 
+	,f1.leaver_code AS file1_leaver_code
+	,f2.leaver_code AS file2_leaver_code
+	,CASE
+		WHEN ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') THEN 'No Change'
+		WHEN f1.leaver_code IS NOT NULL AND f2.leaver_code IS NULL THEN 'Added'
+		WHEN f1.leaver_code IS NULL AND f2.leaver_code IS NOT NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_leaver_code
+
+	,f1.leaver_date AS file1_leaver_date
+	,f2.leaver_date AS file2_leaver_date
+	,CASE
+		WHEN ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') THEN 'No Change'
+		WHEN f1.leaver_date IS NOT NULL AND f2.leaver_date IS NULL THEN 'Added'
+		WHEN f1.leaver_date IS NULL AND f2.leaver_date IS NOT NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_leaver_date
+
+	,f1.joiner_date AS file1_joiner_date
+	,f2.joiner_date AS file2_joiner_date
+	,CASE
+		WHEN ISNULL(f1.joiner_date, '') = ISNULL(f2.joiner_date, '') THEN 'No Change'
+		WHEN f1.joiner_date IS NULL AND f2.joiner_date IS NOT NULL THEN 'Added'
+		WHEN f1.joiner_date IS NOT NULL AND f2.joiner_date IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_joiner_date
 	
 	FROM file1 f1
 
 	FULL OUTER JOIN file2  f2 ON f2.CompanyOrgId = f1.CompanyOrgId AND ISNULL(f1.subsidiary_id,'') = ISNULL(f2.subsidiary_id,'') AND ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber,'') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber,'')
 	and  ISNULL(f1.companies_house_number,'') = ISNULL(f2.companies_house_number,'')
 	)
-
-
 	 
 	 SELECT DISTINCT
 		-- Organisation ID
@@ -1017,15 +1062,11 @@ SELECT CompanyOrgId
 								,'service_of_notice_addr_phone_number' ) THEN 'Address change'
 	
 			WHEN column_name IN (
-								--'CompanyOrgId'
+								
 								'organisation_name'
 								,'companies_house_number'
 								,'organisation_type_code'
-								,'organisation_size'
-								--,'subsidiary_id' 
-								
-								
-								) THEN 'Organisation change'
+								,'organisation_size' )		THEN 'Organisation change'
 
 
 			WHEN column_name IN (
@@ -1057,14 +1098,23 @@ SELECT CompanyOrgId
 								,'PartnerLastName'
 								,'PartnerPhoneNumber'
 								,'PartnerEmail')	THEN 'Partner change'
-			WHEN column_name IN ('subsidiary_id') THEN 
+			WHEN column_name IN (
+								'subsidiary_id'
+								) THEN 
 				CASE 
-					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Subsidiary change'
+					WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
+					
 					ELSE 'Organisation change' END
 			WHEN column_name IN ('CompanyOrgId') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
 					ELSE 'Organisation change' END
+			
+			WHEN column_name IN (
+								'leaver_code'
+								,'leaver_date'
+								,'joiner_date'
+											) THEN 'Mid Year Changes'
 
 		ELSE 'Other change' END Change_Category,
 
@@ -1077,6 +1127,13 @@ SELECT CompanyOrgId
 		,file2_CSORPD
 		,organisation_size_1
 		,organisation_size_2
+		,leaver_code_1
+		,leaver_code_2
+		,joiner_date_1
+		,joiner_date_2
+		,leaver_date_1
+		,leaver_date_2
+					
 
 		FROM (
 			SELECT 
@@ -1099,31 +1156,16 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
-
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
+				
 			FROM resultfile
 			UNION ALL
-			--SELECT 
-			--	CompanyOrgId_1,
-			--	CompanyOrgId_2,
-			--	subsidiary_id_1,
-			--	subsidiary_id_2,
-			--	organisation_name_1,
-			--	organisation_name_2,
-			--	system_generated_subsidiary_id_1,
-			--	system_generated_subsidiary_id_2,
-			--	companies_house_number_1,
-			--	companies_house_number_2,
-			--	'SubsidiaryOrganisation_ReferenceNumber' AS column_name, 
-			--	--file1_SubsidiaryOrganisation_ReferenceNumber AS file1_value,
-			--	--file2_SubsidiaryOrganisation_ReferenceNumber AS file2_value,
-			--	change_status_subsidiary_id AS change_status,
-			--	file1_CSORPD,
-			--	file2_CSORPD,
-			--	main_activity_sic_1,
-			--	main_activity_sic_2, organisation_size_1, organisation_size_2
-			--FROM resultfile
-			--UNION ALL
 			SELECT 
 				CompanyOrgId_1,
 				CompanyOrgId_2,
@@ -1144,7 +1186,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1167,7 +1215,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1190,7 +1244,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1213,7 +1273,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1236,7 +1302,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1259,7 +1331,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1282,7 +1360,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1305,7 +1389,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1328,7 +1418,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1351,7 +1447,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1374,7 +1476,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1397,7 +1505,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1421,7 +1535,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 	
 			UNION ALL
@@ -1445,7 +1565,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1468,7 +1594,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1492,7 +1624,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1515,7 +1653,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1538,7 +1682,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile	
 			UNION ALL
 			SELECT 
@@ -1561,7 +1711,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1584,7 +1740,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1607,7 +1769,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1630,7 +1798,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1653,7 +1827,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1676,7 +1856,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1699,7 +1885,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1722,7 +1914,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1745,7 +1943,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1768,7 +1972,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1791,7 +2001,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1814,7 +2030,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1837,7 +2059,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1860,7 +2088,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1883,7 +2117,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1906,7 +2146,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1929,7 +2175,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1952,7 +2204,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1975,7 +2233,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1998,7 +2262,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2021,7 +2291,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2044,7 +2320,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2067,7 +2349,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2090,7 +2378,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2113,7 +2407,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2136,7 +2436,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2160,7 +2466,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2183,7 +2495,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2206,7 +2524,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2229,7 +2553,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2252,7 +2582,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2276,7 +2612,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2299,7 +2641,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2322,7 +2670,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2345,7 +2699,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 				
 			UNION ALL
@@ -2369,7 +2729,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2392,7 +2758,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2415,7 +2787,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2438,7 +2816,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2462,7 +2846,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2486,7 +2876,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2509,7 +2905,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2532,7 +2934,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2555,7 +2963,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2578,7 +2992,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2601,7 +3021,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2624,7 +3050,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2647,7 +3079,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2670,7 +3108,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2693,7 +3137,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2716,7 +3166,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2739,7 +3195,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2762,7 +3224,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2785,7 +3253,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2808,7 +3282,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
 				main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2831,7 +3311,13 @@ SELECT CompanyOrgId
 				main_activity_sic_1,
                 main_activity_sic_2,
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2848,13 +3334,106 @@ SELECT CompanyOrgId
 				'organisation_size' AS column_name, 
 				file1_organisation_size AS file1_value,
 				file2_organisation_size AS file2_value,
-				change_status_CompanyOrgId AS change_status,
+				change_status_organisation_size AS change_status,
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
 				main_activity_sic_2, 
 				organisation_size_1,
-				organisation_size_2
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				system_generated_subsidiary_id_1,
+				system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'leaver_code' AS column_name, 
+				file1_leaver_code AS file1_value,
+				file2_leaver_code AS file2_value,
+				change_status_leaver_code AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				system_generated_subsidiary_id_1,
+				system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'leaver_date' AS column_name, 
+				file1_leaver_date AS file1_value,
+				file2_leaver_date AS file2_value,
+				change_status_leaver_date AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				system_generated_subsidiary_id_1,
+				system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'joiner_date' AS column_name, 
+				file1_joiner_date AS file1_value,
+				file2_joiner_date AS file2_value,
+				change_status_joiner_date AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2
 			FROM resultfile
 
 		) AS unpivoted_table
