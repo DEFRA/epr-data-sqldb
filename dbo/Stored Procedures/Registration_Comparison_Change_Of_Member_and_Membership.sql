@@ -924,8 +924,8 @@ SELECT CompanyOrgId
 	,f2.organisation_size AS file2_organisation_size
 	,CASE
 		WHEN ISNULL(f1.organisation_size, '') = ISNULL(f2.organisation_size, '') THEN 'No Change'
-		WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
-		WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
+		--WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
+		--WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_organisation_size
 
@@ -1015,16 +1015,11 @@ SELECT CompanyOrgId
 								,'service_of_notice_addr_country'
 								,'service_of_notice_addr_phone_number' ) THEN 'Address change'
 	
-			WHEN column_name IN (
-								--'CompanyOrgId'
+			WHEN column_name IN (								
 								'organisation_name'
 								,'companies_house_number'
 								,'organisation_type_code'
-								,'organisation_size'
-								--,'subsidiary_id' 
-								
-								
-								) THEN 'Organisation change'
+								,'organisation_size' )	THEN 'Organisation change'
 
 
 			WHEN column_name IN (
@@ -1060,9 +1055,9 @@ SELECT CompanyOrgId
 								'subsidiary_id'
 								) THEN 
 				CASE 
-					WHEN  column_name ='subsidiary_id' and (file1_VALUE is not null OR file2_VALUE is not null)  THEN 'Subsidiary change'
+					WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
 					
-					ELSE 'Organisation change' END
+				ELSE 'Organisation change' END
 			WHEN column_name IN ('CompanyOrgId') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
