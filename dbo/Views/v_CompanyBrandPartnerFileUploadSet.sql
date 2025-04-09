@@ -79,6 +79,10 @@ from
       ,cd.[load_ts]
       ,cd.[FileName] CompanyFileName
 	  ,cd.[organisation_size]
+	  ,cd.[leaver_code] -- MYC
+	  ,cd.[leaver_date] -- MYC
+	  ,cd.[organisation_change_reason] -- MYC
+	  ,cd.[joiner_date] --MYC
 	  ,c.OriginalFileName CompanyOriginalFileName
 	  ,c.FileType CompanyFileType
 	  ,c.Created As SubmissionDateTime
