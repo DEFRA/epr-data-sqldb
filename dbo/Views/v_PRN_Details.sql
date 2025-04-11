@@ -7,8 +7,10 @@
 	Updated: 2025-01-13		SN003:						Include Ability to map CSIds
 	Updated: 2025-01-29		SN004:	Ticket  - 501685	Remove Duplicate Status coming from PrnStatusHistory
 	Updated: 2025-01-30		SN005:	Ticket  - 501253	ComplianceSchemes not in Metafile data joined by Companies House no.
-
-******************************************************************************************************************************/
+	Updated: 2025-02-28		SN006:	N/A					v_Organisations_Active replaced with v_Organisations_Active_pom
+	Updated: 2025-02-28		SN007:	Ticket	- 527575	Added PRNMaterialMapping table to resolve NPWD and PRN materialname mismatch
+	Updated: 2025-02-28		SN008:	Ticket	- 527557	Update cs_ch Nation to remove duplicate nation in UNION
+*****************************************************************************************************************************/
 	Select 
 		 PrnStatusHistoryId		= sth.Id
 		,PrnIdFk				= sth.PrnIdFk
@@ -34,6 +36,20 @@ st_pvt As (
 			Max(PrnStatusDate) for PrnStatusName In ([ACCEPTED],[REJECTED],[CANCELLED],[AWAITINGACCEPTANCE])
 	) stp Where IsLatest=1			/*** SN0004: Added ***/
 ), 
+
+/*** SN007: Added ***/
+pmm As (
+	Select 
+		 pmm.PRNMaterialId
+		,pmm.NPWDMaterialName
+		,PRNMaterialCode	= m.MaterialCode
+		,PRNMaterialName	= m.MaterialName
+	From 
+		rpd.PrnMaterialMapping	pmm
+	Left Join
+		rpd.Material			m
+			on pmm.PRNMaterialId = m.Id
+), /*** SN007: Added ***/
 org As (  /*** SN:003 ***/
 	Select
 		 o.ExternalID
@@ -44,21 +60,21 @@ org As (  /*** SN:003 ***/
 		,o.Postcode 
 		,RowNumber	=1
 	From
-		dbo.v_rpd_Organisations_Active	o
+		dbo.v_rpd_Organisations_Active_POM	o /*** SN006: Replaced ***/
 ),
 cs_ch As (  /*** SN005: Added ***/
 	Select
-	 cs.ExternalID
-	,o.ReferenceNumber
-	,o.NationId
-	,o.IsComplianceScheme
-	,o.Town
-	,o.Postcode 
-	,RowNumber	=1
-From
-	dbo.v_rpd_Organisations_Active	o
-Join
-	rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
+		 cs.ExternalID
+		,o.ReferenceNumber
+		,NationId = Case When IScomplianceScheme = 1 Then cs.NationId Else o.NationId End  /*** SN008: Updated ***/
+		,o.IsComplianceScheme
+		,o.Town
+		,o.Postcode 
+		,RowNumber	=1
+	From
+		dbo.v_rpd_Organisations_Active_POM	o		/*** SN006: Replaced ***/
+	Join
+		rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
 ),
 csa As (
 	Select  
@@ -116,14 +132,14 @@ prn As (
 		 p.Id
 		,p.ExternalId
 		,p.PrnNumber
-		,ExternalOrgId					= p.OrganisationId
+		,ExternalOrgId				= p.OrganisationId
 		,p.OrganisationName
 		,p.ProducerAgency
 		,p.ReprocessorExporterAgency
 		,p.PrnStatusId
-		,PrnStatus						= s.StatusDescription
+		,PrnStatus					= s.StatusDescription
 		,p.TonnageValue
-		,p.MaterialName
+		,MaterialName				= Coalesce(pmm.PRNMaterialName,p.MaterialName,null) /*** SN008: Added ***/
 		,p.IssuerNotes
 		,p.IssuerReference
 		,p.PrnSignatory
@@ -157,6 +173,9 @@ prn As (
 	Left Join
 		rpd.PrnStatus			s
 			On p.PrnStatusId = s.id
+	Left Join 
+		pmm 
+			on rTrim(p.MaterialName) = rTrim(pmm.NPWDMaterialName) /*** SN007: Added ***/
 )
 
 Select p.id,
@@ -193,7 +212,7 @@ Select p.id,
 	,p.CreatedOn
 	,p.LastUpdatedBy
 	,p.LastUpdatedDate
-	,p.IsExport
+	,p.IsExport						/*** 0 = PRN, 1 = PERN ***/
 	,ProducerType					= Case o.[IsComplianceScheme] When 1 Then 'Compliance Scheme' When 0 Then 'Direct Registrant' Else NULL End
 	,o.Town
 	,o.Postcode

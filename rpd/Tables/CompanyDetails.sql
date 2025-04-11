@@ -72,7 +72,7 @@
     [secondary_contact_person_phone_number] NVARCHAR (4000) NULL,
     [secondary_contact_person_email]        NVARCHAR (4000) NULL,
     [secondary_contact_person_job_title]    NVARCHAR (4000) NULL,
-    [organisation_size]                     NVARCHAR (4000) NULL,
+    [organisation_size]                     NVARCHAR (4000) NOT NULL,
     [leaver_code]                           NVARCHAR (4000) NULL,
     [leaver_date]                           NVARCHAR (4000) NULL,
     [organisation_change_reason]            NVARCHAR (4000) NULL,

@@ -15,6 +15,8 @@
 	Updated: 2025-02-11:	YM002:	Ticket - 506055		Changing the decision as Pending from null for the 2nd submission under the ticket 506055
 	Updated: 2025-02-18:	SN003:	Ticket - 510914		Remove values Comment, DecisionDate, User values for RegulatorRegistration 'Pending/Upload' rows
 	Updated: 2025-03-19:	PM004:	Ticket - 512853		Bring the Registration file status as 'Uploaded' if not fully submitted in front end. This is the status before pending.
+	Updated: 2025-03-24:	SN005:	Ticket - 520206		Add Application/App Reference Number to be passed to output for display on Power BI Report
+	Updated: 2025-04-03:	RM006:	Ticket - 527578		Add registrationreferencenumber to be passed on to v_public_register_all_producers
 ******************************************************************************************************************************/
 RegSubDate As
 /*** SN002: Added 501408 - Retrieves rows with regulator SubmissionDate values  Lastest type='RegistrationApplicationSubmitted' ***/
@@ -36,6 +38,7 @@ se As (
 		 cfm.FileId
 		,se.SubmissionId
 		,se.AppReferenceNumber
+		,se.ApplicationReferenceNumber				/*** SN005: Added ***/
 		,Decision_Date					= se.[created]   
 		,Regulator_Status				= se.[Decision] 
 		,Regulator_Rejection_Comments	= se.[Comments] 
@@ -44,6 +47,7 @@ se As (
 		,se.[UserId]
 		,Created	= NULL							/*** SN002: Added 501408 - SubmissionDate ***/
 		,RegistrationType					= 1		/*** SN002: Added 501408 - To allow logic in PowerBI Regulator_Status to be set to Pending ***/
+		,se.registrationreferencenumber
 	From
 		rpd.cosmos_file_metadata	cfm
 	Left Join
@@ -59,6 +63,7 @@ se As (
 		 cfm.FileId
 		,se.SubmissionId
 		,se.AppReferenceNumber
+		,se.ApplicationReferenceNumber				/*** SN005: Added ***/
 		,Decision_Date					= se.[created] 
 		,Regulator_Status				= Case se.[Decision] /*** SN002: Added 501408 ***/
 											When 'Accepted' Then 'Granted'
@@ -71,6 +76,7 @@ se As (
 		,se.[UserId]
 		,rsd.Created								/*** SN002: Added 501408 -- SubmissionDate ***/
 		,RegistrationType				= 2			/*** SN002: Added 501408 - To allow logic in PowerBI Regulator_Status to be set to NULL ***/
+		,se.registrationreferencenumber
 	From
 		rpd.cosmos_file_metadata	cfm
 			Left Join
@@ -90,6 +96,7 @@ se.AppReferenceNumber is not null
 		 cfm.FileId
 		,se.SubmissionId
 		,se.AppReferenceNumber
+		,se.ApplicationReferenceNumber				/*** SN005: Added ***/
 		,Decision_Date					= NULL /*** SN003: Commented out value causes confusion ***/ --se.[created] 
 		,Regulator_Status = Case when se.[Decision] is null then 'Pending'
 								else se.[Decision]
@@ -100,6 +107,7 @@ se.AppReferenceNumber is not null
 		,se.[UserId]
 		,rsd.Created								/*** SN002: Added 501408 -- SubmissionDate ***/
 		,RegistrationType				= 2			/*** SN002: Added 501408 - To allow logic in PowerBI Regulator_Status to be set to NULL ***/
+		,se.registrationreferencenumber
 	From
 		rpd.cosmos_file_metadata	cfm
 	Left Join
@@ -155,6 +163,8 @@ SELECT distinct
 		,se.Created
 		,se.RegistrationType
 		,c.SubmissionPeriod
+		,ApplicationReferenceNo		= Coalesce(se.AppReferenceNumber,se.ApplicationReferenceNumber,Null)		/*** SN005: Added ***/
+		,se.registrationreferencenumber
 FROM [rpd].[cosmos_file_metadata] c
   Left Join se on se.FileId = c.FileId 
   				/*** SN:001 Removed: and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision') ***/
@@ -185,6 +195,8 @@ SELECT distinct
 		,se.Created
 		,se.RegistrationType
 		,c.SubmissionPeriod
+		,ApplicationReferenceNo		= Coalesce(se.AppReferenceNumber,se.ApplicationReferenceNumber,Null)		/*** SN005: Added ***/
+		,se.registrationreferencenumber
 FROM [rpd].[cosmos_file_metadata] c
   Left join se_with_reg se on se.RegistrationSetId = c.RegistrationSetId
   				/*** SN:001 Removed: and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision') ***/
@@ -213,5 +225,7 @@ select distinct sfs.SubmissionId
 		,sfs.Created
 		,sfs.RegistrationType
 		,sfs.SubmissionPeriod
+		,sfs.ApplicationReferenceNo			/*** SN005: Added ***/
+		,sfs.registrationreferencenumber
  from submitted_file_status sfs
 where sfs.[RowNumber] = 1;
