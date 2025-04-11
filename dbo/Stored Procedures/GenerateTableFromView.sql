@@ -784,6 +784,7 @@ begin
 end
 
 --Recording count from each table
+
 	select @cnt =count(1) from dbo.t_cosmos_file_metadata;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_cosmos_file_metadata', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -869,6 +870,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
 
+
 /**** New table counts for 22,23,24, and 25 ******/
 	select @cnt =count(1) from dbo.t_registration_enrolled_not_registered;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -885,5 +887,6 @@ end
 	select @cnt =count(1) from dbo.t_organisation_details_not_submitted;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', @cnt, NULL, getdate(), 'Completed',@batch_id
+
 
 END;
