@@ -291,5 +291,20 @@
     <Build Include="Security\SqlAnalyticsConnector.sql" />
     <Build Include="dbo\Stored Procedures\sp_PRN_Delta_Extract.sql" />
     <Build Include="dbo\Views\v_rpd_Organisations_Active_Pom.sql" />
+    <Build Include="dbo\Tables\t_BrndPrtnr_Registrations.sql" />
+    <Build Include="dbo\Tables\t_BrndPrtnr_Org_Submissions.sql" />
+    <Build Include="dbo\Views\v_UploadedRegistrationDataBySubmissionPeriod_resub.sql" />
+    <Build Include="dbo\Views\v_registration_enrolled_not_registered.sql" />
+    <Build Include="dbo\Views\v_ProducerPaycalParameters_resub.sql" />
+    <Build Include="dbo\Views\v_organisation_details_not_submitted.sql" />
+    <Build Include="dbo\Views\v_BrndPrtnr_Registrations.sql" />
+    <Build Include="dbo\Views\v_BrndPrtnr_Org_Submissions.sql" />
+    <Build Include="dbo\Stored Procedures\sp_PomResubmissionPaycalParameters.sql" />
+    <Build Include="dbo\Stored Procedures\sp_OrganisationRegistrationSummaries_resub.sql" />
+    <Build Include="dbo\Stored Procedures\sp_FilterAndPaginateSubmissionsSummaries_resub.sql" />
+    <Build Include="dbo\Stored Procedures\sp_FilterAndPaginateOrganisationRegistrationSummaries_resub.sql" />
+    <Build Include="dbo\Stored Procedures\sp_FetchOrganisationRegistrationSubmissionDetails_resub.sql" />
+    <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted_ByCSID.sql" />
+    <Build Include="dbo\Stored Procedures\GetLastSyncTime.sql" />
   </ItemGroup>
 </Project>
