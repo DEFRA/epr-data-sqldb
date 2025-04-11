@@ -1,5 +1,13 @@
 ﻿CREATE PROC [dbo].[GenerateTableFromView] AS
 BEGIN
+/**********************************************************************************
+      Table 15 (t_registration_with_brandandpartner) - Disabled Replaced by : 22 and 23
+
+
+      Table 17 (t_enrolled_not_registered) - Disabled Replaced by : 24 and 25
+
+
+ **********************************************************************************/
     -- Disable row count for performance
     SET NOCOUNT ON;
 	DECLARE @start_dt datetime;
@@ -441,6 +449,7 @@ begin
 	end
 end
 
+/**** Disabled replaced by Tables 22 and 23
 --Table 15
 if (@recovery_checkpoint < 15)
 begin
@@ -469,6 +478,8 @@ begin
 		select 'GenerateTableFromView', 15, getdate()
 	end
 end
+*/
+
 
 
 
@@ -501,6 +512,7 @@ begin
 	end
 end
 
+/**** Disabled replaced by Tables 24 and 25
 --Table 17
 if (@recovery_checkpoint < 17)
 begin
@@ -528,6 +540,10 @@ begin
 		select 'GenerateTableFromView', 17, getdate()
 	end
 end
+*/
+
+
+
 
 --Table 18
 if (@recovery_checkpoint < 18)
@@ -614,7 +630,6 @@ begin
 	end
 end
 
-
 --Table 21
 if (@recovery_checkpoint < 21)
 begin
@@ -632,6 +647,124 @@ begin
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Tab 21 - Completed',@batch_id
 
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 21, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 21, getdate()
+	end
+end
+
+/****** New Tables to replace 15 - t_registration_with_brandandpartner partner ****/
+--Table 22
+
+if (@recovery_checkpoint < 22)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_BrndPrtnr_Registrations', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_BrndPrtnr_Registrations;
+		END;	
+
+		SELECT *
+		INTO dbo.t_BrndPrtnr_Registrations
+		FROM dbo.v_BrndPrtnr_Registrations;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Registrations', NULL, @start_dt, getdate(), 'Tab 22 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 22, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 22, getdate()
+	end
+end
+
+--Table 23
+
+if (@recovery_checkpoint < 23)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_BrndPrtnr_Org_Submissions', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_BrndPrtnr_Org_Submissions;
+		END;	
+
+		SELECT *
+		INTO dbo.t_BrndPrtnr_Org_Submissions
+		FROM dbo.v_BrndPrtnr_Org_Submissions;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Org_Submissions', NULL, @start_dt, getdate(), 'Tab 23 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 23, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 23, getdate()
+	end
+end
+
+/****** New Tables to replace 17 - t_enrolled_not_registered partner ****/
+--Table 24
+
+if (@recovery_checkpoint < 24)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_organisation_details_not_submitted', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_organisation_details_not_submitted;
+		END;	
+
+		SELECT *
+		INTO dbo.t_organisation_details_not_submitted
+		FROM dbo.v_organisation_details_not_submitted;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', NULL, @start_dt, getdate(), 'Tab 24 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 24, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 24, getdate()
+	end
+end
+
+
+--Table 25
+if (@recovery_checkpoint < 25)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_registration_enrolled_not_registered', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_registration_enrolled_not_registered;
+		END;	
+
+		SELECT *
+		INTO dbo.t_registration_enrolled_not_registered
+		FROM dbo.v_registration_enrolled_not_registered;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 25 - Completed',@batch_id
+
 	delete from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView'
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -639,7 +772,7 @@ begin
 end
 
 --Removing check point
-if (@recovery_checkpoint >= 21)
+if (@recovery_checkpoint >= 25)
 begin
 
 	set @start_dt = getdate()
@@ -648,10 +781,9 @@ begin
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','procedure', NULL, @start_dt, getdate(), 'check point removed - 2',@batch_id
-
 end
 
-
+--Recording count from each table
 	select @cnt =count(1) from dbo.t_cosmos_file_metadata;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_cosmos_file_metadata', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -704,9 +836,9 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', @cnt, NULL, getdate(), 'Completed',@batch_id
+	--select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
+	--INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	--select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 	select @cnt =count(1) from dbo.t_POM_All_Submissions;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -716,9 +848,9 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	select @cnt =count(1) from dbo.t_enrolled_not_registered;
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
+	--select @cnt =count(1) from dbo.t_enrolled_not_registered;
+	--INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	--select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 	select @cnt =count(1) from dbo.t_CompanyBrandPartnerFileUploadSet;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -728,7 +860,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	
+
 	select @cnt =count(1) from dbo.t_latest_accepted_orgfile_by_year;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -736,5 +868,22 @@ end
 	select @cnt =count(1) from dbo.t_latest_pending_or_accepted_orgfile_by_year;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+/**** New table counts for 22,23,24, and 25 ******/
+	select @cnt =count(1) from dbo.t_registration_enrolled_not_registered;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_BrndPrtnr_Registrations;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Registrations', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_BrndPrtnr_Org_Submissions;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Org_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_organisation_details_not_submitted;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 END;
