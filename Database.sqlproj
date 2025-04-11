@@ -279,6 +279,12 @@
     <Build Include="dbo\Functions\udf_DQ_SubmissionPeriod.sql" />
     <Build Include="dbo\Tables\t_new_Enrolment_Report.sql" />
     <Build Include="dbo\Views\v_New_Enrolment_Report.sql" />
+    <Build Include="dbo\Tables\t_latest_pending_or_accepted_orgfile_by_year.sql" />
+    <Build Include="dbo\Tables\t_latest_accepted_orgfile_by_year.sql" />
+    <Build Include="dbo\Views\v_latest_pending_or_accepted_orgfile_by_year.sql" />
+    <Build Include="dbo\Views\v_latest_accepted_orgfile_by_year.sql" />
+    <Build Include="dbo\Views\v_get_orgfile_submitted_year.sql" />
+    <Build Include="dbo\Stored Procedures\sp_compare_org_file.sql" />
     <Build Include="dbo\Tables\tblCheckpoint.sql" />
     <Build Include="dbo\Views\v_CrossValidation_Landing_Page.sql" />
     <Build Include="dbo\Stored Procedures\sp_CrossValidation_pom_org_files.sql" />
@@ -289,6 +295,7 @@
     <Build Include="dbo\Tables\t_cosmos_file_metadata.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetRegistrationFeeCalculationDetails.sql" />
     <Build Include="Security\SqlAnalyticsConnector.sql" />
+    <Build Include="dbo\Views\v_get_orgfile_submitted_year_nation.sql" />
     <Build Include="dbo\Stored Procedures\sp_PRN_Delta_Extract.sql" />
     <Build Include="dbo\Views\v_rpd_Organisations_Active_Pom.sql" />
   </ItemGroup>

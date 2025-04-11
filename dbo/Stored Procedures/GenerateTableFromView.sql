@@ -585,7 +585,7 @@ begin
 		select 'GenerateTableFromView', 19, getdate()
 	end
 end
-/*
+
 --Table 20
 if (@recovery_checkpoint < 20)
 begin
@@ -614,7 +614,6 @@ begin
 	end
 end
 
-
 --Table 21
 if (@recovery_checkpoint < 21)
 begin
@@ -637,22 +636,6 @@ begin
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','procedure', NULL, @start_dt, getdate(), 'check point removed',@batch_id
 end
-*/
---Removing check point
-if (@recovery_checkpoint >= 19)
-begin
-
-	set @start_dt = getdate()
-
-	delete from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView'
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','procedure', NULL, @start_dt, getdate(), 'check point removed - 2',@batch_id
-
-end
-
-
-
 
 	--Recording count from each table
 	select @cnt =count(1) from dbo.t_cosmos_file_metadata;
@@ -731,7 +714,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	/*
+
 	select @cnt =count(1) from dbo.t_latest_accepted_orgfile_by_year;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -739,5 +722,5 @@ end
 	select @cnt =count(1) from dbo.t_latest_pending_or_accepted_orgfile_by_year;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
-	*/
+
 END;
