@@ -7,7 +7,9 @@ org As (
 	Updated: 2024-11-28:	SN002:						Added Summ PrnTonnage and concatenated Address to reduce DAX usage4
 	Updated: 2025-01-13		SN003:						Include Ability to map CSIds 
 	Updated: 2025-01-30		SN004:	Ticket  - 501253	ComplianceSchemes not in Metafile data joined by Companies House no.
-
+	Updated: 2025-02-28		SN006:	N/A					v_Organisations_Active replaced with v_Organisations_Active_pom
+	Updated: 2025-03-18		SN007:	Ticket - 527574		Change to accomodate MaterialId replacing MaterialName
+	Updated: 2025-02-28		SN008:	Ticket - 527557		Update cs_ch Nation to remove duplicate nation in UNION
 ******************************************************************************************************************************/
 
 /*** SN:003 ***/
@@ -27,13 +29,13 @@ org As (
 		,o.ValidatedWithCompaniesHouse
 		,RowNumber	=1
 	From
-		dbo.v_rpd_Organisations_Active	o
+		dbo.v_rpd_Organisations_Active_pom	o /*** SN006: Replaced ***/
 ),
 cs_ch As (  /*** SN004: Added ***/
 	Select
 	 cs.ExternalID
 	,o.ReferenceNumber
-	,o.NationId
+	,NationId = Case When IScomplianceScheme = 1 Then cs.NationId Else o.NationId End  /*** SN008: Updated ***/
 	,o.IsComplianceScheme
 	,o.Town
 	,o.Postcode
@@ -46,7 +48,7 @@ cs_ch As (  /*** SN004: Added ***/
 	,o.ValidatedWithCompaniesHouse
 	,RowNumber	=1
 From
-	dbo.v_rpd_Organisations_Active	o
+	dbo.v_rpd_Organisations_Active_pom	o /*** SN006: Replaced ***/
 Join
 	rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
 ), /*** SN004: Added ***/
@@ -67,7 +69,7 @@ csa As (
 		,o.ValidatedWithCompaniesHouse
 		,RowNumber			= Row_Number() Over(Partition by c.organisationid,c.submissionperiod order by CONVERT(DATETIME, Substring(c.[created], 1, 23)) desc ) 
 	From 
-		rpd.organisations o
+		dbo.v_rpd_Organisations_Active_pom o
 	Join 
 		rpd.cosmos_file_metadata	c	On o.externalid = c.organisationid
 	Join 
@@ -129,12 +131,24 @@ org_csa As (
 	From 
 		csa 
 ),
+pmm As (
+	Select 
+		 pmm.PRNMaterialId
+		,pmm.NPWDMaterialName
+		,PRNMaterialCode	= m.MaterialCode
+		,PRNMaterialName	= m.MaterialName
+	From 
+		rpd.PrnMaterialMapping	pmm
+	Left Join
+		rpd.Material			m
+			on pmm.PRNMaterialId = m.Id
+),
 obgns As (
 
 	Select
 		 ExternalOrgId			= ob.OrganisationId
 		,OrganisationId			= o.[ReferenceNumber]
-		,MaterialName
+		,m.MaterialName			/*** SN007: Added ***/
 		,MaterialObligationValue
 		,ObligationYear			= [Year]
 		,CalculatedOn
@@ -156,24 +170,32 @@ obgns As (
       ,[ValidatedWithCompaniesHouse]
       ,[IsComplianceScheme]
 	From 
-		rpd.ObligationCalculations ob
-	 Join
+		rpd.ObligationCalculations	ob
+	/*** SN007: Added ***/
+	Left Join
+		rpd.Material				m
+			on ob.MaterialId = m.Id
+	Join
 		org_csa	o
 			on ob.OrganisationId = o.ExternalID
 ), 
 /*** vvvv ** SN002 ** vvvv ***/
+
 prnTt As (
 	Select
 		 p.OrganisationId
-		,p.MaterialName
+		,MaterialName		= Coalesce(pmm.PRNMaterialName,p.MaterialName,null) 
 		,p.ObligationYear
 		,TotTonnage			= sum(p.TonnageValue)
-		,PrnObliJoin		= Concat(Ltrim(Rtrim(p.OrganisationId)),'-',Ltrim(Rtrim(p.MaterialName)),'-',Ltrim(Rtrim(p.ObligationYear)))
+		,PrnObliJoin		= Concat(Ltrim(Rtrim(p.OrganisationId)),'-',Ltrim(Rtrim(Coalesce(pmm.PRNMaterialName,p.MaterialName,null))),'-',Ltrim(Rtrim(p.ObligationYear)))
 	From 
 			rpd.Prn					p
+	left Join
+			pmm
+				on rTrim(p.MaterialName) = rTrim(pmm.NPWDMaterialName)
 	Group By
 		 p.OrganisationId
-		,p.MaterialName
+		,Coalesce(pmm.PRNMaterialName,p.MaterialName,null) 
 		,p.ObligationYear
 )
 
@@ -182,11 +204,11 @@ prnTt As (
 
 	Select 
 		o.*
-		,p.TotTonnage				/** SN002 **/
-		,RemainObligation	= o.MaterialObligationValue - p.TotTonnage
+		,TotTonnage			= IsNull(p.TotTonnage,0)				/** SN002 **/
+		,RemainObligation	= o.MaterialObligationValue - IsNull(p.TotTonnage,0)
 	From
 		obgns		o
-	Join
+	left Join
 		prnTt		p on o.PrnObliJoin=p.PrnObliJoin
 	Where 
 		o.LatestFlg = 1;
