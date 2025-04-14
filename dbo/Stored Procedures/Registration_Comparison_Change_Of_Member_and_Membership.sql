@@ -249,11 +249,13 @@ SELECT CompanyOrgId
   ,f2.joiner_date AS joiner_date_2
   ,f1.leaver_date AS leaver_date_1
   ,f2.leaver_date AS leaver_date_2
+  ,f1.organisation_change_reason AS organisation_change_reason_1
+  ,f2.organisation_change_reason AS organisation_change_reason_2
 		
 
 	,CASE 
 		WHEN 
-		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') OR
+		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
 		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL)
 		THEN 'No Change'
 
@@ -954,8 +956,8 @@ END AS change_status_subsidiary_id
 	,f2.leaver_code AS file2_leaver_code
 	,CASE
 		WHEN ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') THEN 'No Change'
-		WHEN f1.leaver_code IS NOT NULL AND f2.leaver_code IS NULL THEN 'Added'
-		WHEN f1.leaver_code IS NULL AND f2.leaver_code IS NOT NULL THEN 'Removed'
+		WHEN f1.leaver_code IS NULL AND f2.leaver_code IS NOT NULL THEN 'Added'
+		WHEN f1.leaver_code IS NOT NULL AND f2.leaver_code IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_leaver_code
 
@@ -963,8 +965,8 @@ END AS change_status_subsidiary_id
 	,f2.leaver_date AS file2_leaver_date
 	,CASE
 		WHEN ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') THEN 'No Change'
-		WHEN f1.leaver_date IS NOT NULL AND f2.leaver_date IS NULL THEN 'Added'
-		WHEN f1.leaver_date IS NULL AND f2.leaver_date IS NOT NULL THEN 'Removed'
+		WHEN f1.leaver_date IS NULL AND f2.leaver_date IS NOT NULL THEN 'Added'
+		WHEN f1.leaver_date IS NOT NULL AND f2.leaver_date IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_leaver_date
 
@@ -976,6 +978,15 @@ END AS change_status_subsidiary_id
 		WHEN f1.joiner_date IS NOT NULL AND f2.joiner_date IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_joiner_date
+
+	,f1.organisation_change_reason  AS file1_organisation_change_reason
+	,f1.organisation_change_reason  AS file2_organisation_change_reason
+	,CASE
+		WHEN ISNULL(f1.organisation_change_reason, '') = ISNULL(f2.organisation_change_reason, '') THEN 'No Change'
+		WHEN f1.organisation_change_reason IS NULL AND f2.organisation_change_reason IS NOT NULL THEN 'Added'
+		WHEN f1.organisation_change_reason IS NOT NULL AND f2.organisation_change_reason IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_organisation_change_reason
 	
 	FROM file1 f1
 
@@ -1100,22 +1111,20 @@ END AS change_status_subsidiary_id
 								,'PartnerEmail')	THEN 'Partner change'
 			WHEN column_name IN (
 								'subsidiary_id'
-								) THEN 
-				CASE 
-					WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
+								,'leaver_code'
+								,'leaver_date'
+								,'joiner_date'
+								,'organisation_change_reason'
+								) THEN 'Subsidiary change'
+				--CASE 
+				--	WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
 					
-					ELSE 'Organisation change' END
+					--ELSE 'Organisation change' END
 			WHEN column_name IN ('CompanyOrgId') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
 					ELSE 'Organisation change' END
 			
-			WHEN column_name IN (
-								'leaver_code'
-								,'leaver_date'
-								,'joiner_date'
-											) THEN 'Mid Year Changes'
-
 		ELSE 'Other change' END Change_Category,
 
 		CASE
@@ -1133,6 +1142,8 @@ END AS change_status_subsidiary_id
 		,joiner_date_2
 		,leaver_date_1
 		,leaver_date_2
+		,organisation_change_reason_1
+		,organisation_change_reason_2
 					
 
 		FROM (
@@ -1162,7 +1173,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 				
 			FROM resultfile
 			UNION ALL
@@ -1192,7 +1205,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1221,7 +1236,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1250,7 +1267,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1279,7 +1298,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1308,7 +1329,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1337,7 +1360,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1366,7 +1391,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1395,7 +1422,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1424,7 +1453,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1453,7 +1484,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1482,7 +1515,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1511,7 +1546,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1541,7 +1578,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -1571,7 +1610,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1600,7 +1641,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1630,7 +1673,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1659,7 +1704,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1688,7 +1735,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile	
 			UNION ALL
 			SELECT 
@@ -1717,7 +1766,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1746,7 +1797,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1775,7 +1828,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1804,7 +1859,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1833,7 +1890,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1862,7 +1921,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1891,7 +1952,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1920,7 +1983,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1949,7 +2014,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1978,7 +2045,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2007,7 +2076,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2036,7 +2107,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2065,7 +2138,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2094,7 +2169,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2123,7 +2200,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2152,7 +2231,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2181,7 +2262,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2210,7 +2293,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2239,7 +2324,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2268,7 +2355,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2297,7 +2386,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2326,7 +2417,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2355,7 +2448,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2384,7 +2479,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2413,7 +2510,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2442,7 +2541,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2472,7 +2573,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2501,7 +2604,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2530,7 +2635,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2559,7 +2666,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2588,7 +2697,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2618,7 +2729,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2647,7 +2760,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2676,7 +2791,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2705,7 +2822,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 				
 			UNION ALL
@@ -2735,7 +2854,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2764,7 +2885,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2793,7 +2916,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2822,7 +2947,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2852,7 +2979,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2882,7 +3011,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2911,7 +3042,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2940,7 +3073,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2969,7 +3104,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2998,7 +3135,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3027,7 +3166,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3056,7 +3197,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3085,7 +3228,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3114,7 +3259,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3143,7 +3290,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3172,7 +3321,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3201,7 +3352,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3230,7 +3383,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3259,7 +3414,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3288,7 +3445,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3317,7 +3476,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3346,7 +3507,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3375,7 +3538,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3404,7 +3569,9 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -3433,7 +3600,40 @@ END AS change_status_subsidiary_id
 				joiner_date_1,
 				joiner_date_2,
 				leaver_date_1,
-				leaver_date_2
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				system_generated_subsidiary_id_1,
+				system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'organisation_change_reason' AS column_name, 
+				file1_organisation_change_reason AS file1_value,
+				file2_organisation_change_reason AS file2_value,
+				change_status_organisation_change_reason AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 
 		) AS unpivoted_table
