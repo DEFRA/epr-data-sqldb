@@ -53,7 +53,12 @@ all_CompanyDetails as
 					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('PENDING', 'ACCEPTED', 'GRANTED', 'queried')
 
 				)
-			)	
+			)
+		-- Global filter to remove 'uploaded' for 2025 onwards
+		and NOT (
+			UPPER(TRIM(ISNULL(Regulator_Status, ''))) = 'UPLOADED'
+			AND RelevantYear >= 2025
+		)
 ),
 
 DP_latest_CS_all_companydetails as
@@ -73,8 +78,11 @@ all_pom as
 				(
 					[ComplianceSchemeId] is null and UPPER(TRIM(ISNULL(Regulator_Status,'PENDING'))) in ('PENDING', 'ACCEPTED', 'GRANTED', 'queried')
 				)
-			)	
-	
+			)	-- Global filter to remove 'uploaded' for 2025 onwards
+		and NOT (
+			UPPER(TRIM(ISNULL(Regulator_Status, ''))) = 'UPLOADED'
+			AND RelevantYear >= 2025
+		)	
 ),
 
 DP_latest_CS_all_pom as
