@@ -262,7 +262,7 @@ SELECT CompanyOrgId
 		WHEN 
 		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL) OR -- 1 VS 1 
 		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
-		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL) OR -- 2 VS 1
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NULL) OR -- 2 VS 1
 			(f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
 		THEN 'Added'
 
@@ -270,7 +270,8 @@ SELECT CompanyOrgId
 		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL) OR -- 1 VS 1 and 2 VS 2
 		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 1 VS 2
 		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NULL) OR -- 2 VS 1
-		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL) -- 2 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 2 VS 2
+			(f1.subsidiary_id IS NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
 		THEN 'Removed'
     
     ELSE 'Changed' 
@@ -936,12 +937,29 @@ END AS change_status_subsidiary_id
 
 	,f1.CompanyOrgId AS file1_CompanyOrgId
 	,f2.CompanyOrgId AS file2_CompanyOrgId
-	,CASE
-		WHEN ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') THEN 'No Change'
-		WHEN f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL THEN 'Added'
-		WHEN f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL THEN 'Removed'
-		ELSE 'Changed' 
-	END AS change_status_CompanyOrgId
+	,CASE 
+		WHEN 
+		    ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NULL)
+		THEN 'No Change'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL) OR -- 1 VS 1 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NULL) OR -- 2 VS 1
+			(f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 1 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NULL) OR -- 2 VS 1
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 2 VS 2
+			(f1.CompanyOrgId IS NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_CompanyOrgId
 
 	,f1.organisation_size AS file1_organisation_size
 	,f2.organisation_size AS file2_organisation_size
