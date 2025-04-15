@@ -314,5 +314,7 @@
     <Build Include="dbo\Stored Procedures\GetLastSyncTime.sql" />
     <Build Include="rpd\Tables\PRNMaterialMapping.sql" />
     <Build Include="rpd\Tables\Material.sql" />
+    <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissions.sql" />
+    <Build Include="dbo\Stored Procedures\sp_CheckForCosmosData.sql" />
   </ItemGroup>
 </Project>
