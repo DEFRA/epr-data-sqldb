@@ -965,8 +965,8 @@ END AS change_status_CompanyOrgId
 	,f2.organisation_size AS file2_organisation_size
 	,CASE
 		WHEN ISNULL(f1.organisation_size, '') = ISNULL(f2.organisation_size, '') THEN 'No Change'
-		--WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
-		--WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
+		WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
+		WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_organisation_size
 
@@ -1133,11 +1133,11 @@ END AS change_status_CompanyOrgId
 								,'leaver_date'
 								,'joiner_date'
 								,'organisation_change_reason'
-								) THEN 'Subsidiary change'
-				--CASE 
-				--	WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
+								) THEN
+				CASE 
+					WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
 					
-					--ELSE 'Organisation change' END
+					ELSE 'Organisation change' END
 			WHEN column_name IN ('CompanyOrgId') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
