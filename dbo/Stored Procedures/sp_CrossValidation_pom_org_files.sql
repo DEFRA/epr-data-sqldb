@@ -8,8 +8,8 @@ begin
 					SELECT 
 					   [organisation_id] as org_organisation_id
 					  ,[subsidiary_id] as org_subsidiary_id
-					  ,[organisation_name] AS org_name
-					  ,[organisation_size] AS org_organisation_size
+					  ,[organisation_name]
+					  ,[organisation_size] aS org_organisation_size
 					  ,CASE 
 							WHEN [organisation_sub_type_code]  = 'LIC' THEN 'Licensor'
 							WHEN [organisation_sub_type_code]  = 'POB' THEN 'Pub operating business '
@@ -36,6 +36,9 @@ begin
 					  ,[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost
 					  ,[total_tonnage]
 					  ,[FileName] as org_filename
+					  ,[joiner_date]
+					  ,[leaver_date]
+					  ,[leaver_code]
 					FROM [rpd].[CompanyDetails]
 					where FileName = @OrgFileName
 				),
@@ -61,7 +64,7 @@ begin
 										JOIN Org_Data od_inner 
 											ON p_inner.Organisation_Id = od_inner.org_organisation_id
 											AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
-										WHERE od_inner.org_name = od.org_name  -- Ensure org_name is matched
+										WHERE od_inner.organisation_name = od.organisation_name  -- Ensure org_name is matched
 										AND p_inner.FileName = pvt.fileName
 										AND p_inner.packaging_type IN ('HH', 'PB')  
 									) THEN 1 ELSE 0
@@ -135,14 +138,20 @@ begin
 
 				SELECT lp.*, 
 					   op.*, 
-					   CASE 
+						CASE 
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
-						   THEN 'Non Compliant'
+								THEN 'Non Compliant'
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.has_HH_PB = 1
-						   THEN 'Non Compliant'
+								THEN 'Non Compliant'
 						   When  op.Liable_to_Pay_Disposal_Cost = 'Yes' AND  op.org_organisation_size = 'S' 
-						   THEN 'Non Compliant'
-						   ELSE 'Compliant' 
+								THEN 'Non Compliant'
+						   when (
+									(op.Liable_to_Pay_Disposal_Cost = 'Yes' and op.has_HH_PB = 1 and op.org_organisation_size <> 'S') 
+										or 
+									(op.Liable_to_Pay_Disposal_Cost = 'No' and op.has_HH_PB = 0)
+								)
+								THEN 'Compliant'
+						   ELSE 'Non Compliant' 
 					   END AS Highlighted_liability_cost_flag,
 
 					   CASE
@@ -155,8 +164,8 @@ begin
 				ON lp.landing_cd_filename = op.org_filename 
 				AND lp.landing_pom_filename = op.pom_filename
 				WHERE 
-				UPPER(TRIM(ISNULL(lp.Org_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED')
-				AND UPPER(TRIM(ISNULL(lp.Pom_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED');
+				UPPER(TRIM(ISNULL(lp.Org_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED', 'Rejected', 'Cancelled', 'Refused')
+				AND UPPER(TRIM(ISNULL(lp.Pom_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED', 'Rejected', 'Cancelled', 'Refused');
 
 		end;
 
@@ -195,7 +204,10 @@ begin
 							[packaging_activity_sl] AS Seller_Org,
 							[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost,
 					        [total_tonnage],
-							[FileName] AS org_filename
+							[FileName] AS org_filename,
+							[joiner_date],
+					        [leaver_date],
+					        [leaver_code]
 						FROM [rpd].[CompanyDetails]
 					),
 
@@ -292,13 +304,19 @@ begin
 						op.*,  
 						CASE 
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
-						   THEN 'Non Compliant'
+								THEN 'Non Compliant'
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'No' AND op.has_HH_PB = 1
-						   THEN 'Non Compliant'
+								THEN 'Non Compliant'
 						   When  op.Liable_to_Pay_Disposal_Cost = 'Yes' AND  op.org_organisation_size = 'S' 
-						   THEN 'Non Compliant'
-						   ELSE 'Compliant' 
-					    END AS Highlighted_liability_cost_flag,
+								THEN 'Non Compliant'
+						   when (
+									(op.Liable_to_Pay_Disposal_Cost = 'Yes' and op.has_HH_PB = 1 and op.org_organisation_size <> 'S') 
+										or 
+									(op.Liable_to_Pay_Disposal_Cost = 'No' and op.has_HH_PB = 0)
+								)
+								THEN 'Compliant'
+						   ELSE 'Non Compliant' 
+					   END AS Highlighted_liability_cost_flag,
 
 						CASE
 						   WHEN op.total_packaging_material_weight > 50000 AND op.org_organisation_size = 'S' THEN 'Non Compliant'
