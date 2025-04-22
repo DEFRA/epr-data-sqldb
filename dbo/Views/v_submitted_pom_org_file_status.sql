@@ -18,6 +18,43 @@
 	Updated: 2025-03-24:	SN005:	Ticket - 520206		Add Application/App Reference Number to be passed to output for display on Power BI Report
 	Updated: 2025-04-03:	RM006:	Ticket - 527578		Add registrationreferencenumber to be passed on to v_public_register_all_producers
 ******************************************************************************************************************************/
+resubmission_ids as
+(
+select distinct ISNULL(IsResubmission,0) as IsResubmission_identifier, Fileid 
+from rpd.SubmissionEvents
+where Fileid is not null and IsResubmission is not null
+),
+null_fileid_decision_records as
+(
+select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts , SubmissionEventId, SubmissionId
+ from rpd.SubmissionEvents where type = 'RegulatorRegistrationDecision' 
+ and fileid is null
+ ),
+ all_submitted_records as
+ (
+ select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts, SubmissionEventId, SubmissionId, fileid
+ from rpd.SubmissionEvents where type = 'Submitted' 
+ ),
+rank_list as
+(
+ select D.SubmissionId, D.SubmissionEventId/*, D.Created_ts, S.Created_ts*/, S.fileid as fileid_new
+	, row_number() over(partition by D.SubmissionId, D.SubmissionEventId order by S.Created_ts desc) as RN
+ from null_fileid_decision_records D
+ inner join all_submitted_records S 
+	on D.SubmissionId = S.SubmissionId
+		and D.Created_ts >= S.Created_ts
+),
+final_result_set as
+(
+select distinct * from rank_list where RN = 1
+),
+SubmissionEvents_updated as
+(
+	select se.*, fs.fileid_new
+	from rpd.SubmissionEvents se
+	left join final_result_set fs on fs.SubmissionId = se.SubmissionId and fs.SubmissionEventId = se.SubmissionEventId
+)
+,
 RegSubDate As
 /*** SN002: Added 501408 - Retrieves rows with regulator SubmissionDate values  Lastest type='RegistrationApplicationSubmitted' ***/
 (
@@ -31,7 +68,9 @@ RegSubDate As
 		rpd.SubmissionEvents		se
 	Where
 		se.[type] in ('RegistrationApplicationSubmitted') And se.ApplicationReferenceNumber is not null
-), 
+)
+
+, 
 se As (
 
 	Select
@@ -40,24 +79,30 @@ se As (
 		,se.AppReferenceNumber
 		,se.ApplicationReferenceNumber				/*** SN005: Added ***/
 		,Decision_Date					= se.[created]   
-		,Regulator_Status				= se.[Decision] 
+		,Regulator_Status				= Case 
+											When ISNULL(rid.IsResubmission_identifier,0) = 0 and se.[type] = 'RegulatorRegistrationDecision' and cfm.SubmissionPeriod not in ('January to June 2023','January to June 2024','July to December 2023','July to December 2024') and se.[Decision] = 'Accepted' Then 'Granted'
+										    When ISNULL(rid.IsResubmission_identifier,0) = 0 and se.[type] = 'RegulatorRegistrationDecision' and cfm.SubmissionPeriod not in ('January to June 2023','January to June 2024','July to December 2023','July to December 2024') and se.[Decision] = 'Rejected' Then 'Refused' 
+											Else se.[Decision]
+										 End 
 		,Regulator_Rejection_Comments	= se.[Comments] 
 		,RejectionComments				= ''  --not represented in Cosmos DB
 		,se.[Type]
 		,se.[UserId]
-		,Created	= NULL							/*** SN002: Added 501408 - SubmissionDate ***/
+		,cfm.Created as Created
+		--,Created	= NULL							/*** SN002: Added 501408 - SubmissionDate ***/
 		,RegistrationType					= 1		/*** SN002: Added 501408 - To allow logic in PowerBI Regulator_Status to be set to Pending ***/
 		,se.registrationreferencenumber
+		--,rid.IsResubmission_identifier
 	From
 		rpd.cosmos_file_metadata	cfm
-	Left Join
-		rpd.SubmissionEvents		se
-			on cfm.FileId = se.FileId
-	Where
-		se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision')
+	left join resubmission_ids rid on rid.fileid = cfm.fileid
+	inner Join
+		SubmissionEvents_updated		se
+			on cfm.FileId = ISNULL(se.FileId,se.fileid_new) and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision')
+	--where cfm.SubmissionId = '10a15b92-57cf-48ec-885d-c170202d8933'
+		
 	
-	/*** SN001: Added: New Entries since change in Application. For Regulator submissions, 
-			decision is changed from Granted to Accepted before passed to us.  We are reverting back as per user request  ***/
+/*
 	Union
 	Select
 		 cfm.FileId
@@ -79,9 +124,9 @@ se As (
 		,se.registrationreferencenumber
 	From
 		rpd.cosmos_file_metadata	cfm
-			Left Join
-		rpd.SubmissionEvents		se
-			on cfm.SubmissionId = se.SubmissionId
+	Left Join
+		SubmissionEvents_updated		se
+			on cfm.FileId = ISNULL(se.FileId,se.fileid_new) 
 	Left Join
 		RegSubDate					rsd
 			on se.SubmissionId = rsd.SubmissionId And rsd.RowNo=1
@@ -89,8 +134,7 @@ Where
 se.[type] in ('RegulatorRegistrationDecision') And 
 se.AppReferenceNumber is not null
 
-/*** SN001: Added: New Entries since change in Application  
-     YM002:Changing the decision as Pending from null for the 2nd submission under the ticket 506055**/
+*/
 	union
 	Select
 		 cfm.FileId
@@ -118,7 +162,9 @@ se.AppReferenceNumber is not null
 			on se.SubmissionId = rsd.SubmissionId And rsd.RowNo=1
 Where
 se.[type] in ( 'RegistrationApplicationSubmitted') And se.ApplicationReferenceNumber is not null
-),
+
+)
+,
 Reg_set as
 (
 select distinct RegistrationSetId, Fileid
