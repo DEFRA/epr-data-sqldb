@@ -43,56 +43,64 @@ begin
 					where FileName = @OrgFileName
 				),
 
-						pom_data AS (
-							SELECT
-								pvt.organisation_id AS pom_organisation_id,
-								pvt.subsidiary_Id AS pom_subsidiary_id,
-								pvt.organisation_size AS pom_organisation_size,
-								pvt.fileName AS pom_filename,
-								[SO] AS Brand_Owner_Pom,
-								[IM] AS Importer_Pom,
-								[PF] AS Packer_Filler_Pom,
-								[HL] AS Service_Provider_Pom,
-								[SE] AS Distributor_Pom,
-								[OM] AS Online_Market_Place_Pom,
-								pvt.total_packaging_material_weight,  -- Add total weight column
-								-- Compliance Check: Ensure check is done at org_name + FileName level
-								CASE 
-									WHEN EXISTS (
-										SELECT 1 
-										FROM rpd.POM p_inner
-										JOIN Org_Data od_inner 
-											ON p_inner.Organisation_Id = od_inner.org_organisation_id
-											AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
-										WHERE od_inner.organisation_name = od.organisation_name  -- Ensure org_name is matched
-										AND p_inner.FileName = pvt.fileName
-										AND p_inner.packaging_type IN ('HH', 'PB')  
-									) THEN 1 ELSE 0
-								END AS has_HH_PB
-							FROM (
-								-- Aggregate before pivoting
-								SELECT 
-									Organisation_Id,
-									subsidiary_Id,
-									organisation_size,
-									FileName,
-									submission_period,
-									ISNULL(Packaging_activity, 'No-activity') AS Packaging_activity,
-									SUM(Packaging_material_weight) AS Packaging_material_weight,
-									SUM(SUM(Packaging_material_weight)) OVER (PARTITION BY Organisation_Id, subsidiary_Id, FileName) 
-										AS total_packaging_material_weight  -- Compute total weight
-								FROM rpd.POM
-								WHERE FileName IN (@PomFileName1, @PomFileName2)
-								GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
-							) sub
-							PIVOT(
-								SUM(packaging_material_weight) FOR Packaging_Activity 
-								IN ([SO], [IM], [PF], [HL], [SE], [OM])
-							) AS pvt
-							JOIN Org_Data od 
-								ON pvt.organisation_id = od.org_organisation_id 
-								AND ISNULL(pvt.subsidiary_Id, '') = ISNULL(od.org_subsidiary_id, '')
-						),
+				pom_data AS (
+					SELECT
+						pvt.organisation_id AS pom_organisation_id,
+						pvt.subsidiary_Id AS pom_subsidiary_id,
+						pvt.organisation_size AS pom_organisation_size,
+						pvt.fileName AS pom_filename,
+						[SO] AS Brand_Owner_Pom,
+						[IM] AS Importer_Pom,
+						[PF] AS Packer_Filler_Pom,
+						[HL] AS Service_Provider_Pom,
+						[SE] AS Distributor_Pom,
+						[OM] AS Online_Market_Place_Pom,
+
+						-- Calculate total packaging material weight
+						COALESCE([SO], 0) + COALESCE([IM], 0) + COALESCE([PF], 0) + 
+						COALESCE([HL], 0) + COALESCE([SE], 0) + COALESCE([OM], 0) AS total_packaging_material_weight,
+
+						-- Aggregate distinct packaging types
+						packaging_types.packaging_type_list,
+
+						-- Determine if HH or PB exists in packaging_type_list
+						CASE 
+							WHEN packaging_types.packaging_type_list LIKE '%HH%' OR packaging_types.packaging_type_list LIKE '%PB%' THEN 1
+							ELSE 0
+						END AS has_HH_PB
+
+					FROM (
+						SELECT 
+							Organisation_Id,
+							subsidiary_Id,
+							organisation_size,
+							FileName,
+							submission_period,
+							Packaging_activity,
+							SUM(Packaging_material_weight) AS Packaging_material_weight
+						FROM rpd.POM
+						GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
+					) sub
+					PIVOT (
+						SUM(Packaging_material_weight)
+						FOR Packaging_Activity IN ([SO], [IM], [PF], [HL], [SE], [OM])
+					) AS pvt
+
+					-- Join with packaging_type list
+					OUTER APPLY (
+						SELECT 
+							STRING_AGG(packaging_type, ', ') AS packaging_type_list
+						FROM (
+							SELECT DISTINCT packaging_type
+							FROM rpd.POM p_inner
+							WHERE 
+								p_inner.Organisation_Id = pvt.organisation_id
+								AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(pvt.subsidiary_Id, '')
+								AND p_inner.FileName = pvt.FileName
+						) AS types
+					) AS packaging_types
+				),
+
 
 
 				org_pom_data AS (
@@ -223,22 +231,20 @@ begin
 							[HL] AS Service_Provider_Pom,
 							[SE] AS Distributor_Pom,
 							[OM] AS Online_Market_Place_Pom,
-							-- Calculate the total packaging material weight across all activities
+
+							-- Calculate total packaging material weight
 							COALESCE([SO], 0) + COALESCE([IM], 0) + COALESCE([PF], 0) + 
 							COALESCE([HL], 0) + COALESCE([SE], 0) + COALESCE([OM], 0) AS total_packaging_material_weight,
-							-- Compliance Check: Ensure check is done at org_name + FileName level
+
+							-- Aggregate distinct packaging types
+							packaging_types.packaging_type_list,
+
+							-- Determine if HH or PB exists in packaging_type_list
 							CASE 
-								WHEN EXISTS (
-									SELECT 1 
-									FROM rpd.POM p_inner
-									JOIN Org_Data od_inner 
-										ON p_inner.Organisation_Id = od_inner.org_organisation_id
-										AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '')
-									WHERE od_inner.organisation_name = od_inner.organisation_name  -- Ensure org_name is matched
-									AND p_inner.FileName = pvt.fileName
-									AND p_inner.packaging_type IN ('HH', 'PB')  
-								) THEN 1 ELSE 0
+								WHEN packaging_types.packaging_type_list LIKE '%HH%' OR packaging_types.packaging_type_list LIKE '%PB%' THEN 1
+								ELSE 0
 							END AS has_HH_PB
+
 						FROM (
 							SELECT 
 								Organisation_Id,
@@ -251,10 +257,24 @@ begin
 							FROM rpd.POM
 							GROUP BY Organisation_Id, subsidiary_Id, organisation_size, FileName, submission_period, Packaging_activity
 						) sub
-						PIVOT(
-							SUM(packaging_material_weight) FOR Packaging_Activity 
-							IN ([SO], [IM], [PF], [HL], [SE], [OM])
+						PIVOT (
+							SUM(Packaging_material_weight)
+							FOR Packaging_Activity IN ([SO], [IM], [PF], [HL], [SE], [OM])
 						) AS pvt
+
+						-- Join with packaging_type list
+						OUTER APPLY (
+							SELECT 
+								STRING_AGG(packaging_type, ', ') AS packaging_type_list
+							FROM (
+								SELECT DISTINCT packaging_type
+								FROM rpd.POM p_inner
+								WHERE 
+									p_inner.Organisation_Id = pvt.organisation_id
+									AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(pvt.subsidiary_Id, '')
+									AND p_inner.FileName = pvt.FileName
+							) AS types
+						) AS packaging_types
 					),
 
 
