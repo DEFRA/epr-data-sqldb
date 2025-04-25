@@ -120,7 +120,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 						else se.[Type]
 						end as [Type]
 				, se.UserId
-				, se.Created
+				, cfm.Created
 				, case when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and s.SubmissionType = 'Registration' then 2
 					   when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) < 2025 then 1
 						else NULL
