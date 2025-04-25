@@ -1,12 +1,11 @@
-﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations]
-AS With 
+﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations] AS With 
 /****************************************************************************************************************************
 	History:
 
 	Created: 2025-03-17:	SN001:	Ticket - 520206:	Organisation Submissions with Brand and Partner.  Added Relevant Year Column
 														Reduced columns to ones only used in PBI
 
-	Updated: YYYY-MM-DD:	__002:	Ticket - NNNNNN:	Description
+	Updated: 2025-04-16:	YM002:	Ticket - 513367,515430:	Mid year changes  - Registration detail reports to include the 4 new columns added in the Registration file for DP and CS
 
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
@@ -168,6 +167,11 @@ Select
 	,cd.total_tonnage
 	,cd.trading_name
 	,cd.turnover
+	/**YM002: below four new columns added**/
+	,cd.leaver_code					--YM002
+    ,cd.leaver_date					--YM002
+    ,cd.organisation_change_reason  --YM002
+    ,cd.joiner_date					--YM002
 	
 	--Brand
 	,bp.brand_name
