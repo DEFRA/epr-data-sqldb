@@ -8,8 +8,8 @@ begin
 					SELECT 
 					   [organisation_id] as org_organisation_id
 					  ,[subsidiary_id] as org_subsidiary_id
-					  ,[organisation_name] AS org_name
-					  ,[organisation_size] AS org_organisation_size
+					  ,[organisation_name]
+					  ,[organisation_size] aS org_organisation_size
 					  ,CASE 
 							WHEN [organisation_sub_type_code]  = 'LIC' THEN 'Licensor'
 							WHEN [organisation_sub_type_code]  = 'POB' THEN 'Pub operating business '
@@ -36,6 +36,9 @@ begin
 					  ,[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost
 					  ,[total_tonnage]
 					  ,[FileName] as org_filename
+					  ,[joiner_date]
+					  ,[leaver_date]
+					  ,[leaver_code]
 					FROM [rpd].[CompanyDetails]
 					where FileName = @OrgFileName
 				),
@@ -46,7 +49,6 @@ begin
 								pvt.subsidiary_Id AS pom_subsidiary_id,
 								pvt.organisation_size AS pom_organisation_size,
 								pvt.fileName AS pom_filename,
-								od.org_name,  -- Ensure organisation name is carried forward
 								[SO] AS Brand_Owner_Pom,
 								[IM] AS Importer_Pom,
 								[PF] AS Packer_Filler_Pom,
@@ -62,7 +64,7 @@ begin
 										JOIN Org_Data od_inner 
 											ON p_inner.Organisation_Id = od_inner.org_organisation_id
 											AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
-										WHERE od_inner.org_name = od.org_name  -- Ensure org_name is matched
+										WHERE od_inner.organisation_name = od.organisation_name  -- Ensure org_name is matched
 										AND p_inner.FileName = pvt.fileName
 										AND p_inner.packaging_type IN ('HH', 'PB')  
 									) THEN 1 ELSE 0
@@ -95,25 +97,8 @@ begin
 
 				org_pom_data AS (
 					SELECT 
-						cd.org_organisation_id,
-						cd.org_subsidiary_id,
-						cd.org_name,  -- Ensure organisation_name is carried forward
-						cd.org_organisation_size,
-						cd.Liable_to_Pay_Disposal_Cost,
-						cd.total_tonnage,
-						p.total_packaging_material_weight,  -- Include total weight column
-						cd.org_filename,
-						p.pom_organisation_id,
-						p.pom_subsidiary_id,
-						p.pom_organisation_size,
-						p.pom_filename,
-						p.Brand_Owner_Pom,
-						p.Importer_Pom,
-						p.Packer_Filler_Pom,
-						p.Service_Provider_Pom,
-						p.Distributor_Pom,
-						p.Online_Market_Place_Pom,
-						p.has_HH_PB  -- Preserve compliance check flag
+						cd.*,
+						p.*
 					FROM Org_Data cd 
 					FULL OUTER JOIN pom_data p 
 						ON cd.org_organisation_id = p.pom_organisation_id 
@@ -153,7 +138,6 @@ begin
 
 				SELECT lp.*, 
 					   op.*, 
-					   --op.org_name, 
 					   CASE 
 						   WHEN op.Liable_to_Pay_Disposal_Cost = 'Yes' AND op.has_HH_PB = 0 
 						   THEN 'Non Compliant'
@@ -172,7 +156,10 @@ begin
 				FROM Org_Pom_submitted_files lp
 				LEFT JOIN Org_Pom_Data op
 				ON lp.landing_cd_filename = op.org_filename 
-				AND lp.landing_pom_filename = op.pom_filename;
+				AND lp.landing_pom_filename = op.pom_filename
+				WHERE 
+				UPPER(TRIM(ISNULL(lp.Org_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED', 'Rejected', 'Cancelled', 'Refused')
+				AND UPPER(TRIM(ISNULL(lp.Pom_Regulator_Status, ''))) IN ('PENDING', 'ACCEPTED', 'QUERIED', 'GRANTED', 'Rejected', 'Cancelled', 'Refused');
 
 		end;
 
@@ -211,7 +198,10 @@ begin
 							[packaging_activity_sl] AS Seller_Org,
 							[liable_for_disposal_costs_flag] AS Liable_to_Pay_Disposal_Cost,
 					        [total_tonnage],
-							[FileName] AS org_filename
+							[FileName] AS org_filename,
+							[joiner_date],
+					        [leaver_date],
+					        [leaver_code]
 						FROM [rpd].[CompanyDetails]
 					),
 
