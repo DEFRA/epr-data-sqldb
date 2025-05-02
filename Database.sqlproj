@@ -316,5 +316,6 @@
     <Build Include="rpd\Tables\Material.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissions.sql" />
     <Build Include="dbo\Stored Procedures\sp_CheckForCosmosData.sql" />
+    <Build Include="dbo\Views\v_public_register_all_producers.sql" />
   </ItemGroup>
 </Project>
