@@ -317,5 +317,6 @@
     <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissions.sql" />
     <Build Include="dbo\Stored Procedures\sp_CheckForCosmosData.sql" />
     <Build Include="dbo\Views\v_public_register_all_producers.sql" />
+    <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows_1.sql" />
   </ItemGroup>
 </Project>
