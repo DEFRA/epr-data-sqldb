@@ -583,5 +583,5 @@ left join Latest_pom_by_CS lpbc on lpbc.organisation_id = bs.[Org ID] and lpbc.C
 left join rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
 left join rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
 
-left join agg_POM ap on ap.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+left join agg_POM ap on ap.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
 left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
