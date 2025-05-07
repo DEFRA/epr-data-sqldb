@@ -74,6 +74,7 @@ ORG as
 						when 'APPROVED' then 'ACCEPTED'
 						else upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) end as Regulator_Status
 					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Actual_Regulator_Status
+					, cd.organisation_size as cd_organisation_size
 			from [rpd].[CompanyDetails] cd
 			left join rpd.Organisations o on o.ReferenceNumber = cd.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = cd.FileName
@@ -109,17 +110,17 @@ ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as
 ),
 f_org_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size
 	from ORG_PENDING_ACCEPT_ONLY 
 	where First_pending_accepted_submission = 1
 	union 
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size
 	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED 
 	where Last_rejected_submission = 1
  ),
 l_org_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size
 	from ORG_PENDING_ACCEPT_ONLY 
 	where Last_pending_accepted_submission = 1
  ),
@@ -172,6 +173,7 @@ POM as
 						when 'APPROVED' then 'ACCEPTED'
 						else upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) end as Regulator_Status
 					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Actual_Regulator_Status
+					, pm.organisation_size as pm_organisation_size
 			from [rpd].[Pom] pm
 			left join rpd.Organisations o on o.ReferenceNumber = pm.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = pm.FileName
@@ -207,17 +209,17 @@ POM_REJECTED_WITH_OUT_PENDING_ACCEPTED as
 ),
 f_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size
 	from POM_PENDING_ACCEPT_ONLY 
 	where First_pending_accepted_submission = 1
 	union
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size
 	from POM_REJECTED_WITH_OUT_PENDING_ACCEPTED 
 	where Last_rejected_submission = 1
  ),
 l_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size
 	from POM_PENDING_ACCEPT_ONLY 
 	where Last_pending_accepted_submission = 1
  ),
@@ -394,6 +396,7 @@ select
 	--, fps.[Submission status] as [F POM Submission status]
 	--, ISNULL(fps.[Regulator Decision],'') as Packaging_data_first_submission_status
 	, ISNULL(fps.[Actual Regulator Decision],'') as Packaging_data_first_submission_status
+	, fps.pm_organisation_size as Packaging_data_first_submission_organisation_size
 	--, fps.[Who submitted] as [F POM Who submitted]
 	--, fps.pm_filename as F_pm_filename
 	--, fps.ComplianceSchemeId as F_pm_CS_id
@@ -407,6 +410,7 @@ select
 	--, lps.[Submission status] as [L POM Submission status]
 	--, ISNULL(lps.[Regulator Decision],'') as Packaging_data_latest_submission_status
 	, ISNULL(lps.[Actual Regulator Decision],'') as Packaging_data_latest_submission_status
+	, lps.pm_organisation_size as Packaging_data_latest_submission_organisation_size
 	--, lps.[Who submitted] as [L POM Who submitted]
 	--, lps.pm_filename as L_pm_filename
 	--, lps.ComplianceSchemeId as L_pm_CS_id
@@ -423,6 +427,7 @@ select
 	--, fos.[Submission status] as [F ORG Submission status]
 	--, ISNULL(fos.[Regulator Decision],'') as Organisation_data_first_submission_status
 	, ISNULL(fos.[Actual Regulator Decision],'') as Organisation_data_first_submission_status
+	, fos.cd_organisation_size as Organisation_data_first_submission_organisation_size
 	--, fos.[Who submitted] as [F ORG Who submitted]
 	--, fos.cd_filename as F_cd_filename
 	--, fos.ComplianceSchemeId as F_org_CS_id
@@ -435,6 +440,7 @@ select
 	--, los.[Submission status] as [L ORG Submission status]
 	--, ISNULL(los.[Regulator Decision],'') as Organisation_data_latest_submission_status
 	, ISNULL(los.[Actual Regulator Decision],'') as Organisation_data_latest_submission_status
+	, los.cd_organisation_size as Organisation_data_latest_submission_organisation_size
 	--, los.[Who submitted] as [L ORG Who submitted]
 	--, los.cd_filename as L_cd_filename
 	--, los.ComplianceSchemeId as L_org_CS_id
@@ -558,6 +564,7 @@ select
 	,ISNULL(ap.[RU-PL],0) as [Reusable packaging-Plastic]
 	,ISNULL(ap.[RU-ST],0) as [Reusable packaging-Steel]
 	,ISNULL(ap.[RU-WD],0) as [Reusable packaging-Wood]
+	/*
 	,ISNULL(ap.[SP-AL],0) as [Small organisation packaging - all-Aluminium]
 	,ISNULL(ap.[SP-FC],0) as [Small organisation packaging - all-Fibre Composite]
 	,ISNULL(ap.[SP-GL],0) as [Small organisation packaging - all-Glass]
@@ -566,6 +573,7 @@ select
 	,ISNULL(ap.[SP-PL],0) as [Small organisation packaging - all-Plastic]
 	,ISNULL(ap.[SP-ST],0) as [Small organisation packaging - all-Steel]
 	,ISNULL(ap.[SP-WD],0) as [Small organisation packaging - all-Wood]
+	*/
 	,bs.Reporting_Year
 	
 From base_sql bs
