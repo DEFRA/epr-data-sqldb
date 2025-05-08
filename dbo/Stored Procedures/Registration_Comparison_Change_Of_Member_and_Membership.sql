@@ -256,7 +256,8 @@ SELECT CompanyOrgId
 	,CASE 
 		WHEN 
 		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
-		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL)
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL) OR
+			(f1.subsidiary_id IS NULL AND f2.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL) -- Added Ticket 550897
 		THEN 'No Change'
 
 		WHEN 
