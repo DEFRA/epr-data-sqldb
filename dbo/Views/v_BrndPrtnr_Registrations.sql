@@ -1,11 +1,10 @@
 ﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations] AS With 
 /****************************************************************************************************************************
 	History:
-
 	Created: 2025-03-17:	SN001:	Ticket - 520206:	Organisation Submissions with Brand and Partner.  Added Relevant Year Column
 														Reduced columns to ones only used in PBI
-
 	Updated: 2025-04-16:	YM002:	Ticket - 513367,515430:	Mid year changes  - Registration detail reports to include the 4 new columns added in the Registration file for DP and CS
+	Updated: 2025-05-08:	YM003:	Ticket - 550651: Registration detail reports to include Registration reference number
 
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
@@ -189,6 +188,8 @@ Select
 	,pos.Regulator_User_Name
 	,pos.Decision_Date
 	,pos.ApplicationReferenceNo
+	/**YM003: Registrationreferencenumber column added **/
+	,pos.RegistrationReferenceNumber --YM003
 	,RegistrationType					= IsNull(pos.RegistrationType,2)
 	,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 'Uploaded' Else pos.Regulator_Status End
 
