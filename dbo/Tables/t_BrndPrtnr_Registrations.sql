@@ -87,6 +87,7 @@
     [Regulator_User_Name]                    NVARCHAR (4000) NULL,
     [Decision_Date]                          NVARCHAR (4000) NULL,
     [ApplicationReferenceNo]                 NVARCHAR (4000) NULL,
+    [RegistrationReferenceNumber]            NVARCHAR (4000) NULL,
     [RegistrationType]                       INT             NOT NULL,
     [Regulator_Status]                       NVARCHAR (4000) NULL,
     [SubsidiaryOrganisation_ReferenceNumber] NVARCHAR (4000) NULL,
