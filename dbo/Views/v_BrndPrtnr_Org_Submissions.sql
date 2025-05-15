@@ -6,7 +6,7 @@
 														Reduced columns to ones only used in PBI
 
 	Updated: 2025-04-14:	YM002:	Ticket - 537082:	Organisation Details report to include the 4 new columns added in the Org file for DP and CS
-
+	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -201,8 +201,8 @@ Select Distinct
 	,cfm.SubmittedBy
 	,cfm.SubmissionId
 	,cfm.SubmissionPeriod
-	,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created)
-
+	--,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created)
+	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cfm.Created) as Created
 	--t_rpd_data_SECURITY_FIX
 	,sc.FromOrganisation_Type
 	,sc.Organisations_Id
