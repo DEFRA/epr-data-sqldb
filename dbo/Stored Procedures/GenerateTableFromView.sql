@@ -76,12 +76,15 @@ begin
 
 		IF OBJECT_ID('dbo.t_pom_codes', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_pom_codes;
+			TRUNCATE TABLE dbo.t_pom_codes;
+
+			Insert into dbo.t_pom_codes
+			select * From dbo.v_pom_codes;
 		END;	
 
-		SELECT *
-		INTO dbo.t_pom_codes
-		FROM dbo.v_pom_codes;
+		--SELECT *
+		--INTO dbo.t_pom_codes
+		--FROM dbo.v_pom_codes;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_pom_codes', NULL, @start_dt, getdate(), 'Tab 2 - Completed',@batch_id
