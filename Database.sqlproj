@@ -318,5 +318,9 @@
     <Build Include="dbo\Stored Procedures\sp_CheckForCosmosData.sql" />
     <Build Include="dbo\Views\v_public_register_all_producers.sql" />
     <Build Include="dbo\Stored Procedures\sp_delete_duplicate_rows.sql" />
+    <Build Include="dbo\Tables\t_extract_recent_pom_org_data.sql" />
+    <Build Include="dbo\Views\v_extract_recent_pom_org_small_data.sql" />
+    <Build Include="dbo\Views\v_extract_recent_pom_org_large_data.sql" />
+    <Build Include="dbo\Stored Procedures\sp_Extract_recent_pom_org_data_table_create.sql" />
   </ItemGroup>
 </Project>
