@@ -22,7 +22,7 @@ select Org_ID
 ,Enrolment_date_time
 ,Enrolment_status
 ,Nation_of_Compliance_Scheme_regulator
-,'Jan to Dec 2024 - H0' as Packaging_data_submission_period
+,'Jan to Dec 2024' as Packaging_data_submission_period
 ,Packaging_data_first_submission_datetime
 ,Packaging_data_first_submitted_CS_or_Direct
 ,Packaging_data_first_submitted_CS_Nation
@@ -33,7 +33,7 @@ select Org_ID
 ,Packaging_data_latest_submitted_CS_Nation
 ,Packaging_data_latest_submission_status
 ,Packaging_data_latest_submission_organisation_size
-,'Jan to Dec 2024 - H0' as Organisation_data_submission_period
+,'Jan to Dec 2025' as Organisation_data_submission_period
 ,Organisation_data_first_submission_datetime
 ,Organisation_data_first_submitted_CS_or_Direct
 ,Organisation_data_first_submitted_CS_Nation
