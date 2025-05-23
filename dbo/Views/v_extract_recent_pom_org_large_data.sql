@@ -1,4 +1,9 @@
 ﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_large_data] AS select 
+/****************************************************************************************************************************
+	History:
+	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
+	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
+******************************************************************************************************************************/
 Org_ID
 ,Org_name
 ,CH_number
@@ -116,6 +121,15 @@ Org_ID
 ,[Reusable packaging-Plastic]
 ,[Reusable packaging-Steel]
 ,[Reusable packaging-Wood]
+/** YM001 515336 Transitional_packaging_unit addition **/
+,[Transitional organisation packaging - all-Aluminium]
+,[Transitional organisation packaging - all-Fibre Composite]
+,[Transitional organisation packaging - all-Glass]
+,[Transitional organisation packaging - all-Other]
+,[Transitional organisation packaging - all-Paper / Card]
+,[Transitional organisation packaging - all-Plastic]
+,[Transitional organisation packaging - all-Steel]
+,[Transitional organisation packaging - all-Wood]
 ,Reporting_Year
 from dbo.t_extract_recent_pom_org_data a
 where not exists 
