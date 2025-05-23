@@ -172,7 +172,6 @@
     <Build Include="dbo\Views\v_POM_Submissions.sql" />
     <Build Include="dbo\Views\v_POM_Packaging_Order.sql" />
     <Build Include="dbo\Views\v_POM_Material_Order.sql" />
-    <Build Include="dbo\Views\v_POM_Extract.sql" />
     <Build Include="dbo\Views\v_POM_Aggregated_Packaging_Type_Filter.sql" />
     <Build Include="dbo\Views\v_POM_Aggregated_Packaging_Order.sql" />
     <Build Include="dbo\Views\v_POM.sql" />
@@ -322,5 +321,6 @@
     <Build Include="dbo\Views\v_extract_recent_pom_org_small_data.sql" />
     <Build Include="dbo\Views\v_extract_recent_pom_org_large_data.sql" />
     <Build Include="dbo\Stored Procedures\sp_Extract_recent_pom_org_data_table_create.sql" />
+    <Build Include="dbo\Views\v_submission_report.sql" />
   </ItemGroup>
 </Project>
