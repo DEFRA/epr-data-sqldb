@@ -126,6 +126,14 @@
     [Small organisation packaging - all-Plastic]                      FLOAT (53)      NOT NULL,
     [Small organisation packaging - all-Steel]                        FLOAT (53)      NOT NULL,
     [Small organisation packaging - all-Wood]                         FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Aluminium]             FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Fibre Composite]       FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Glass]                 FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Other]                 FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Paper / Card]          FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Plastic]               FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Steel]                 FLOAT (53)      NOT NULL,
+    [Transitional organisation packaging - all-Wood]                  FLOAT (53)      NOT NULL,
     [Reporting_Year]                                                  INT             NOT NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
