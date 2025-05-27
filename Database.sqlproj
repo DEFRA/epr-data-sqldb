@@ -321,6 +321,5 @@
     <Build Include="dbo\Views\v_extract_recent_pom_org_small_data.sql" />
     <Build Include="dbo\Views\v_extract_recent_pom_org_large_data.sql" />
     <Build Include="dbo\Stored Procedures\sp_Extract_recent_pom_org_data_table_create.sql" />
-    <Build Include="dbo\Views\v_submission_report.sql" />
   </ItemGroup>
 </Project>
