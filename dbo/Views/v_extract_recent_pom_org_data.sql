@@ -1,4 +1,9 @@
 ﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_data] AS with 
+/****************************************************************************************************************************
+	History:
+	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
+	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
+******************************************************************************************************************************/
 TwoRow as
 (
 	select 1 as RankId , 'Jan to June 2023 - H1' as SP, 2023 as Reporting_Year
@@ -376,6 +381,21 @@ agg_units_POM as
 		sum(packaging_material_units)
 		FOR Type_Material in ([CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD])
 	) AS PivotTable
+),
+/** YM002 515336 Addition of Transitional packaging Data **/
+agg_transitional_packaging_units_POM as
+(
+	select FileName,organisation_id,AL,FC,GL,PC,PL,ST,WD,OT
+	FROM
+	(
+			select FileName, organisation_id, packaging_material , transitional_packaging_units
+			from rpd.pom
+	) as TablePivot
+	PIVOT
+	(
+		sum(transitional_packaging_units)
+		FOR packaging_material in (AL,FC,GL,PC,PL,ST,WD,OT)
+	) AS PivotTable
 )
 select 
 	
@@ -532,6 +552,16 @@ select
 	,ISNULL(ap.[SP-PL],0) as [Small organisation packaging - all-Plastic]
 	,ISNULL(ap.[SP-ST],0) as [Small organisation packaging - all-Steel]
 	,ISNULL(ap.[SP-WD],0) as [Small organisation packaging - all-Wood]
+	
+/** YM002 515336 Transitional_packaging_unit addition **/
+	,ISNULL(atpu.AL,0) as [Transitional organisation packaging - all-Aluminium]
+	,ISNULL(atpu.FC,0) as [Transitional organisation packaging - all-Fibre Composite]
+	,ISNULL(atpu.GL,0) as [Transitional organisation packaging - all-Glass]
+	,ISNULL(atpu.OT,0) as [Transitional organisation packaging - all-Other]
+	,ISNULL(atpu.PC,0) as [Transitional organisation packaging - all-Paper / Card]
+	,ISNULL(atpu.PL,0) as [Transitional organisation packaging - all-Plastic]
+	,ISNULL(atpu.ST,0) as [Transitional organisation packaging - all-Steel]
+	,ISNULL(atpu.WD,0) as [Transitional organisation packaging - all-Wood]
 	,bs.Reporting_Year
 	
 From base_sql bs
@@ -550,4 +580,6 @@ left join rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org I
 left join rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
 
 left join agg_POM ap on ap.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
-left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
+left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+/** YM002 515336 Transitional_packaging_unit addition **/
+left join agg_transitional_packaging_units_POM atpu on atpu.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and atpu.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
