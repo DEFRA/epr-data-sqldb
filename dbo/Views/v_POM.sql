@@ -3,7 +3,8 @@
 	History:
  
 	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
-	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn 		
+	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn
+	Updated: 2025-05-28:	TS003:	Ticket - 549751:	Added to fix system generated subsidiary results
 	
 ******************************************************************************************************************************/
 	p.organisation_id,
@@ -65,7 +66,8 @@ LEFT JOIN dbo.t_PoM_Codes tn ON tn.Code = p.to_country
 LEFT JOIN dbo.t_PoM_Codes fn ON fn.Code = p.from_country 
 								AND fn.Type = 'nation'
 LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName
-LEFT JOIN dbo.v_subsidiaryorganisations so 
+LEFT JOIN dbo.v_subsidiaryorganisations so
+	/* TS003 - Fixing the join */
 	on so.FirstOrganisation_ReferenceNumber = p.organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(p.subsidiary_id),'')
-			and so.RelationToDate is NULL;
+	and (so.SubsidiaryId = p.subsidiary_id or so.SecondOrganisation_ReferenceNumber = p.subsidiary_id)
+	and so.RelationToDate is NULL;
