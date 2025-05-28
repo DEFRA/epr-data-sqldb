@@ -90,6 +90,7 @@
     [RegistrationReferenceNumber]            NVARCHAR (4000) NULL,
     [RegistrationType]                       INT             NOT NULL,
     [Regulator_Status]                       NVARCHAR (4000) NULL,
+    [IsResubmission_identifier]              BIT             NULL,
     [SubsidiaryOrganisation_ReferenceNumber] NVARCHAR (4000) NULL,
     [FileType]                               NVARCHAR (4000) NULL,
     [Filename]                               NVARCHAR (4000) NULL,

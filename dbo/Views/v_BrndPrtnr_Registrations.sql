@@ -6,6 +6,7 @@
 	Updated: 2025-04-16:	YM002:	Ticket - 513367,515430:	Mid year changes  - Registration detail reports to include the 4 new columns added in the Registration file for DP and CS
 	Updated: 2025-05-08:	YM003:	Ticket - 550651: Registration detail reports to include Registration reference number
 	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
+	Updated: 2025-05-16:    AV005:  Ticket - 542622: Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -193,6 +194,9 @@ Select
 	,RegistrationType					= IsNull(pos.RegistrationType,2)
 	,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 'Uploaded' Else pos.Regulator_Status End
 
+	/**Ticket -552079: IsResubmission_identifier column added **/
+	,pos.IsResubmission_identifier
+
 	--v_subsidiaryorganisations
 	,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
 
@@ -227,13 +231,19 @@ Join
 		on cd.organisation_id = bp.organisation_id
 			And ISNULL(cd.subsidiary_id,'') = ISNULL(bp.subsidiary_id,'') 
 				And cd.RegistrationSetId = bp.RegistrationSetId
-Join
-	dbo.t_rpd_data_SECURITY_FIX				sc
-		On cd.organisation_id = sc.FromOrganisation_ReferenceNumber
+
 Join
 	dbo.t_cosmos_file_metadata				cfm
 		On cd.[FileName] = cfm.[FileName]
 
+--AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
+INNER JOIN dbo.t_rpd_data_SECURITY_FIX sc 
+    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
+   AND (
+         IsNull(Trim(cfm.ServiceRoles_Name),'') = IsNull(Trim(sc.ServiceRoles_Role),'')
+         OR cfm.ServiceRoles_Name IS NULL
+		 OR sc.ServiceRoles_Role IS NULL)
+		 
 Left Join
 	dbo.v_rpd_ComplianceSchemes_Active		csa 
 		On cfm.ComplianceSchemeId = csa.externalid
