@@ -3,6 +3,7 @@
 	History:
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
+	Created: 2025-05-28:	YM003:	Ticket - 549638:	Masterscript - Logic change for First and Latest Registration File Submissions for status queried
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -107,30 +108,55 @@ ORG_PENDING_ACCEPT_ONLY as
 	from ORG
 	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') 
 ),
-ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as
+
+/** YM003 : Logic change for First and Latest Registration File Submissions for status queried **/
+ORG_QUERIED as
+(select * from ORG_PENDING_ACCEPT_ONLY where Actual_Regulator_Status = 'QUERIED' ),
+
+ORG_LATEST_IS_NOT_QUERIED as --YM003
+(
+select distinct pa.OrganisationId, pa.ReferenceNumber, pa.SubmissionPeriod
+from ORG_PENDING_ACCEPT_ONLY pa
+inner join ORG_QUERIED oq on oq.OrganisationId = pa.OrganisationId and oq.ReferenceNumber = pa.ReferenceNumber and oq.SubmissionPeriod = pa.SubmissionPeriod
+where pa.Last_pending_accepted_submission = 1
+and pa.Actual_Regulator_Status <> 'QUERIED'
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED as --YM003
+(
+select OPA.* , row_number() over(partition by OPA.OrganisationId, OPA.ReferenceNumber, OPA.SubmissionPeriod order by OPA.Submission_time asc, Source asc) as First_pending_accepted_submission_updated
+		, row_number() over(partition by OPA.OrganisationId, OPA.ReferenceNumber, OPA.SubmissionPeriod order by OPA.Submission_time desc, Source asc) as Last_pending_accepted_submission_updated 
+		from ORG_PENDING_ACCEPT_ONLY OPA
+left join ORG_LATEST_IS_NOT_QUERIED ONQ on OPA.OrganisationId = ONQ.OrganisationId and OPA.ReferenceNumber = ONQ.ReferenceNumber and OPA.SubmissionPeriod = ONQ.SubmissionPeriod
+where ONQ.OrganisationId is null 
+		or 
+		(OPA.Actual_Regulator_Status <> 'QUERIED' and  ONQ.OrganisationId is not null)
+),
+
+ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as --YM003
 (
 	select rej.*
 	from ORG_REJECTED_ONLY rej
-	left join ORG_PENDING_ACCEPT_ONLY pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	left join ORG_PENDING_ACCEPT_ONLY_UPDATED pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
 	where pa.OrganisationId is null
 ),
 f_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
-	from ORG_PENDING_ACCEPT_ONLY 
-	where First_pending_accepted_submission = 1
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED --YM003
+	where First_pending_accepted_submission_updated = 1
 	union 
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
 	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED 
 	where Last_rejected_submission = 1
- ),
+ ) ,
 l_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
-	from ORG_PENDING_ACCEPT_ONLY 
-	where Last_pending_accepted_submission = 1
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED --YM003
+	where Last_pending_accepted_submission_updated = 1
  ),
-
+ 
 POM as
 (
 		select *
