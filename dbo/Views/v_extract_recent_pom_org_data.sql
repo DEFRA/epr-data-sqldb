@@ -4,6 +4,7 @@
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
 	Created: 2025-05-28:	YM003:	Ticket - 549638:	Masterscript - Logic change for First and Latest Registration File Submissions for status queried
+	Updated: 2025-05-30:	PM004:  Ticket - 515339:	Masterscript - Fix for flags Organisation visible in PowerBI Packaging reports, Organisation exists in most recent organisation data submission
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -256,41 +257,41 @@ l_pom_sql as
 	from POM_PENDING_ACCEPT_ONLY 
 	where Last_pending_accepted_submission = 1
  ),
-Rank_On_CS_Submission as
+Rank_On_CS_Submission_for_org_file as
 (
 	select *
 		, row_number() over(partition by ComplianceSchemeId, FileType, SubmissionPeriod order by Submission_time desc) as Rank_on_submission_timestamp
 	from
 	(
-		select cfm.OrganisationId,  cfm.FileType, 
-							case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
-								when cfm.SubmissionPeriod = 'July to December 2023' then 2
-								when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
-								when cfm.SubmissionPeriod = 'July to December 2024' then 4
-								when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
-								when cfm.SubmissionPeriod = 'July to December 2025' then 6
-								when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
-								when cfm.SubmissionPeriod = 'July to December 2026' then 8
-								when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
-								when cfm.SubmissionPeriod = 'July to December 2027' then 10
-								when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
-								when cfm.SubmissionPeriod = 'July to December 2028' then 12
-								else 0
-								end as SubmissionPeriod
-							, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
-								when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024') then 2024
-								when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
-								when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
-								when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
-								when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
-								else 0
-								end as ReportingYear
+		select cfm.OrganisationId,  cfm.FileType 
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
+										when cfm.SubmissionPeriod = 'July to December 2023' then 2
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
+										when cfm.SubmissionPeriod in ('January to December 2025') then 4
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
+										when cfm.SubmissionPeriod = 'July to December 2025' then 6
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
+										when cfm.SubmissionPeriod = 'July to December 2026' then 8
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
+										when cfm.SubmissionPeriod = 'July to December 2027' then 10
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
+										when cfm.SubmissionPeriod = 'July to December 2028' then 12
+										else 0
+										end as SubmissionPeriod
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','January to December 2025') then 2024
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
+										else 0
+										end as ReportingYear
 								, cfm.ComplianceSchemeId
 		, CONVERT(DATETIME,substring(cfm.Created,1,23)) as Submission_time
 		, cfm.FileName
 		From [rpd].[cosmos_file_metadata] cfm
 		left join [rpd].[error_files_not_processed] ef on ef.FileName = cfm.FileName
-		where cfm.FileType in ('CompanyDetails','Pom')
+		where cfm.FileType in ('CompanyDetails')
 		and cfm.ComplianceSchemeId is not null
 	) A
 ),
@@ -298,21 +299,62 @@ Rank_On_CS_Submission as
 Latest_org_by_CS as
 (
 	select distinct CD.organisation_id, cs.id as ComplianceSchemeId, SubmissionPeriod, 'Y' as Is_present_latest_cs_sub_org
-	from Rank_On_CS_Submission RS
+	from Rank_On_CS_Submission_for_org_file RS
 	inner join [rpd].[CompanyDetails] CD on RS.FileName = CD.FileName
 	inner join [rpd].[ComplianceSchemes] cs on cs.ExternalId = RS.ComplianceSchemeId
 	where Rank_on_submission_timestamp = 1
 	and FileType = 'CompanyDetails' 
 ),
+
+Rank_On_CS_Submission_for_pom_file as
+(
+	select *
+		, row_number() over(partition by ComplianceSchemeId, FileType, SubmissionPeriod order by Submission_time desc) as Rank_on_submission_timestamp
+	from
+	(
+		select cfm.OrganisationId,  cfm.FileType 
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
+										when cfm.SubmissionPeriod = 'July to December 2023' then 2
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
+										when cfm.SubmissionPeriod = 'July to December 2024' then 4
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
+										when cfm.SubmissionPeriod = 'July to December 2025' then 6
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
+										when cfm.SubmissionPeriod = 'July to December 2026' then 8
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
+										when cfm.SubmissionPeriod = 'July to December 2027' then 10
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
+										when cfm.SubmissionPeriod = 'July to December 2028' then 12
+										else 0
+										end as SubmissionPeriod
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024') then 2024
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
+										else 0
+										end as ReportingYear
+								, cfm.ComplianceSchemeId
+		, CONVERT(DATETIME,substring(cfm.Created,1,23)) as Submission_time
+		, cfm.FileName
+		From [rpd].[cosmos_file_metadata] cfm
+		left join [rpd].[error_files_not_processed] ef on ef.FileName = cfm.FileName
+		where cfm.FileType in ('Pom')
+		and cfm.ComplianceSchemeId is not null
+	) A
+),
+
 Latest_pom_by_CS as
 (
 	select distinct PM.organisation_id, cs.id as ComplianceSchemeId, SubmissionPeriod, 'Y' as Is_present_latest_cs_sub_pom
-	from Rank_On_CS_Submission RS
+	from Rank_On_CS_Submission_for_pom_file RS
 	inner join [rpd].[Pom] PM on RS.FileName = PM.FileName
 	inner join [rpd].[ComplianceSchemes] cs on cs.ExternalId = RS.ComplianceSchemeId
 	where Rank_on_submission_timestamp = 1
-	and FileType = 'POM'
+	and FileType = 'Pom'
 ),
+
 rptRegistrationRegistered as
 (
 	select distinct organisation_id, 'Y' as Is_Present_in_Reg_report
@@ -320,8 +362,9 @@ rptRegistrationRegistered as
 ),
 rptPOM_All_Submissions as
 (
-	select distinct organisation_id, 'Y' as Is_Present_in_POM_report
+	select distinct OrganisationID as organisation_id, 'Y' as Is_Present_in_POM_report
 	from [dbo].[v_POM_All_Submissions]
+	where OrganisationID is not null
 ),
  enr as
  (
@@ -477,6 +520,8 @@ select
 			then 'N' 
 		else 'NA' 
 	end as Single_File_Submission_Packaging
+	,fps.pm_filename as fps_pm_filename
+	,lps.pm_filename  as lps_pm_filename
 	, case 
 		when fos.cd_filename = los.cd_filename 
 			then 'Y' 
@@ -484,6 +529,8 @@ select
 			then 'N' 
 		else 'NA' 
 	end as Single_File_Submission_Orgdata   
+	,fos.cd_filename as fos_cd_filename
+	,los.cd_filename  as los_cd_filename
 	, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						
 	,CAST(bs.[Org soft deleted?] as varchar(2)) as Organisation_soft_deleted							
 	,ISNULL(ap.[CW-AL],0) as [Self-managed consumer waste-Aluminium]
