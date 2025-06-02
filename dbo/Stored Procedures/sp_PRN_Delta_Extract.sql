@@ -2,7 +2,14 @@
 BEGIN
  -- Disable row count for performance
     SET NOCOUNT ON;
+	
+/****************************************************************************************************************************
+	History:
 
+	Updated: 2025-05-27:	ST001:  Ticket - 550045:Add in subsidiary is null check when finding the latest file/record to ensure only retrieving parent org details e.g. OrganisationName
+													Add in coalesce on the CS buildingname to then use building number to improve Address Data Quality for Compliance Schemes
+													Remove DR to CS Event Code from query
+******************************************************************************************************************************/
 WITH latest_record AS(
 select *
 			, row_number() over(partition by OrganisationId, ReferenceNumber order by Submission_time desc) as Last_submission
@@ -32,13 +39,15 @@ select *
 					cd.[registered_city] as Town,
 					cd.[registered_addr_county] as County,
 					cd.[registered_addr_country] as Country,
-					cd.[registered_addr_postcode] as Postcode
+					cd.[registered_addr_postcode] as Postcode,
+					cd.subsidiary_id 
 			from [rpd].[CompanyDetails] cd
 			left join rpd.Organisations o on o.ReferenceNumber = cd.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = cd.FileName
 			left join [rpd].[ComplianceSchemes] cs on cs.ExternalId = cfm.ComplianceSchemeId	
 		) A
 		WHERE  '20'+reverse(substring(reverse(trim(a.SubmissionPeriodYear)),1,2)) IN ('2024','2025')
+		AND subsidiary_id is null 
 		--ORDER BY ReferenceNumber asc, Last_submission asc)
 )
 
@@ -108,32 +117,7 @@ LEFT JOIN rpd.Nations N on N.Id = e.NationId
 where e.isdeleted=1 AND e.iscompliancescheme=0
 and  CAST(CONVERT(datetimeoffset, e.lastupdatedon) as datetime) between @From_Date and @To_Date
 
-union
 
--- DR Moved to Compliance Scheme
-select 
-l.OrganisationName,
-l.TradingName,
-'CSM' as OrganisationType,
-e.CompaniesHouseNumber as CompaniesHouseNumber,
-e.referencenumber as organisationId,
-l.AddressLine1, 
-l.AddressLine2,
-l.Town,
-l.County,
-l.Country,
-l.Postcode,
-e.externalid as pEPRID,
-'DR Moved to CS' as status
-,N.Name as 'BusinessCountry'
-,l.Submission_time as UpdatedDateTime
-from [rpd].[Organisations] e  
---join [rpd].[OrganisationsConnections] oc on e.id=oc.fromorganisationid and e.isdeleted=0 and oc.isdeleted=0
---NEW--
-INNER JOIN latest_record l on e.referencenumber =l.referencenumber and e.isdeleted=0 and e.iscompliancescheme=0 
-and l.SubmittedBy = 'CS' AND l.Last_submission = 1 AND ISNULL(l.organisation_size, 'L') ='L'
-LEFT JOIN rpd.Nations N on N.Id = e.NationId
-where CAST(CONVERT(datetimeoffset, l.Submission_time) as datetime) between @From_Date and @To_Date
 
 
 union
@@ -145,7 +129,7 @@ cs.name as TradingName,
 'S' as OrganisationType,
 o.CompaniesHouseNumber,
 o.referencenumber as organisationId ,
-o.BuildingName as AddressLine1,
+COALESCE(o.BuildingName, o.BuildingNumber) as AddressLine1,
 o.Street as AddressLine2,
 o.Town,
 o.County,
