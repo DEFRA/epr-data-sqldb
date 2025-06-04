@@ -1,10 +1,11 @@
-﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_data] AS with 
+﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_data] AS with
 /****************************************************************************************************************************
 	History:
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
 	Created: 2025-05-28:	YM003:	Ticket - 549638:	Masterscript - Logic change for First and Latest Registration File Submissions for status queried
 	Updated: 2025-05-30:	PM004:  Ticket - 515339:	Masterscript - Fix for flags Organisation visible in PowerBI Packaging reports, Organisation exists in most recent organisation data submission
+	Updated: 2025-06-04:	YM005:  Ticket - 562694:	Masterscript - Removing Queried record if there are more than one Queried next to each other
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -125,8 +126,11 @@ and pa.Actual_Regulator_Status <> 'QUERIED'
 
 ORG_PENDING_ACCEPT_ONLY_UPDATED as --YM003
 (
-select OPA.* , row_number() over(partition by OPA.OrganisationId, OPA.ReferenceNumber, OPA.SubmissionPeriod order by OPA.Submission_time asc, Source asc) as First_pending_accepted_submission_updated
+select OPA.*
+		/*--YM005
+		, row_number() over(partition by OPA.OrganisationId, OPA.ReferenceNumber, OPA.SubmissionPeriod order by OPA.Submission_time asc, Source asc) as First_pending_accepted_submission_updated
 		, row_number() over(partition by OPA.OrganisationId, OPA.ReferenceNumber, OPA.SubmissionPeriod order by OPA.Submission_time desc, Source asc) as Last_pending_accepted_submission_updated 
+		*/
 		from ORG_PENDING_ACCEPT_ONLY OPA
 left join ORG_LATEST_IS_NOT_QUERIED ONQ on OPA.OrganisationId = ONQ.OrganisationId and OPA.ReferenceNumber = ONQ.ReferenceNumber and OPA.SubmissionPeriod = ONQ.SubmissionPeriod
 where ONQ.OrganisationId is null 
@@ -134,17 +138,43 @@ where ONQ.OrganisationId is null
 		(OPA.Actual_Regulator_Status <> 'QUERIED' and  ONQ.OrganisationId is not null)
 ),
 
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD as --YM005
+(
+	select * 
+		, lead(Actual_Regulator_Status,1,NULL) over (partition by OrganisationId,	ReferenceNumber,	SubmissionPeriod order by Submission_time asc) as lead_Actual_Regulator_Status
+		, lead(FileName,1,NULL) over (partition by OrganisationId,	ReferenceNumber,	SubmissionPeriod order by Submission_time asc) as lead_FileName
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED as --YM005
+(
+	select * from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD
+	except(
+		select * 
+		from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD
+		where Actual_Regulator_Status = 'QUERIED' and lead_Actual_Regulator_Status = 'QUERIED' and FileName <> lead_FileName
+		)
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK as --YM005
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_pending_accepted_submission_updated
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_pending_accepted_submission_updated 
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED
+),
+
 ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as --YM003
 (
 	select rej.*
 	from ORG_REJECTED_ONLY rej
-	left join ORG_PENDING_ACCEPT_ONLY_UPDATED pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	left join ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
 	where pa.OrganisationId is null
 ),
 f_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
-	from ORG_PENDING_ACCEPT_ONLY_UPDATED --YM003
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK --YM003 --YM005
 	where First_pending_accepted_submission_updated = 1
 	union 
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
@@ -154,7 +184,7 @@ f_org_sql as
 l_org_sql as
  (
 	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
-	from ORG_PENDING_ACCEPT_ONLY_UPDATED --YM003
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK --YM003 --YM005
 	where Last_pending_accepted_submission_updated = 1
  ),
  
