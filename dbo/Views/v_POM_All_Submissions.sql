@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_POM_All_Submissions] AS With vPOM_AS 
+﻿CREATE VIEW [dbo].[v_POM_All_Submissions]
+AS With vPOM_AS 
 As 
 (
 
@@ -170,9 +171,9 @@ As
 left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
 LEFT JOIN dbo.v_subsidiaryorganisations so 
 	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
-
-			and so.RelationToDate is NULL
+		--and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
+	    and (so.SubsidiaryId = A.subsidiary_id or so.SecondOrganisation_ReferenceNumber = A.subsidiary_id)
+		and so.RelationToDate is NULL
 /** JP002 added join on company details table to get subsidiary name **/
 --left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
 --and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')
