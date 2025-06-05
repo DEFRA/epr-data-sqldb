@@ -544,21 +544,29 @@ select
 	,ISNULL(rptPom.Is_Present_in_POM_report,'N') as Organisation_visible_in_PowerBI_Packaging_reports	
 	,ISNULL(rptReg.Is_Present_in_Reg_report,'N') as Organisation_visible_in_PowerBI_Orgdata_reports		
 	, case 
-		when fps.pm_filename = lps.pm_filename 
+		when fps.pm_filename = lps.pm_filename and fps.pm_filename is not null and lps.pm_filename is not null
 			then 'Y' 
-		when ISNULL(fps.pm_filename,'') <> ISNULL(lps.pm_filename,'') and fps.pm_filename is not null 
+		when fps.pm_filename is not null and lps.pm_filename is null
+			then 'Y'
+		when fps.pm_filename <> lps.pm_filename and fps.pm_filename is not null and lps.pm_filename is not null
 			then 'N' 
+		when fps.pm_filename is null and lps.pm_filename is null
+			then 'NA'
 		else 'NA' 
-	end as Single_File_Submission_Packaging
+		end as Single_File_Submission_Packaging
 	,fps.pm_filename as fps_pm_filename
 	,lps.pm_filename  as lps_pm_filename
 	, case 
-		when fos.cd_filename = los.cd_filename 
+		when fos.cd_filename = los.cd_filename and fos.cd_filename is not null and los.cd_filename is not null
 			then 'Y' 
-		when ISNULL(fos.cd_filename,'') <> ISNULL(los.cd_filename,'') and fos.cd_filename is not null 
+		when fos.cd_filename is not null and los.cd_filename is null
+			then 'Y'
+		when fos.cd_filename <> los.cd_filename and fos.cd_filename is not null and los.cd_filename is not null
 			then 'N' 
+		when fos.cd_filename is null and los.cd_filename is null
+			then 'NA'
 		else 'NA' 
-	end as Single_File_Submission_Orgdata   
+		end as Single_File_Submission_Orgdata   
 	,fos.cd_filename as fos_cd_filename
 	,los.cd_filename  as los_cd_filename
 	, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						
