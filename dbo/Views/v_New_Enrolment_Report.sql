@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_New_Enrolment_Report] AS WITH 
+﻿CREATE VIEW [dbo].[v_New_Enrolment_Report] AS WITH
+
 cte_Enrolments_AND_DP AS (
     SELECT 
 		e.[Enrolment_Id],
@@ -352,7 +353,10 @@ select sec.FromOrganisation_Name
 		,Enrolment_CreatedOn_str=sec.Enrolment_CreatedOn 
 		,ve.[Status]
 		,ve.Regulator_Rejection_Comments
-		,ve.Decision_Date
+		,Decision_Date = CASE 
+			WHEN ve.[Status] IN ('Nominated', 'Invited', 'Pending') THEN NULL
+			ELSE FORMAT(CONVERT(DATETIME, REPLACE(LEFT(ve.Decision_Date, 23), 'T', ' '), 121), 'dd/MM/yyyy HH:mm:ss') 
+			END
 		,ve.Regulator_User_Name
 		
 
