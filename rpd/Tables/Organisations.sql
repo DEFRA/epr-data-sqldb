@@ -26,5 +26,5 @@
     [TransferNationId]            INT             NULL,
     [load_ts]                     DATETIME2 (7)   NULL
 )
-WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+WITH (CLUSTERED INDEX([ReferenceNumber]), DISTRIBUTION = REPLICATE);
 
