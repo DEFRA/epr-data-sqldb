@@ -126,7 +126,7 @@ ORG_PENDING_ACCEPT_ONLY as
 		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_pending_accepted_submission
 		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_pending_accepted_submission
 	from ORG
-	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') 
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') and IsResubmission_identifier=0
 ),
 
 /** YM003 : Logic change for First and Latest Registration File Submissions for status queried **/
