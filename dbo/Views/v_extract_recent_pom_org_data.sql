@@ -421,7 +421,8 @@ Latest_pom_by_CS as
 	where Rank_on_submission_timestamp = 1
 	and FileType = 'Pom'
 ),
-
+--YM006
+/*
 rptRegistrationRegistered as
 (
 	select distinct organisation_id, 'Y' as Is_Present_in_Reg_report
@@ -433,6 +434,7 @@ rptPOM_All_Submissions as
 	from [dbo].[v_POM_All_Submissions]
 	where OrganisationID is not null
 ),
+*/
  enr as
  (
 		select pocon.OrganisationId, ES.[Name] , CONVERT(DATETIME,substring(E.CreatedOn,1,23)) 'Enrolment_date_time', CONVERT(DATETIME,substring(E.LastUpdatedOn,1,23)) 'Enrolment_status_date_time',
@@ -484,9 +486,9 @@ submission_count as
 	select [Org ID],ReportingYear, count(1) as cnt
 	from
 	(
-		select * from l_org_sql
+		select [Org ID],ReportingYear from l_org_sql
 		union all 
-		select * From l_pom_sql
+		select [Org ID],ReportingYear From l_pom_sql
 	) A 
 	group by [Org ID],ReportingYear
 ),
@@ -724,8 +726,8 @@ left join submission_count sub_c on sub_c.[Org ID] = bs.[Org ID] and sub_c.Repor
 
 left join Latest_org_by_CS loby on loby.organisation_id = bs.[Org ID] and loby.ComplianceSchemeId = los.ComplianceSchemeId and loby.SubmissionPeriod = bs.RankId
 left join Latest_pom_by_CS lpbc on lpbc.organisation_id = bs.[Org ID] and lpbc.ComplianceSchemeId = lps.ComplianceSchemeId and lpbc.SubmissionPeriod = bs.RankId
-left join rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
-left join rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
+left join t_rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
+left join t_rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
 
 left join agg_POM ap on ap.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
 left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
