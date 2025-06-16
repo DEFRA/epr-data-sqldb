@@ -309,5 +309,6 @@
     <Build Include="dbo\Tables\t_rptPOM_All_Submissions.sql" />
     <Build Include="config\Tables\data_load_audit.sql" />
     <Build Include="Security\config.sql" />
+    <Build Include="dbo\Stored Procedures\sp_LoopStatisticsUpdate.sql" />
   </ItemGroup>
 </Project>
