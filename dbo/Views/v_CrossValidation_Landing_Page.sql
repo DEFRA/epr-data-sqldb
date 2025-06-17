@@ -25,9 +25,9 @@
 				, n.name as CS_nation
 				--, '20'+ Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2))+1 AS RelevantYear
 				,CASE 
-					WHEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) < 2025 
-					THEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) + 1
-					ELSE CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT)
+					WHEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) >= 2025 and upper(m.FileType) = 'COMPANYDETAILS' 
+					THEN CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT)
+					ELSE CAST('20' + Reverse(Substring(Reverse(Trim(m.submissionperiod)), 1, 2)) AS INT) + 1
 				END AS RelevantYear
 				, Convert(datetime2,Replace(Replace(m.Created,'T', ' '),'Z', ' ')) AS Created_frmtDT
 				, o.Name as ProducerName
@@ -115,10 +115,10 @@ select
 	cd.RelevantYear,
 	
 	Case 
-		When p.[ComplianceSchemeId]  Is Null Then 'Direct Producer' 
+		When ISNULL(p.[ComplianceSchemeId], cd.[ComplianceSchemeId]) IS NULL Then 'Direct Producer' 
 		Else 'Compliance Scheme' End CS_or_DP,
-	p.CS_Name,
-	p.CS_nation,
+	ISNULL(p.CS_Name, cd.CS_Name) as CS_Name,
+	ISNULL(p.CS_nation, cd.CS_Nation) as CS_Nation,
 	Concat(cd.OriginalFileName,'_',format(convert(datetime,cd.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(cd.Regulator_Status,'Pending')) AS DisplayFilenameCD,
 	Concat(p.OriginalFileName,'_',format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOM,
 	Concat(format(convert(datetime,cd.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',cd.OriginalFileName,'_',IsNull(cd.Regulator_Status,'Pending')) AS DisplayFilenameCDSort,
@@ -141,4 +141,5 @@ left join rpd.organisations p_o on cd.OrganisationId = p_o.ExternalId
 select opc.*,
 		np.Name AS ProducerNationName
 from org_pom_combined opc
-join [rpd].[Nations] np on np.id = opc.ProducerNationId;
+join [rpd].[Nations] np on np.id = opc.ProducerNationId
+where pom_filename is not null;
