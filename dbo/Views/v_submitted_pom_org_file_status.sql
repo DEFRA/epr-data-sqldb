@@ -20,7 +20,34 @@
 	Updated: 2025-04-24:	PM006:	Ticket - 543160		Rewritten to handle status as per the ticekt 543160
 	Updated: 2025-05-14:	PM008:	Ticket - 552117		Adding app submitted ts for the ticket 552117
 ******************************************************************************************************************************/
- 
+--SQL to find resubmitted POM file ids
+submitted_file_list as
+(
+	select distinct SubmissionId, FileId, CONVERT(DATETIME,substring(Created,1,23)) as file_submitted_ts from rpd.SubmissionEvents where Type in ('Submitted')
+	and Fileid is not null
+	and (IsResubmission is null or IsResubmission = 0)
+),
+first_PackagingResubmissionReferenceNumberCreated_entry as (
+	select distinct SubmissionId, min(CONVERT(DATETIME,substring(Created,1,23))) as first_PackagingResubmissionReferenceNumberCreated_ts 
+	from rpd.SubmissionEvents where Type in ('PackagingResubmissionReferenceNumberCreated')
+	group by SubmissionId
+),
+resubmitted_POM_list as
+(
+select distinct SubmissionId, FileId, IsResubmission as POM_resubmission_identifier, NULL as min_first_PackagingResubmissionReferenceNumberCreated_ts
+from rpd.SubmissionEvents 
+where Type in ('Submitted')
+and Fileid is not null
+and IsResubmission = 1
+ union 
+select sfl.SubmissionId, sfl.FileId, 1 as POM_resubmission_identifier, min(ent.first_PackagingResubmissionReferenceNumberCreated_ts) as min_first_PackagingResubmissionReferenceNumberCreated_ts
+from submitted_file_list sfl
+inner join first_PackagingResubmissionReferenceNumberCreated_entry ent 
+	on sfl.SubmissionId = ent.SubmissionId
+	and sfl.file_submitted_ts >= ent.first_PackagingResubmissionReferenceNumberCreated_ts
+group by sfl.SubmissionId, sfl.FileId
+),
+
 --Sub query to find the resubmission records
 resubmission_ids as
 (
@@ -320,6 +347,9 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 				, se.created as Decision_Date
 				, case when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Accepted' Then 'Granted'
 					   when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Rejected' Then 'Refused'
+					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 1 and app_submitted.SubmissionEventId_of_application_submitted_record is not null and se.Decision is null then 'Pending'
+					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 1 and app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null then 'Uploaded'
+					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 0 and se.Decision is null then 'Pending'
 					   when app_submitted.SubmissionEventId_of_application_submitted_record is not null and se.Decision is null then 'Pending'
 					   when app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 then 'Uploaded'
 					   when app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) < 2025  then 'Pending'
@@ -355,6 +385,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 		
 				,s.SubmissionType
 				, ISNULL(rid.IsResubmission_identifier,0) as IsResubmission_identifier
+				, ISNULL(rpl.POM_resubmission_identifier,0) as Is_resubmitted_POM_identifier
 				, cfm.FileId as cfm_FileId
 				, se.FileId
 				, se.fileid_new
@@ -374,6 +405,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 		left join top_matching_og_get_all_RegistrationApplicationSubmitted app_submitted on app_submitted.app_submitted_Fileid = cfm.fileid
 		Left Join [rpd].[Users] u on se.[Userid] = u.[userid] and u.[isdeleted] = 0
 		Left Join rpd.[persons] p on u.[id] =p.[userid] and p.[isdeleted] = 0
+		left join resubmitted_POM_list rpl on rpl.FileId = cfm.fileid
 		where cfm.FileType in ('CompanyDetails','Pom')
 ),
 
@@ -412,10 +444,10 @@ cd_pom_result_updated as
 	left join cancelled_resubmission r on c.SubmissionId = r.SubmissionId
 )
 */
-select distinct pom_cd.SubmissionId, pom_cd.RegistrationSetId, pom_cd.OrganisationId, pom_cd.FileName, pom_cd.FileType, pom_cd.OriginalFileName, pom_cd.TargetDirectoryName, pom_cd.Decision_Date, /*pom_cd.Regulator_Status_recalculated as Regulator_Status,*/ pom_cd.Regulator_Status /*as Regulator_Status_old*/, pom_cd.RegulatorDecision, pom_cd.Regulator_User_Name, pom_cd.Regulator_Rejection_Comments, pom_cd.RejectionComments, pom_cd.Type, pom_cd.UserId, pom_cd.RowNumber, pom_cd.Created, pom_cd.Application_submitted_ts, pom_cd.RegistrationType, pom_cd.SubmissionPeriod, pom_cd.ApplicationReferenceNo, pom_cd.registrationreferencenumber, pom_cd.Original_Regulator_Status, pom_cd.SubmissionType, pom_cd.IsResubmission_identifier, pom_cd.cfm_FileId, pom_cd.FileId, pom_cd.fileid_new, pom_cd.submitted_Fileid, pom_cd.SubmissionEventId_of_submitted_record, pom_cd.app_submitted_Fileid, pom_cd.SubmissionEventId_of_application_submitted_record
+select distinct pom_cd.SubmissionId, pom_cd.RegistrationSetId, pom_cd.OrganisationId, pom_cd.FileName, pom_cd.FileType, pom_cd.OriginalFileName, pom_cd.TargetDirectoryName, pom_cd.Decision_Date, /*pom_cd.Regulator_Status_recalculated as Regulator_Status,*/ pom_cd.Regulator_Status /*as Regulator_Status_old*/, pom_cd.RegulatorDecision, pom_cd.Regulator_User_Name, pom_cd.Regulator_Rejection_Comments, pom_cd.RejectionComments, pom_cd.Type, pom_cd.UserId, pom_cd.RowNumber, pom_cd.Created, pom_cd.Application_submitted_ts, pom_cd.RegistrationType, pom_cd.SubmissionPeriod, pom_cd.ApplicationReferenceNo, pom_cd.registrationreferencenumber, pom_cd.Original_Regulator_Status, pom_cd.SubmissionType, pom_cd.IsResubmission_identifier, pom_cd.Is_resubmitted_POM_identifier, pom_cd.cfm_FileId, pom_cd.FileId, pom_cd.fileid_new, pom_cd.submitted_Fileid, pom_cd.SubmissionEventId_of_submitted_record, pom_cd.app_submitted_Fileid, pom_cd.SubmissionEventId_of_application_submitted_record
 from cd_pom_result pom_cd
 union
-select distinct cfm.SubmissionId, cfm.RegistrationSetId, cfm.OrganisationId, cfm.FileName, cfm.FileType, cfm.OriginalFileName, cfm.TargetDirectoryName, cp.Decision_Date, /*cp.Regulator_Status_recalculated as Regulator_Status,*/ cp.Regulator_Status /*as Regulator_Status_old*/,cp.RegulatorDecision, cp.Regulator_User_Name, cp.Regulator_Rejection_Comments, cp.RejectionComments, cp.Type, cp.UserId, cp.RowNumber, cp.Created, cp.Application_submitted_ts, cp.RegistrationType, cp.SubmissionPeriod, cp.ApplicationReferenceNo, cp.registrationreferencenumber, cp.Original_Regulator_Status, cp.SubmissionType, cp.IsResubmission_identifier, cp.cfm_FileId, cp.FileId, cp.fileid_new, cp.submitted_Fileid, cp.SubmissionEventId_of_submitted_record, cp.app_submitted_Fileid, cp.SubmissionEventId_of_application_submitted_record
+select distinct cfm.SubmissionId, cfm.RegistrationSetId, cfm.OrganisationId, cfm.FileName, cfm.FileType, cfm.OriginalFileName, cfm.TargetDirectoryName, cp.Decision_Date, /*cp.Regulator_Status_recalculated as Regulator_Status,*/ cp.Regulator_Status /*as Regulator_Status_old*/,cp.RegulatorDecision, cp.Regulator_User_Name, cp.Regulator_Rejection_Comments, cp.RejectionComments, cp.Type, cp.UserId, cp.RowNumber, cp.Created, cp.Application_submitted_ts, cp.RegistrationType, cp.SubmissionPeriod, cp.ApplicationReferenceNo, cp.registrationreferencenumber, cp.Original_Regulator_Status, cp.SubmissionType, cp.IsResubmission_identifier, cp.Is_resubmitted_POM_identifier, cp.cfm_FileId, cp.FileId, cp.fileid_new, cp.submitted_Fileid, cp.SubmissionEventId_of_submitted_record, cp.app_submitted_Fileid, cp.SubmissionEventId_of_application_submitted_record
 From rpd.cosmos_file_metadata cfm
 inner join cd_pom_result cp on cfm.RegistrationSetId = cp.RegistrationSetId
 where cfm.FileType in ('Partnerships','Brands');
