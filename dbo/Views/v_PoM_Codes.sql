@@ -10,6 +10,9 @@ SELECT '2024-P2' Code, 'submission_period'  Type, '1 Jan to 30 Jun 2024'				Text
 SELECT '2024-P3' Code, 'submission_period'  Type, '1 Jan to 30 Jun 2024'				Text UNION ALL
 SELECT '2024-P4' Code, 'submission_period'  Type, '1 Jul to 31 Dec 2024'				Text UNION ALL
 SELECT '2024-P0' Code, 'submission_period'  Type, '1 Jan to 31 Dec 2024'				Text UNION ALL
+SELECT '2025-H1' Code, 'submission_period'  Type, '1 Jan to 30 Jun 2025'                Text UNION ALL 
+SELECT '2025-H2' Code, 'submission_period'  Type, '1 Jul to 31 Dec 2025'                Text UNION ALL
+SELECT '2025-P0' Code, 'submission_period'  Type, '1 Jan to 31 Dec 2025'                Text UNION ALL
 SELECT '2023-P1' Code, 'apps_submission_period'  Type, 'January to June 2023'           Text UNION ALL 
 SELECT '2023-P2' Code, 'apps_submission_period'  Type, 'March to June 2023'             Text UNION ALL
 SELECT '2023-P3' Code, 'apps_submission_period'  Type, 'July to December 2023'          Text UNION ALL
@@ -18,6 +21,9 @@ SELECT '2024-P2' Code, 'apps_submission_period'  Type, 'April to June 2024'				T
 SELECT '2024-P3' Code, 'apps_submission_period'  Type, 'May to June 2024'				Text UNION ALL
 SELECT '2024-P4' Code, 'apps_submission_period'  Type, 'July to December 2024'			Text UNION ALL
 SELECT '2024-P0' Code, 'apps_submission_period'  Type, 'January to December 2024'		Text UNION ALL
+SELECT '2025-H1' Code, 'apps_submission_period'  Type, 'January to June 2025'           Text UNION ALL 
+SELECT '2025-H2' Code, 'apps_submission_period'  Type, 'July to December 2025'          Text UNION ALL
+SELECT '2025-P0' Code, 'apps_submission_period'  Type, 'January to December 2025'       Text UNION ALL
 SELECT 'SO'      Code, 'packaging_activity' Type, 'Brand Owner'                         Text UNION ALL
 SELECT 'PF'      Code, 'packaging_activity' Type, 'Packer / Filler'	                    Text UNION ALL
 SELECT 'IM'      Code, 'packaging_activity' Type, 'Imported'		                    Text UNION ALL
