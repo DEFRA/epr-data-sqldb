@@ -19,6 +19,7 @@
 	Updated: 2025-04-03:	RM006:	Ticket - 527578		Add registrationreferencenumber to be passed on to v_public_register_all_producers
 	Updated: 2025-04-24:	PM006:	Ticket - 543160		Rewritten to handle status as per the ticekt 543160
 	Updated: 2025-05-14:	PM008:	Ticket - 552117		Adding app submitted ts for the ticket 552117
+	Updated: 2025-06-17:	PM009:	Ticket - 548534		POM resubmission fix - updated comments
 ******************************************************************************************************************************/
 --SQL to find resubmitted POM file ids
 submitted_file_list as
