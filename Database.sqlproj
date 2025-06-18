@@ -310,5 +310,7 @@
     <Build Include="config\Tables\data_load_audit.sql" />
     <Build Include="Security\config.sql" />
     <Build Include="dbo\Stored Procedures\sp_LoopStatisticsUpdate.sql" />
+    <Build Include="dbo\Views\v_PayCal_Pom.sql" />
+    <Build Include="dbo\Views\v_PayCal_Org.sql" />
   </ItemGroup>
 </Project>
