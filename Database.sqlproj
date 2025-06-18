@@ -156,7 +156,6 @@
     <Build Include="rpd\Tables\cosmos_file_metadata.sql" />
     <Build Include="rpd\Tables\ComplianceSchemes.sql" />
     <Build Include="rpd\Tables\AuditLogs.sql" />
-    <Build Include="rpd\Tables\__EFMigrationsHistory.sql" />
     <Build Include="dbo\Views\registration.sql" />
     <Build Include="dbo\Views\v_Multiple_Reg_Sumbissions.sql" />
     <Build Include="rpd\Tables\Pom.sql" />
