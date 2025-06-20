@@ -7,6 +7,7 @@
 	Updated: 2025-05-30:	PM004:  Ticket - 515339:	Masterscript - Fix for flags Organisation visible in PowerBI Packaging reports, Organisation exists in most recent organisation data submission
 	Updated: 2025-06-04:	YM005:  Ticket - 562694:	Masterscript - Removing Queried record if there are more than one Queried next to each other
 	Updated: 2025-06-11:	YM006:  Ticket - 561770:	Masterscript - Check and update the Logic for First and Latest Registration File Submissions in master script - Registration resubmission
+	Updated: 2025-06-11:	YM007:  Ticket - 548936:    Master script not to show resubmitted POM submission with "Uploaded" status
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -201,12 +202,6 @@ f_org_sql as
 	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED 
 	where Last_rejected_submission = 1
  ) ,
-/*l_org_sql as
- (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code --YM001
-	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK --YM003 --YM005
-	where Last_pending_accepted_submission_updated = 1
- ),*/
  l_org_sql as
  (select [Org ID],	Rank,	ReportingYear	,[Submission date time],	[Submitted by]	,[Submission status],	[Regulator Decision],	[Actual Regulator Decision],	[Who submitted],[CS Nation],	cd_filename,	ComplianceSchemeId,	cd_organisation_size,	cd_submission_period_code ,IsResubmission_identifier from (select a.*, row_number() over(partition by [Org ID], ReportingYear,[Rank] order by [Submission date time] desc) as Lastest_status from 
  (
@@ -283,6 +278,7 @@ POM as
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
 			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
+			where fs.Regulator_Status <> 'Uploaded' --YM007
 		) A
 ),
 POM_REJECTED_ONLY as
