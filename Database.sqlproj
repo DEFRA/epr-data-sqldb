@@ -311,5 +311,6 @@
     <Build Include="dbo\Stored Procedures\sp_LoopStatisticsUpdate.sql" />
     <Build Include="dbo\Views\v_PayCal_Pom.sql" />
     <Build Include="dbo\Views\v_PayCal_Org.sql" />
+    <Build Include="dbo\Views\v_POM_Ram_Rag_Order.sql" />
   </ItemGroup>
 </Project>
