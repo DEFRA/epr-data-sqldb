@@ -6,4 +6,4 @@ dbo,RecyclingTargets,FULL,
 dbo,ObligationCalculations,INCR,Id
 dbo,Material,INCR,Id
 dbo,PRNMaterialMapping,INCR,Id
-
+dbo,ObligationCalculationOrganisationSubmitterType,FULL,
