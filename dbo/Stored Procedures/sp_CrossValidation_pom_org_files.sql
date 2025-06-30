@@ -65,9 +65,9 @@ begin
 											ON p_inner.Organisation_Id = od_inner.org_organisation_id
 											AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(od_inner.org_subsidiary_id, '') 
 										WHERE 
-										--od_inner.organisation_name = od.organisation_name  -- Ensure org_name is matched
-										p_inner.organisation_id = pvt.organisation_id
-										AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(pvt.subsidiary_Id, '')
+										--od_inner.organisation_name = od.organisation_name  -- Ensure org_name is matched --Tufan
+										p_inner.organisation_id = pvt.organisation_id  ----Tufan
+										AND ISNULL(p_inner.subsidiary_Id, '') = ISNULL(pvt.subsidiary_Id, '')  ----Tufan
 										AND p_inner.FileName = pvt.fileName
 										AND p_inner.packaging_type IN ('HH', 'PB')  
 									) THEN 1 ELSE 0
@@ -298,7 +298,7 @@ begin
 							[ProducerNationId],
 							ProducerNationName,
 							ROW_NUMBER() OVER (
-								PARTITION BY file_submitted_organisation 
+								PARTITION BY file_submitted_organisation, Pom_SubmissionPeriod
 								ORDER BY pom_Submission_time DESC
 							) AS pom_submission_rank
 						FROM [dbo].[v_CrossValidation_Landing_Page]
