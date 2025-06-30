@@ -604,7 +604,7 @@ select
 		end as Single_File_Submission_Orgdata   
 	,fos.cd_filename as fos_cd_filename
 	,los.cd_filename  as los_cd_filename
-	, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						
+	--, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						
 	,CAST(bs.[Org soft deleted?] as varchar(2)) as Organisation_soft_deleted							
 	,ISNULL(ap.[CW-AL],0) as [Self-managed consumer waste-Aluminium]
 	,ISNULL(ap.[CW-FC],0) as [Self-managed consumer waste-Fibre Composite]
@@ -718,7 +718,7 @@ left join l_org_sql los on los.[Org ID] = bs.[Org ID] and los.[Rank] = bs.RankId
 left join f_pom_sql fps on fps.[Org ID] = bs.[Org ID] and fps.[Rank] = bs.RankId
 left join l_pom_sql lps on lps.[Org ID] = bs.[Org ID] and lps.[Rank] = bs.RankId
 
-left join submission_count sub_c on sub_c.[Org ID] = bs.[Org ID] and sub_c.ReportingYear = bs.Reporting_Year
+--left join submission_count sub_c on sub_c.[Org ID] = bs.[Org ID] and sub_c.ReportingYear = bs.Reporting_Year
 
 left join Latest_org_by_CS loby on loby.organisation_id = bs.[Org ID] and loby.ComplianceSchemeId = los.ComplianceSchemeId and loby.SubmissionPeriod = bs.RankId
 left join Latest_pom_by_CS lpbc on lpbc.organisation_id = bs.[Org ID] and lpbc.ComplianceSchemeId = lps.ComplianceSchemeId and lpbc.SubmissionPeriod = bs.RankId
