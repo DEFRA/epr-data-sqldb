@@ -70,7 +70,7 @@ DP_latest_CS_all_companydetails as
 all_pom as
 (
 	select *
-		,Row_number() over(partition by OrganisationId, RelevantYear order by Submission_time desc) as cd_rn
+		,Row_number() over(partition by OrganisationId, SubmissionPeriod order by Submission_time desc) as cd_rn
 		from base_data
 		where upper(FileType) = 'POM' 
 		and (
