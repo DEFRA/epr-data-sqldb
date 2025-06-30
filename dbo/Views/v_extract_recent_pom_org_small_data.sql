@@ -50,7 +50,7 @@ select Org_ID
 ,Organisation_visible_in_PowerBI_Orgdata_reports
 ,Single_File_Submission_Packaging
 ,Single_File_Submission_Orgdata
-,Reported_mandated_data_sets
+,'' Reported_mandated_data_sets
 ,Organisation_soft_deleted
 ,[Household drinks containers-Aluminium (Kg)]
 ,[Household drinks containers-Aluminium (No.Units)]
