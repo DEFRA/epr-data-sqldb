@@ -39,7 +39,7 @@ Org_ID
 ,Organisation_visible_in_PowerBI_Orgdata_reports
 ,Single_File_Submission_Packaging
 ,Single_File_Submission_Orgdata
-,Reported_mandated_data_sets
+,'' Reported_mandated_data_sets
 ,Organisation_soft_deleted
 ,[Self-managed consumer waste-Aluminium]
 ,[Self-managed consumer waste-Fibre Composite]
