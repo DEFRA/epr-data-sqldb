@@ -346,14 +346,14 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 				,cfm.[OriginalFileName]
 				,cfm.[TargetDirectoryName]
 				, se.created as Decision_Date
-				, case when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Accepted' Then 'Granted'
-					   when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Rejected' Then 'Refused'
+				, case when cfm.[FileType] = 'CompanyDetails' and  Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Accepted' Then 'Granted'
+					   when cfm.[FileType] = 'CompanyDetails' and  Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 and ISNULL(rid.IsResubmission_identifier,0) = 0 and se.Decision = 'Rejected' Then 'Refused'
 					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 1 and app_submitted.SubmissionEventId_of_application_submitted_record is not null and se.Decision is null then 'Pending'
 					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 1 and app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null then 'Uploaded'
 					   when cfm.[FileType] = 'Pom' and ISNULL(rpl.POM_resubmission_identifier,0) = 0 and se.Decision is null then 'Pending'
-					   when app_submitted.SubmissionEventId_of_application_submitted_record is not null and se.Decision is null then 'Pending'
-					   when app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 then 'Uploaded'
-					   when app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) < 2025  then 'Pending'
+					   when cfm.[FileType] = 'CompanyDetails' and app_submitted.SubmissionEventId_of_application_submitted_record is not null and se.Decision is null then 'Pending'
+					   when cfm.[FileType] = 'CompanyDetails' and app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) >= 2025 then 'Uploaded'
+					   when cfm.[FileType] = 'CompanyDetails' and app_submitted.SubmissionEventId_of_application_submitted_record is null and se.Decision is null and Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) < 2025  then 'Pending'
 					   else se.Decision
 					   end
 					as Regulator_Status
