@@ -2,7 +2,53 @@
 As 
 (
 
-	select A.*, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
+	select 
+			A.Org_Name
+			,A.OrganisationName
+			,A.PCS_Or_Direct_Producer
+			,A.Compliance_Scheme
+			,A.Org_Type
+			,A.Org_Sub_Type
+			,A.organisation_size
+			/*,A.Submission_Date*/
+			,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Submission_Date
+			,A.submission_period
+			,A.SubmitterID
+			,A.organisation_id
+			,A.subsidiary_id
+			,A.CH_Number
+			,A.Nation_Of_Enrolment
+			,A.packaging_activity
+			,A.packaging_type
+			,A.packaging_class
+			,A.packaging_material
+			,A.packaging_sub_material
+			,A.transitional_packaging_units
+			,A.from_nation
+			,A.to_nation
+			,A.quantity_kg
+			,A.quantity_unit
+			,A.Quantity_kg_extrapolated
+			,A.Quantity_units_extrapolated
+			,A.ToOrganisation_NationName
+			,A.Nation
+			,A.FromOrganisation_NationName
+			,A.FileName
+			,A.ServiceRoles_Role
+			,A.SubmittedBy
+			,A.filetype
+			,A.Users_Email
+			,A.Persons_Email
+			,A.metafile
+			,A.JOINFIELD
+			,A.relative_move
+			,A.TransferNation
+			,A.SubmtterEmail
+			,A.ServiceRoles_Name
+			,A.OriginalFileName
+			,A.data_type
+			,A.OrganisationID
+		, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
 	,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
 	,Null as subsidiary_name
 	/***************************************************************************************************
