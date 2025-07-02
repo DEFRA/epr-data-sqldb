@@ -15,7 +15,7 @@
 	and Organisation_data_latest_submission_organisation_size='S'
 	and Organisation_data_latest_submission_status not in ('Refused','Rejected','Cancelled')
 )
-select Org_ID
+select so.Org_ID
 ,Org_name
 ,CH_number
 ,Nation_of_enrolment
@@ -50,7 +50,7 @@ select Org_ID
 ,Organisation_visible_in_PowerBI_Orgdata_reports
 ,Single_File_Submission_Packaging
 ,Single_File_Submission_Orgdata
-,Reported_mandated_data_sets
+,ds.Reported_mandated_data_sets
 ,Organisation_soft_deleted
 ,[Household drinks containers-Aluminium (Kg)]
 ,[Household drinks containers-Aluminium (No.Units)]
@@ -76,5 +76,6 @@ select Org_ID
 ,[Small organisation packaging - all-Plastic]
 ,[Small organisation packaging - all-Steel]
 ,[Small organisation packaging - all-Wood]
-,Reporting_Year
-from Small_producer_recent_pom_org;
+,so.Reporting_Year
+from Small_producer_recent_pom_org so
+left join dbo.v_reported_mandated_data_sets ds on  ds.[Org_ID] = so.[Org_ID] and ds.ReportingYear = so.Reporting_Year;
