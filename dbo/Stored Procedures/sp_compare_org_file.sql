@@ -1,5 +1,11 @@
 ﻿CREATE PROC [dbo].[sp_compare_org_file] @Year1 [INT],@Year2 [INT] AS
 BEGIN
+/****************************************************************************************************************************
+	History: 
+ 
+	Updated: 2025-07-02:	PM001:	Ticket - 578155:	Year2 actual year caulcation fix  
+
+******************************************************************************************************************************/
 
 	DECLARE @start_dt datetime;
 	DECLARE @batch_id INT;
@@ -11,7 +17,7 @@ BEGIN
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_compare_org_file','procedure', NULL, @start_dt, NULL, concat('Started','-',@Year1,'-',@Year2),@batch_id
 	
 	set @Year1 = case when @Year1 < 2026 then @Year1 - 1 else @Year1 end;
-	set @Year2 = case when @Year1 < 2026 then @Year2 - 1 else @Year2 end;
+	set @Year2 = case when @Year2 < 2026 then @Year2 - 1 else @Year2 end;
 
 	WITH enrol
 	AS (
