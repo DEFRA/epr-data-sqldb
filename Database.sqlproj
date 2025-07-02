@@ -315,5 +315,8 @@
     <Build Include="dbo\Views\v_Compliance_Report.sql" />
     <Build Include="rpd\Tables\RelevantYearLookup.sql" />
     <Build Include="dbo\Views\v_PRN_Recycling_Obligation_stat_Count.sql" />
+    <Build Include="dbo\Tables\t_submission_count.sql" />
+    <Build Include="dbo\Views\v_submission_count.sql" />
+    <Build Include="dbo\Views\v_reported_mandated_data_sets.sql" />
   </ItemGroup>
 </Project>

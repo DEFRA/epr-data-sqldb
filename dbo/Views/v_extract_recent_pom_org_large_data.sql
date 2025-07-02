@@ -4,7 +4,7 @@
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
 ******************************************************************************************************************************/
-Org_ID
+a.Org_ID
 ,Org_name
 ,CH_number
 ,Nation_of_enrolment
@@ -39,7 +39,7 @@ Org_ID
 ,Organisation_visible_in_PowerBI_Orgdata_reports
 ,Single_File_Submission_Packaging
 ,Single_File_Submission_Orgdata
-,'' Reported_mandated_data_sets
+,ds.Reported_mandated_data_sets
 ,Organisation_soft_deleted
 ,[Self-managed consumer waste-Aluminium]
 ,[Self-managed consumer waste-Fibre Composite]
@@ -130,8 +130,9 @@ Org_ID
 ,[Transitional organisation packaging - all-Plastic]
 ,[Transitional organisation packaging - all-Steel]
 ,[Transitional organisation packaging - all-Wood]
-,Reporting_Year
+,a.Reporting_Year
 from dbo.t_extract_recent_pom_org_data a
+left join dbo.v_reported_mandated_data_sets ds on  ds.[Org_ID] = a.[Org_ID] and ds.ReportingYear = a.Reporting_Year
 where not exists 
 (
 	select 1
