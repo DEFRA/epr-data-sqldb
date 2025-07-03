@@ -318,5 +318,6 @@
     <Build Include="dbo\Tables\t_submission_count.sql" />
     <Build Include="dbo\Views\v_submission_count.sql" />
     <Build Include="dbo\Views\v_reported_mandated_data_sets.sql" />
+    <Build Include="dbo\Views\v_relevant_year_lookup.sql" />
   </ItemGroup>
 </Project>
