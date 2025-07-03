@@ -50,7 +50,7 @@
 	  ,format([start_date],'MMMM') + ' to '+format([End_Date],'MMMM yyyy') as submission_period
       ,[Deadline_Date]
       ,[Relevant_Year]
-  FROM [rpd].[RelevantYearLookup])
+  FROM [dbo].[v_relevant_year_lookup])
 
 ,
 	pom_sub AS(
@@ -60,7 +60,7 @@
 ,
 	rel_year as(
 	/*Returns all distinct relevant years in the lookup table to use in the cross join to ensure orgs with no files submitted will have a relevant year and thus can be filtered on*/
-		select distinct [Relevant_Year]  FROM [rpd].[RelevantYearLookup]
+		select distinct [Relevant_Year]  FROM [dbo].[v_relevant_year_lookup]
 	),
 
 /*Returns the associated compliance scheme for each CS member*/
@@ -139,7 +139,7 @@ SELECT
     END AS [Single_or_Group], -- Single or Group derived from company details subsidiary field, if populated then Group
     Org.CreatedOn AS [Enrolment_Date], -- Enrolment date from organisation created field
     
-	rel.Relevant_year AS [Relevant_Year], -- Relevant year from distinct values in rpd.RelevantYearLookup table
+	rel.Relevant_year AS [Relevant_Year], -- Relevant year from distinct values in dbo.v_relevant_year_lookup view
 
     -- Registration Submission Details
     f.SubmissionTime AS [First_Registration_File_Submission_Date],
