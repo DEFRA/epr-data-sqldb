@@ -225,12 +225,13 @@ begin
 
 		IF OBJECT_ID('dbo.t_rpd_data_SECURITY_FIX', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_rpd_data_SECURITY_FIX;
-		END;	
+			
+			TRUNCATE TABLE dbo.t_rpd_data_SECURITY_FIX;
 
-		SELECT *
-		INTO dbo.t_rpd_data_SECURITY_FIX
-		FROM dbo.v_rpd_data_SECURITY_FIX;
+			INSERT INTO dbo.t_rpd_data_SECURITY_FIX
+			SELECT * FROM  dbo.v_rpd_data_SECURITY_FIX;
+
+		END;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_rpd_data_SECURITY_FIX', NULL, @start_dt, getdate(), 'Tab 7 - Completed',@batch_id
