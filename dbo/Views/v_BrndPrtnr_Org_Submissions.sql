@@ -7,6 +7,7 @@
 
 	Updated: 2025-04-14:	YM002:	Ticket - 537082:	Organisation Details report to include the 4 new columns added in the Org file for DP and CS
 	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
+	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal 
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -192,7 +193,7 @@ Select Distinct
 	,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 'Pending' Else pos.Regulator_Status End
 	
 	--v_subsidiaryorganisations
-	,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
+	--SV001: ,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
 
 	--t_cosmos_file_metadata
 	,cfm.FileType
@@ -238,11 +239,12 @@ Left Join
 	dbo.v_submitted_pom_org_file_status		pos
 		On cd.[Filename] = pos.[Filename]
 			And pos.RegistrationType = 1 
-Left Join
-	dbo.v_subsidiaryorganisations			so
-		On cd.organisation_id = so.FirstOrganisation_ReferenceNumber
-			And IsNull(Trim(cd.subsidiary_id),'') = IsNull(Trim(so.SubsidiaryId),'')
-				And IsNull(Trim(cd.companies_house_number),'') = IsNull(Trim(so.SecondOrganisation_CompaniesHouseNumber),'')
-					And so.RelationToDate Is Null		
+--SV001
+--Left Join
+--	dbo.v_subsidiaryorganisations			so
+--		On cd.organisation_id = so.FirstOrganisation_ReferenceNumber
+--			And IsNull(Trim(cd.subsidiary_id),'') = IsNull(Trim(so.SubsidiaryId),'')
+--				And IsNull(Trim(cd.companies_house_number),'') = IsNull(Trim(so.SecondOrganisation_CompaniesHouseNumber),'')
+--					And so.RelationToDate Is Null		
 Where 
 	Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) < 2025;
