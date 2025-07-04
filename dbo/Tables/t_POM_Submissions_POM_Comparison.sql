@@ -5,7 +5,7 @@
     [Org_Type]                    NVARCHAR (4000) NULL,
     [Org_Sub_Type]                VARCHAR (1)     NOT NULL,
     [organisation_size]           NVARCHAR (4000) NULL,
-    [Submission_Date]             DATETIME        NULL,
+    [Submission_Date]             DATETIME2 (7)   NULL,
     [submission_period]           VARCHAR (34)    NULL,
     [OrganisationID]              INT             NULL,
     [subsidiary_id]               NVARCHAR (4000) NULL,
@@ -38,11 +38,8 @@
     [ServiceRoles_Name]           NVARCHAR (4000) NULL,
     [OriginalFileName]            NVARCHAR (4000) NULL,
     [data_type]                   VARCHAR (8)     NOT NULL,
-    [registration_type_code]      VARCHAR (1)     NOT NULL
+    [registration_type_code]      VARCHAR (1)     NOT NULL,
+    [Regulator_Status]            NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
-
-
 
