@@ -1,4 +1,16 @@
 ﻿CREATE VIEW [dbo].[v_POM_All_Submissions] AS With vPOM_AS 
+/***************************************************************************************************
+History:
+
+	Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
+							Ticket 412287 for Release 5.0
+
+	Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
+	Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
+	Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
+	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
+*****************************************************************************************************/
+	
 As 
 (
 
@@ -49,19 +61,9 @@ As
 			,A.data_type
 			,A.OrganisationID
 		, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
-	,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
+	-- SV001 -,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
 	,Null as subsidiary_name
-	/***************************************************************************************************
-	History:
-
-		Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
-								Ticket 412287 for Release 5.0
 	
-		Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
-		Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
-		Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
-
-	*****************************************************************************************************/
 	from
 	(
 			SELECT [Org_Name]
@@ -110,7 +112,7 @@ As
 				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
 			FROM dbo.t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
-							FROM dbo.v_POM_Operator_Submissions operators )
+							FROM dbo.t_POM_Operator_Submissions operators )
  
 			UNION
 			--add in operator
@@ -159,7 +161,7 @@ As
 				  ,[OriginalFileName], 
 				  'Operator'
 				  ,CAST(NULL AS INT) AS OrganisationID -- added TS 12/09/2024
-			FROM dbo.v_POM_Operator_Submissions
+			FROM dbo.t_POM_Operator_Submissions
  
 			UNION 
 
@@ -209,16 +211,16 @@ As
 				  ,[OriginalFileName]
 				  ,'Member'
 				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
-				  from dbo.v_POM_Operator_Submissions 
+				  from dbo.t_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
 left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
-LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
-		--and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
-	    and (so.SubsidiaryId = A.subsidiary_id or so.SecondOrganisation_ReferenceNumber = A.subsidiary_id)
-		and so.RelationToDate is NULL
+--SV001- LEFT JOIN dbo.v_subsidiaryorganisations so 
+--	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
+--		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
+
+--			and so.RelationToDate is NULL
 /** JP002 added join on company details table to get subsidiary name **/
 --left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
 --and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')

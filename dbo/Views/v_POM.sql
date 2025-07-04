@@ -1,16 +1,16 @@
-﻿CREATE VIEW [dbo].[v_POM]
-AS SELECT 
+﻿CREATE VIEW [dbo].[v_POM] AS SELECT 
 /****************************************************************************************************************************
 	History:
  
 	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
 	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn
 	Updated: 2025-05-28:	TS003:	Ticket - 549751:	Added to fix system generated subsidiary results
+	Updated: 2025-07-03:	SV001:	Ticket - 576285:	Subsidiary Retrofit column removal 
 	
 ******************************************************************************************************************************/
 	p.organisation_id,
 	p.subsidiary_id, 
-	so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
+	-- SV001 -so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
 	p.organisation_size,
 	'' as organisation_sub_type_code,
 	sp.Text submission_period,
@@ -66,9 +66,4 @@ LEFT JOIN dbo.t_PoM_Codes tn ON tn.Code = p.to_country
 								AND tn.Type = 'nation'
 LEFT JOIN dbo.t_PoM_Codes fn ON fn.Code = p.from_country 
 								AND fn.Type = 'nation'
-LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName
-LEFT JOIN dbo.v_subsidiaryorganisations so
-	/* TS003 - Fixing the join */
-	on so.FirstOrganisation_ReferenceNumber = p.organisation_id
-	and (so.SubsidiaryId = p.subsidiary_id or so.SecondOrganisation_ReferenceNumber = p.subsidiary_id)
-	and so.RelationToDate is NULL;
+LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName;
