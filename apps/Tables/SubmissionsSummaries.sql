@@ -1,0 +1,33 @@
+﻿CREATE TABLE [apps].[SubmissionsSummaries] (
+    [SubmissionId]                    NVARCHAR (4000) NULL,
+    [OrganisationId]                  NVARCHAR (4000) NULL,
+    [ComplianceSchemeId]              NVARCHAR (4000) NULL,
+    [OrganisationName]                NVARCHAR (4000) NULL,
+    [OrganisationReference]           NVARCHAR (4000) NULL,
+    [OrganisationType]                NVARCHAR (4000) NULL,
+    [ProducerType]                    NVARCHAR (4000) NULL,
+    [UserId]                          NVARCHAR (4000) NULL,
+    [FirstName]                       NVARCHAR (4000) NULL,
+    [LastName]                        NVARCHAR (4000) NULL,
+    [Email]                           NVARCHAR (4000) NULL,
+    [Telephone]                       NVARCHAR (4000) NULL,
+    [ServiceRole]                     NVARCHAR (4000) NULL,
+    [FileId]                          NVARCHAR (4000) NULL,
+    [SubmissionYear]                  INT             NULL,
+    [SubmissionCode]                  NVARCHAR (4000) NULL,
+    [ActualSubmissionPeriod]          NVARCHAR (4000) NULL,
+    [Combined_SubmissionCode]         NVARCHAR (4000) NULL,
+    [Combined_ActualSubmissionPeriod] NVARCHAR (4000) NULL,
+    [SubmissionPeriod]                NVARCHAR (4000) NULL,
+    [SubmittedDate]                   NVARCHAR (4000) NULL,
+    [Decision]                        NVARCHAR (4000) NULL,
+    [IsResubmissionRequired]          BIT             NULL,
+    [Comments]                        NVARCHAR (4000) NULL,
+    [IsResubmission]                  BIT             NULL,
+    [PreviousRejectionComments]       NVARCHAR (4000) NULL,
+    [NationId]                        INT             NULL,
+    [PomFileName]                     NVARCHAR (4000) NULL,
+    [PomBlobName]                     NVARCHAR (4000) NULL
+)
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = HASH([SubmissionId]));
+

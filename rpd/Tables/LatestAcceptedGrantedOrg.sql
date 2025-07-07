@@ -1,0 +1,33 @@
+﻿CREATE TABLE [rpd].[LatestAcceptedGrantedOrg] (
+    [organisation_id]                     INT             NULL,
+    [subsidiary_id]                       NVARCHAR (4000) NULL,
+    [organisation_name]                   NVARCHAR (4000) NULL,
+    [trading_name]                        NVARCHAR (4000) NULL,
+    [companies_house_number]              NVARCHAR (4000) NULL,
+    [home_nation_code]                    NVARCHAR (4000) NULL,
+    [service_of_notice_addr_line1]        NVARCHAR (4000) NULL,
+    [service_of_notice_addr_line2]        NVARCHAR (4000) NULL,
+    [service_of_notice_addr_city]         NVARCHAR (4000) NULL,
+    [service_of_notice_addr_county]       NVARCHAR (4000) NULL,
+    [service_of_notice_addr_country]      NVARCHAR (4000) NULL,
+    [service_of_notice_addr_postcode]     NVARCHAR (4000) NULL,
+    [service_of_notice_addr_phone_number] NVARCHAR (4000) NULL,
+    [sole_trader_first_name]              NVARCHAR (4000) NULL,
+    [sole_trader_last_name]               NVARCHAR (4000) NULL,
+    [sole_trader_phone_number]            NVARCHAR (4000) NULL,
+    [sole_trader_email]                   NVARCHAR (4000) NULL,
+    [primary_contact_person_first_name]   NVARCHAR (4000) NULL,
+    [primary_contact_person_last_name]    NVARCHAR (4000) NULL,
+    [primary_contact_person_phone_number] NVARCHAR (4000) NULL,
+    [primary_contact_person_email]        NVARCHAR (4000) NULL,
+    [FileName]                            NVARCHAR (4000) NULL,
+    [ReferenceNumber]                     NVARCHAR (4000) NULL,
+    [IsDeleted]                           NVARCHAR (4000) NULL,
+    [CreatedOn]                           NVARCHAR (4000) NULL,
+    [LastUpdatedOn]                       NVARCHAR (4000) NULL,
+    [cfm_FileId]                          NVARCHAR (4000) NULL,
+    [Regulator_Status]                    NVARCHAR (4000) NULL,
+    [load_ts]                             DATETIME2 (7)   NULL
+)
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+

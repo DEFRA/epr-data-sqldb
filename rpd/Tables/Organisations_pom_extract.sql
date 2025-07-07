@@ -1,0 +1,30 @@
+﻿CREATE TABLE [rpd].[Organisations_pom_extract] (
+    [Id]                          INT            NULL,
+    [OrganisationTypeId]          INT            NULL,
+    [CompaniesHouseNumber]        NVARCHAR (100) NULL,
+    [Name]                        NVARCHAR (100) NULL,
+    [TradingName]                 NVARCHAR (100) NULL,
+    [ReferenceNumber]             NVARCHAR (100) NULL,
+    [SubBuildingName]             NVARCHAR (100) NULL,
+    [BuildingName]                NVARCHAR (100) NULL,
+    [BuildingNumber]              NVARCHAR (100) NULL,
+    [Street]                      NVARCHAR (100) NULL,
+    [Locality]                    NVARCHAR (100) NULL,
+    [DependentLocality]           NVARCHAR (100) NULL,
+    [Town]                        NVARCHAR (100) NULL,
+    [County]                      NVARCHAR (100) NULL,
+    [Country]                     NVARCHAR (100) NULL,
+    [Postcode]                    NVARCHAR (100) NULL,
+    [ValidatedWithCompaniesHouse] BIT            NULL,
+    [IsComplianceScheme]          BIT            NULL,
+    [NationId]                    INT            NULL,
+    [ExternalId]                  NVARCHAR (100) NULL,
+    [CreatedOn]                   NVARCHAR (100) NULL,
+    [LastUpdatedOn]               NVARCHAR (100) NULL,
+    [IsDeleted]                   BIT            NULL,
+    [ProducerTypeId]              INT            NULL,
+    [TransferNationId]            INT            NULL,
+    [load_ts]                     DATETIME2 (7)  NULL
+)
+WITH (CLUSTERED INDEX([ReferenceNumber]), DISTRIBUTION = HASH([ReferenceNumber]));
+

@@ -1,0 +1,6 @@
+﻿CREATE TABLE [rpd].[test] (
+    [id]    BIGINT          NULL,
+    [value] NVARCHAR (4000) NULL
+)
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
+
