@@ -196,6 +196,9 @@ Select
 	--v_subsidiaryorganisations
 	,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
 
+	/**Ticket -552079: IsResubmission_identifier column added **/
+	,pos.IsResubmission_identifier
+
 	--t_cosmos_file_metadata
 	,cfm.FileType
 	,cfm.[Filename]
