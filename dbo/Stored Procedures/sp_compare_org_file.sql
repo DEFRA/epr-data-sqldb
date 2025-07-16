@@ -4,7 +4,7 @@ BEGIN
 	History: 
  
 	Updated: 2025-07-02:	PM001:	Ticket - 578155:	Year2 actual year caulcation fix  
-
+	Updated: 2025-07-16:	YM001:	Ticket - 576287:	Subsidiary Retrofit column removal 
 ******************************************************************************************************************************/
 
 	DECLARE @start_dt datetime;
@@ -40,7 +40,7 @@ BEGIN
 			y1.CS_id AS y1_CS_id,
 			y1.organisation_id AS y1_organisation_id,
 			y1.subsidiary_id AS y1_subsidiary_id,
-			y1.subsidiary_id_sys_gen AS y1_subsidiary_id_sys_gen,
+			--y1.subsidiary_id_sys_gen AS y1_subsidiary_id_sys_gen,
 			y1.ReportingYear AS y1_ReportingYear,
 			y1.ComplianceSchemeName AS y1_ComplianceSchemeName,
 			y1.organisation_name AS y1_organisation_name,
@@ -73,7 +73,7 @@ BEGIN
 			y1.joiner_date as y1_joiner_date
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
 		WHERE y1.ReportingYear = @Year1
-		and y1.Subsidiary_RelationToDate is null
+		--and y1.Subsidiary_RelationToDate is null
 		and y1.leaver_code = '' 
 		),
 	year2
@@ -85,7 +85,7 @@ BEGIN
 			y2.CS_id AS y2_CS_id,
 			y2.organisation_id AS y2_organisation_id,
 			y2.subsidiary_id AS y2_subsidiary_id,
-			y2.subsidiary_id_sys_gen AS y2_subsidiary_id_sys_gen,
+			--y2.subsidiary_id_sys_gen AS y2_subsidiary_id_sys_gen,
 			y2.ReportingYear AS y2_ReportingYear,
 			y2.ComplianceSchemeName AS y2_ComplianceSchemeName,
 			y2.organisation_name AS y2_organisation_name,
@@ -118,7 +118,7 @@ BEGIN
 			y2.joiner_date as y2_joiner_date
 		FROM dbo.t_latest_pending_or_accepted_orgfile_by_year y2
 		WHERE y2.ReportingYear = @Year2
-		and y2.Subsidiary_RelationToDate is null
+		--and y2.Subsidiary_RelationToDate is null
 		),
 	latest_in_year2
 	AS (
@@ -149,7 +149,7 @@ BEGIN
 			cr.y1_organisation_id, cr.y2_organisation_id,
 			cr.y1_organisation_name, cr.y2_organisation_name,
 			cr.y1_subsidiary_id, cr.y2_subsidiary_id,
-			cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen,
+			--cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen,
 			cr.y1_companies_house_number, cr.y2_companies_house_number,
 			cr.y1_organisation_size, cr.y2_organisation_size,
 			/*
@@ -229,7 +229,7 @@ BEGIN
 			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_id when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_id else coalesce(cr.y1_organisation_id, cr.y2_organisation_id) end as org_id,
 			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_name when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_name else coalesce(cr.y1_organisation_name, cr.y2_organisation_name) end as org_name,
 			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_subsidiary_id when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_subsidiary_id else coalesce(cr.y1_subsidiary_id, cr.y2_subsidiary_id) end as sub_id,
-			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_subsidiary_id_sys_gen when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_subsidiary_id_sys_gen else coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) end as subsidiary_id_sys_gen,
+			--case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_subsidiary_id_sys_gen when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_subsidiary_id_sys_gen else coalesce(cr.y1_subsidiary_id_sys_gen, cr.y2_subsidiary_id_sys_gen) end as subsidiary_id_sys_gen,
 			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_companies_house_number when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_companies_house_number else coalesce(cr.y1_companies_house_number, cr.y2_companies_house_number) end as ch_number,
 			case when (JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') = '') then cr.y1_organisation_size when ((JL = 'Leaver' and ISNULL(cr.y2_leaver_code,'') <> '') or (JL = 'Joiner')) then cr.y2_organisation_size else coalesce(cr.y1_organisation_size, cr.y2_organisation_size) end as org_size
 		from comparison_result_selected_columns cr
@@ -248,7 +248,7 @@ BEGIN
 		cr_sc.org_id,
 		cr_sc.org_name,
 		cr_sc.sub_id,
-		cr_sc.subsidiary_id_sys_gen,
+		--cr_sc.subsidiary_id_sys_gen,
 		cr_sc.ch_number,
 		cr_sc.org_size,
 
