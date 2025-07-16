@@ -2,9 +2,17 @@
 
 from 
 
-( SELECT cd.[organisation_id] CompanyOrgId
+( SELECT 
+
+/****************************************************************************************************************************
+	History:
+ 
+	Updated: 2025-07-15:	SV001:	Ticket - 576286:	Subsidiary Retrofit column removal 	
+******************************************************************************************************************************/
+
+cd.[organisation_id] CompanyOrgId
       ,cd.[subsidiary_id]
-	  ,so.[SecondOrganisation_ReferenceNumber] As SubsidiaryOrganisation_ReferenceNumber
+	--  ,so.[SecondOrganisation_ReferenceNumber] As SubsidiaryOrganisation_ReferenceNumber --SV001
       ,cd.[organisation_name]
       ,cd.[trading_name]
       ,cd.[companies_house_number]
@@ -98,10 +106,10 @@ from
   FROM [rpd].[CompanyDetails] cd 
   join [rpd].[cosmos_file_metadata] c on c.[FileName] = cd.[FileName]
   LEFT JOIN [dbo].[v_submitted_pom_org_file_status] pos on pos.filename = cd.filename
-  LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = cd.[organisation_id]
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(cd.subsidiary_id),'') and ISNULL(TRIM(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(cd.[companies_house_number]), '')
-			and so.RelationToDate is NULL
+ -- LEFT JOIN dbo.v_subsidiaryorganisations so --SV001
+	--on so.FirstOrganisation_ReferenceNumber = cd.[organisation_id]
+	--	and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(cd.subsidiary_id),'') and ISNULL(TRIM(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(cd.[companies_house_number]), '')
+	--		and so.RelationToDate is NULL
   ) a 
 	
 left join 
