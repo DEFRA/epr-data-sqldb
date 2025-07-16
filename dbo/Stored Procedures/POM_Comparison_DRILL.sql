@@ -3,26 +3,34 @@ BEGIN
     --declare @OrganisationID [int]
     --set @OrganisationID = '100230'
 
-    WITH file1 AS (
-    SELECT OrganisationID, subsidiary_id,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber, organisation_size, submission_period, packaging_activity,
+    WITH 
+/****************************************************************************************************************************
+	History:
+	Updated: 2025-07-15:	DK001:	Ticket - 576288: Subsidiary Retrofit column reference removal 
+******************************************************************************************************************************/
+	
+	file1 AS (
+    SELECT OrganisationID, subsidiary_id, --[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber, --DK001
+	 organisation_size, submission_period, packaging_activity,
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
            Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
            compliance_scheme, registration_type_code
 		   --, so.[SecondOrganisation_CompaniesHouseNumber]
     FROM dbo.t_POM_Submissions_POM_Comparison
-	LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') 
-		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
-			and so.RelationToDate is NULL -- added new sys gen subsidiary id
+	--LEFT JOIN dbo.v_subsidiaryorganisations so --DK001
+	--on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
+	--	and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') 
+	--	--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
+	--		and so.RelationToDate is NULL -- added new sys gen subsidiary id
     WHERE nation = @securityquery
       AND FileName = @filename1
       AND ((@producerCS = 'Producer' AND OrganisationID = @OrganisationID)
            OR (@producerCS = 'Compliance Scheme' AND compliance_scheme = @compliance_scheme AND data_type = 'Member'))
 ),
 file2 AS (
-    SELECT OrganisationID, subsidiary_id ,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber, organisation_size, submission_period, packaging_activity,
+    SELECT OrganisationID, subsidiary_id , --[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber, --DK001
+	 organisation_size, submission_period, packaging_activity,
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
            Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
@@ -30,11 +38,11 @@ file2 AS (
 		   
 		   --, so.[SecondOrganisation_CompaniesHouseNumber]
     FROM dbo.t_POM_Submissions_POM_Comparison
-	LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') 
-		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
-			and so.RelationToDate is NULL -- added new sys gen subsidiary id
+	--LEFT JOIN dbo.v_subsidiaryorganisations so 
+	--on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
+	--	and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'') 
+	--	--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'') -- added new subsidiary column
+	--		and so.RelationToDate is NULL -- added new sys gen subsidiary id
     WHERE nation = @securityquery
       AND FileName = @filename2
       AND ((@producerCS = 'Producer' AND OrganisationID = @OrganisationID)
@@ -43,7 +51,7 @@ file2 AS (
 file_joined_1 AS (
 	SELECT COALESCE(a.OrganisationID, b.OrganisationID) AS org_id,
 	       COALESCE(a.subsidiary_id, b.subsidiary_id) AS subsidiary_id,
-		   COALESCE(a.[SubsidiaryOrganisation_ReferenceNumber], b.[SubsidiaryOrganisation_ReferenceNumber]) SubsidiaryOrganisation_ReferenceNumber, -- added new sys gen subsidiary id
+		   --COALESCE(a.[SubsidiaryOrganisation_ReferenceNumber], b.[SubsidiaryOrganisation_ReferenceNumber]) SubsidiaryOrganisation_ReferenceNumber, -- added new sys gen subsidiary id
 		   --COALESCE(a.[SecondOrganisation_CompaniesHouseNumber], b.[SecondOrganisation_CompaniesHouseNumber]), -- added new sys gen subsidiary id
 
 	       COALESCE(a.packaging_material, b.packaging_material) AS packaging_material,
@@ -77,7 +85,7 @@ file_joined_1 AS (
 	FULL JOIN file2 b
 	  ON a.OrganisationID = b.OrganisationID
 	     AND a.subsidiary_id = b.subsidiary_id
-		 AND a.SubsidiaryOrganisation_ReferenceNumber = b.SubsidiaryOrganisation_ReferenceNumber -- added new subsidiary column
+		-- AND a.SubsidiaryOrganisation_ReferenceNumber = b.SubsidiaryOrganisation_ReferenceNumber -- added new subsidiary column --DK001
 		-- AND a.[SecondOrganisation_CompaniesHouseNumber] = b.[SecondOrganisation_CompaniesHouseNumber]-- added new subsidiary column
 	     AND a.packaging_activity = b.packaging_activity
 	     AND a.packaging_type = b.packaging_type
@@ -100,7 +108,7 @@ file_joined_1 AS (
 IF @BreakdownType = 'relative_move'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
+	--	--,SubsidiaryOrganisation_ReferenceNumber --DK001 -- added new sys gen subsidiary id
 		,packaging_material field2
 		,relative_move field3
 		,file1_Quantity_kg_extrapolated
@@ -117,7 +125,7 @@ IF @BreakdownType = 'relative_move'
 IF @BreakdownType = 'from_nation'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id 
+	--	----,SubsidiaryOrganisation_ReferenceNumber --DK001 -- added new sys gen subsidiary id 
 		,packaging_material field2
 		,from_nation field3
 		,file1_Quantity_kg_extrapolated
@@ -135,7 +143,7 @@ IF @BreakdownType = 'from_nation'
 IF @BreakdownType = 'from_org'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		----,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,from_nation field3
 		,file1_Quantity_kg_extrapolated
@@ -153,7 +161,7 @@ IF @BreakdownType = 'from_org'
 IF @BreakdownType = 'relative_move_org'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		----,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,relative_move field3
 		,file1_Quantity_kg_extrapolated
@@ -173,7 +181,7 @@ IF @BreakdownType = 'relative_move_org'
 IF @BreakdownType = 'hp_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		----,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -190,7 +198,7 @@ IF @BreakdownType = 'hp_all'
 IF @BreakdownType = 'nhp_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -207,7 +215,7 @@ IF @BreakdownType = 'nhp_all'
 IF @BreakdownType = 'hdc_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -223,7 +231,7 @@ IF @BreakdownType = 'hdc_all'
 IF @BreakdownType = 'nhdc_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -239,7 +247,7 @@ IF @BreakdownType = 'nhdc_all'
 IF @BreakdownType = 'drinks_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -255,7 +263,7 @@ IF @BreakdownType = 'drinks_all'
 IF @BreakdownType = 'rp_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -272,7 +280,7 @@ IF @BreakdownType = 'rp_all'
 IF @BreakdownType = 'tp_all'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -288,7 +296,7 @@ IF @BreakdownType = 'tp_all'
 IF @BreakdownType = 'hp_all_total'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -304,7 +312,7 @@ IF @BreakdownType = 'hp_all_total'
 IF @BreakdownType = 'nhp_all_total'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -320,7 +328,7 @@ IF @BreakdownType = 'nhp_all_total'
 IF @BreakdownType = 'rp_all_total'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -339,7 +347,7 @@ IF @BreakdownType = 'rp_all_total'
 IF @BreakdownType = 'all_pm_hh_pa'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -358,7 +366,7 @@ IF @BreakdownType = 'all_pm_hh_pa'
 IF @BreakdownType = 'all_pm_pb_pa'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -377,7 +385,7 @@ IF @BreakdownType = 'all_pm_pb_pa'
 IF @BreakdownType = 'all_pm_tnh_pa'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -396,7 +404,7 @@ IF @BreakdownType = 'all_pm_tnh_pa'
 IF @BreakdownType = 'all_pm_pa_HH_drinks'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -414,7 +422,7 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks'
 IF @BreakdownType = 'all_pm_pa_nHH_drinks'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -432,7 +440,7 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks'
 IF @BreakdownType = 'all_pm_pa_all_drinks'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -450,7 +458,7 @@ IF @BreakdownType = 'all_pm_pa_all_drinks'
 IF @BreakdownType = 'all_pm_pa_reusable'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -469,7 +477,7 @@ IF @BreakdownType = 'all_pm_pa_reusable'
 IF @BreakdownType = 'all_pm_pa_tp'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -487,7 +495,7 @@ IF @BreakdownType = 'all_pm_pa_tp'
 IF @BreakdownType = 'all_pm_pa_total_hh'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -505,7 +513,7 @@ IF @BreakdownType = 'all_pm_pa_total_hh'
 IF @BreakdownType = 'all_pm_pa_total_nonhh'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -523,7 +531,7 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh'
 IF @BreakdownType = 'all_pm_pa_total_reusable'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -541,7 +549,7 @@ IF @BreakdownType = 'all_pm_pa_total_reusable'
 IF @BreakdownType = 'all_pm_hh_pa_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -560,7 +568,7 @@ IF @BreakdownType = 'all_pm_hh_pa_pack'
 IF @BreakdownType = 'all_pm_pb_pa_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -579,7 +587,7 @@ IF @BreakdownType = 'all_pm_pb_pa_pack'
 IF @BreakdownType = 'all_pm_tnh_pa_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -598,7 +606,7 @@ IF @BreakdownType = 'all_pm_tnh_pa_pack'
 IF @BreakdownType = 'all_pm_pa_HH_drinks_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -616,7 +624,7 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_pack'
 IF @BreakdownType = 'all_pm_pa_nHH_drinks_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -634,7 +642,7 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_pack'
 IF @BreakdownType = 'all_pm_pa_all_drinks_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -652,7 +660,7 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_pack'
 IF @BreakdownType = 'all_pm_pa_reusable_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -671,7 +679,7 @@ IF @BreakdownType = 'all_pm_pa_reusable_pack'
 IF @BreakdownType = 'all_pm_pa_tp'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -689,7 +697,7 @@ IF @BreakdownType = 'all_pm_pa_tp'
 IF @BreakdownType = 'all_pm_pa_total_hh_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -707,7 +715,7 @@ IF @BreakdownType = 'all_pm_pa_total_hh_pack'
 IF @BreakdownType = 'all_pm_pa_total_nonhh_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -725,7 +733,7 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_pack'
 IF @BreakdownType = 'all_pm_pa_total_reusable_pack'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -743,7 +751,7 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_pack'
 IF @BreakdownType = 'all_pm_hh_pa_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -762,7 +770,7 @@ IF @BreakdownType = 'all_pm_hh_pa_Imported'
 IF @BreakdownType = 'all_pm_pb_pa_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -781,7 +789,7 @@ IF @BreakdownType = 'all_pm_pb_pa_Imported'
 IF @BreakdownType = 'all_pm_tnh_pa_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -800,7 +808,7 @@ IF @BreakdownType = 'all_pm_tnh_pa_Imported'
 IF @BreakdownType = 'all_pm_pa_HH_drinks_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -818,7 +826,7 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_Imported'
 IF @BreakdownType = 'all_pm_pa_nHH_drinks_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -836,7 +844,7 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_Imported'
 IF @BreakdownType = 'all_pm_pa_all_drinks_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -854,7 +862,7 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_Imported'
 IF @BreakdownType = 'all_pm_pa_reusable_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -873,7 +881,7 @@ IF @BreakdownType = 'all_pm_pa_reusable_Imported'
 IF @BreakdownType = 'all_pm_pa_tp_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -891,7 +899,7 @@ IF @BreakdownType = 'all_pm_pa_tp_Imported'
 IF @BreakdownType = 'all_pm_pa_total_hh_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -909,7 +917,7 @@ IF @BreakdownType = 'all_pm_pa_total_hh_Imported'
 IF @BreakdownType = 'all_pm_pa_total_nonhh_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -927,7 +935,7 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_Imported'
 IF @BreakdownType = 'all_pm_pa_total_reusable_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -945,7 +953,7 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_Imported'
 IF @BreakdownType = 'all_pm_hh_pa_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -964,7 +972,7 @@ IF @BreakdownType = 'all_pm_hh_pa_sold'
 IF @BreakdownType = 'all_pm_pb_pa_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -983,7 +991,7 @@ IF @BreakdownType = 'all_pm_pb_pa_sold'
 IF @BreakdownType = 'all_pm_tnh_pa_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1002,7 +1010,7 @@ IF @BreakdownType = 'all_pm_tnh_pa_sold'
 IF @BreakdownType = 'all_pm_pa_HH_drinks_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1020,7 +1028,7 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_sold'
 IF @BreakdownType = 'all_pm_pa_nHH_drinks_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1038,7 +1046,7 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_sold'
 IF @BreakdownType = 'all_pm_pa_all_drinks_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1056,7 +1064,7 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_sold'
 IF @BreakdownType = 'all_pm_pa_reusable_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1075,7 +1083,7 @@ IF @BreakdownType = 'all_pm_pa_reusable_sold'
 IF @BreakdownType = 'all_pm_pa_tp_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1093,7 +1101,7 @@ IF @BreakdownType = 'all_pm_pa_tp_sold'
 IF @BreakdownType = 'all_pm_pa_total_hh_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1111,7 +1119,7 @@ IF @BreakdownType = 'all_pm_pa_total_hh_sold'
 IF @BreakdownType = 'all_pm_pa_total_nonhh_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1129,7 +1137,7 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_sold'
 IF @BreakdownType = 'all_pm_pa_total_reusable_sold'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1147,7 +1155,7 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_sold'
 IF @BreakdownType = 'all_pm_hh_pa_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1166,7 +1174,7 @@ IF @BreakdownType = 'all_pm_hh_pa_hired'
 IF @BreakdownType = 'all_pm_pb_pa_Imported'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1185,7 +1193,7 @@ IF @BreakdownType = 'all_pm_pb_pa_Imported'
 IF @BreakdownType = 'all_pm_tnh_pa_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1204,7 +1212,7 @@ IF @BreakdownType = 'all_pm_tnh_pa_hired'
 IF @BreakdownType = 'all_pm_pa_HH_drinks_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1222,7 +1230,7 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_hired'
 IF @BreakdownType = 'all_pm_pa_nHH_drinks_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1240,7 +1248,7 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_hired'
 IF @BreakdownType = 'all_pm_pa_all_drinks_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,'' field3
 		,file1_Quantity_kg_extrapolated
@@ -1258,7 +1266,7 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_hired'
 IF @BreakdownType = 'all_pm_pa_reusable_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1277,7 +1285,7 @@ IF @BreakdownType = 'all_pm_pa_reusable_hired'
 IF @BreakdownType = 'all_pm_pa_tp__hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1295,7 +1303,7 @@ IF @BreakdownType = 'all_pm_pa_tp__hired'
 IF @BreakdownType = 'all_pm_pa_total_hh_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1313,7 +1321,7 @@ IF @BreakdownType = 'all_pm_pa_total_hh_hired'
 IF @BreakdownType = 'all_pm_pa_total_nonhh_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1331,7 +1339,7 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_hired'
 IF @BreakdownType = 'all_pm_pa_total_reusable_hired'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1349,7 +1357,7 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_hired'
 IF @BreakdownType = 'all_pm_online'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1367,7 +1375,7 @@ IF @BreakdownType = 'all_pm_online'
 IF @BreakdownType = 'all_pm_tnh_pa_online'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1386,7 +1394,7 @@ IF @BreakdownType = 'all_pm_tnh_pa_online'
 IF @BreakdownType = 'all_public_binned'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
@@ -1404,7 +1412,7 @@ IF @BreakdownType = 'all_public_binned'
 IF @BreakdownType = 'all_pm_online_non'
 	SELECT org_id
 		,subsidiary_id
-		,SubsidiaryOrganisation_ReferenceNumber
+		--,SubsidiaryOrganisation_ReferenceNumber --DK001
 		,packaging_material field2
 		,packaging_class field3
 		,file1_Quantity_kg_extrapolated
