@@ -1,4 +1,11 @@
-﻿CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS WITH base_data
+﻿CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS WITH 
+/****************************************************************************************************************************
+	History:
+ 
+	Updated: 2025-07-15:	DK001:	Ticket - 576287:	Subsidiary Retrofit column removal 
+	
+******************************************************************************************************************************/
+base_data
 AS (
 	SELECT m.OrganisationId AS meta_OrganisationId,
 		m.SubmissionPeriod,
@@ -65,7 +72,7 @@ AS (
 	SELECT com.*,
 		cd.organisation_id,
 		cd.subsidiary_id,
-		ISNULL(sub.SecondOrganisation_ReferenceNumber, o.ReferenceNumber) subsidiary_id_sys_gen,
+		--ISNULL(sub.SecondOrganisation_ReferenceNumber, o.ReferenceNumber) subsidiary_id_sys_gen,
 		cd.organisation_name,
 		cd.companies_house_number,
 		cd.organisation_size,
@@ -88,8 +95,8 @@ AS (
 		cd.primary_contact_person_last_name,
 		cd.primary_contact_person_email,
 		cd.primary_contact_person_phone_number,
-		sub.RelationFromDate as Subsidiary_RelationFromDate,
-		sub.RelationToDate as Subsidiary_RelationToDate,
+		--sub.RelationFromDate as Subsidiary_RelationFromDate,
+		--sub.RelationToDate as Subsidiary_RelationToDate,
 		n.name AS Organisation_Nation_Name, --TS_514441
 		org.[NationId] AS Organisation_Nation_Id, --TS_514441
 		isnull(trim(cd.leaver_code),'') as leaver_code,
@@ -99,10 +106,10 @@ AS (
 	FROM cd_org_combined com
 	LEFT JOIN rpd.CompanyDetails cd
 		ON com.meta_filename = cd.filename
-	LEFT JOIN dbo.v_subsidiaryorganisations sub
-		ON sub.FirstOrganisation_ReferenceNumber = cd.organisation_id
-			AND (sub.SubsidiaryId = cd.subsidiary_id
-					or sub.SecondOrganisation_ReferenceNumber = cd.subsidiary_id)
+	--LEFT JOIN dbo.v_subsidiaryorganisations sub
+	--	ON sub.FirstOrganisation_ReferenceNumber = cd.organisation_id
+	--		AND (sub.SubsidiaryId = cd.subsidiary_id
+	--				or sub.SecondOrganisation_ReferenceNumber = cd.subsidiary_id)
 	LEFT JOIN rpd.Organisations o
 		ON o.ReferenceNumber = cd.subsidiary_id
 	LEFT JOIN rpd.Organisations org  -- TS_514441
