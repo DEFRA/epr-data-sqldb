@@ -1,4 +1,11 @@
 ﻿CREATE VIEW [dbo].[v_CrossValidation_Landing_Page] AS with base_data as (
+/****************************************************************************************************************************
+	History:
+ 
+	Created: 2025-07-03:	SN001:	Ticket - 548795:Added flag to allow Uploaded status files to be removed from slicers
+	  
+****************************************************************************************************************************/
+
 				select m.OrganisationId
 				, m.SubmissionPeriod
 				, m.OriginalFileName
@@ -123,6 +130,8 @@ select
 	Concat(p.OriginalFileName,'_',format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOM,
 	Concat(format(convert(datetime,cd.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',cd.OriginalFileName,'_',IsNull(cd.Regulator_Status,'Pending')) AS DisplayFilenameCDSort,
 	Concat(format(convert(datetime,p.Created_frmtDT,122),'yyyyMMddHHmiss'),'_',p.OriginalFileName,'_',IsNull(p.Regulator_Status,'Pending')) AS DisplayFilenamePOMSort,
+	Case When IsNull(cd.Regulator_Status,'') In ('Uploaded','') Then 1 Else 0 End As FilenameCDExclude,  /*** SN001: Added ***/
+	Case When IsNull(p.Regulator_Status,'') In ('Uploaded','') Then 1 Else 0 End As FilenamePOMExclude,	/*** SN001: Added ***/
 	ISNULL(cd_o.Name,p_o.Name) as ProducerName,
 	ISNULL(cd_o.NationId,p_o.NationId) as ProducerNationId
 	--ISNULL(p.Producer_Nation,p.Producer_Nation) as ProducerNationName
