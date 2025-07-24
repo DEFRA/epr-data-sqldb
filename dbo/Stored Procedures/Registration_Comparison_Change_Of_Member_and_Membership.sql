@@ -4,6 +4,7 @@ WITH
 /****************************************************************************************************************************
 	History:
 	Updated: 2025-07-15:	DK001:	Ticket - 576286: Subsidiary Retrofit column reference removal 
+	Updated: 2025-07-24:	YM002:	Ticket - 582597 & 582613: Change of membership logic to be updated to include new Joiner and leaver codes
 ******************************************************************************************************************************/
 
 file1 AS (
@@ -257,9 +258,33 @@ SELECT CompanyOrgId
   ,f2.leaver_date AS leaver_date_2
   ,f1.organisation_change_reason AS organisation_change_reason_1
   ,f2.organisation_change_reason AS organisation_change_reason_2
-		
-
+	/*YM002*/
 	,CASE 
+		WHEN 
+		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') OR
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NULL) OR
+			(f1.subsidiary_id IS NULL AND f2.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL) -- Added Ticket 550897
+		THEN 'No Change'
+
+		WHEN 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL) OR -- 1 VS 1 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL) OR -- 2 VS 1
+			(f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 1 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NULL) OR -- 2 VS 1
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 2 VS 2
+			(f1.subsidiary_id IS NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_subsidiary_id
+	
+	/*,CASE 
 		WHEN 
 		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
 		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL) OR
@@ -282,7 +307,7 @@ SELECT CompanyOrgId
 		THEN 'Removed'
     
     ELSE 'Changed' 
-END AS change_status_subsidiary_id
+END AS change_status_subsidiary_id */
 
 
 	,f1.organisation_name AS file1_organisation_name
@@ -944,7 +969,30 @@ END AS change_status_subsidiary_id
 
 	,f1.CompanyOrgId AS file1_CompanyOrgId
 	,f2.CompanyOrgId AS file2_CompanyOrgId
+	/*YM002*/
 	,CASE 
+		WHEN 
+		    ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') and ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') OR
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NULL)
+		THEN 'No Change'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL) OR -- 1 VS 1 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL) OR -- 2 VS 1
+			(f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 1 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NULL) OR -- 2 VS 1
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 2 VS 2
+			(f1.CompanyOrgId IS NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    ELSE 'Changed' 
+END AS change_status_CompanyOrgId
+	/*,CASE 
 		WHEN 
 		    ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
 		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NULL)
@@ -966,7 +1014,7 @@ END AS change_status_subsidiary_id
 		THEN 'Removed'
     
     ELSE 'Changed' 
-END AS change_status_CompanyOrgId
+END AS change_status_CompanyOrgId*/
 
 	,f1.organisation_size AS file1_organisation_size
 	,f2.organisation_size AS file2_organisation_size
@@ -1012,7 +1060,6 @@ END AS change_status_CompanyOrgId
 		WHEN f1.organisation_change_reason IS NOT NULL AND f2.organisation_change_reason IS NULL THEN 'Removed'
 		ELSE 'Changed' 
 	END AS change_status_organisation_change_reason
-	
 	FROM file1 f1
 
 	FULL OUTER JOIN file2  f2 ON f2.CompanyOrgId = f1.CompanyOrgId AND ISNULL(f1.subsidiary_id,'') = ISNULL(f2.subsidiary_id,'') AND -- ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber,'') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber,'') and  
