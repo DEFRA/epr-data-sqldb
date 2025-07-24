@@ -74,7 +74,7 @@ BEGIN
 		FROM dbo.t_latest_accepted_orgfile_by_year y1
 		WHERE y1.ReportingYear = @Year1
 		--and y1.Subsidiary_RelationToDate is null
-		and y1.leaver_code = '' 
+		and ISNULL(y1.leaver_date,'') = '' 
 		),
 	year2
 	AS (
@@ -201,6 +201,20 @@ BEGIN
 			cr.y2_primary_contact_person_phone_number,
 
 			CASE 
+				WHEN   (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL AND ISNULL(cr.y2_leaver_date,'') = '') 
+					OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL and ISNULL(cr.y2_leaver_date,'') = '')
+					-- if not direct producer
+					THEN 'Joiner'
+				WHEN   (cr.y1_CS_id IS NOT NULL AND cr.y2_CS_id IS NULL) 
+				    OR (cr.y1_organisation_id IS NOT NULL AND cr.y2_organisation_id IS NULL) 
+					OR (ISNULL(cr.y2_leaver_date,'') <> '')
+					--if not direct producer
+					THEN 'Leaver'
+				WHEN ISNULL(cr.y1_CS_id, '') = ISNULL(cr.y2_CS_id, '') AND (cr.y1_organisation_id = cr.y2_organisation_id) AND (ISNULL(cr.y2_leaver_date,'') = '')
+					THEN 'No change'
+				END AS JL,
+				
+			/*CASE 
 				WHEN   (cr.y1_CS_id IS NULL AND cr.y2_CS_id IS NOT NULL AND ISNULL(cr.y2_leaver_code,'') = '') 
 					OR (cr.y1_organisation_id IS NULL AND cr.y2_organisation_id IS NOT NULL and ISNULL(cr.y2_leaver_code,'') = '')
 					-- if not direct producer
@@ -213,6 +227,7 @@ BEGIN
 				WHEN ISNULL(cr.y1_CS_id, '') = ISNULL(cr.y2_CS_id, '') AND (cr.y1_organisation_id = cr.y2_organisation_id) AND (ISNULL(cr.y2_leaver_code,'') = '')
 					THEN 'No change'
 				END AS JL,
+				*/
 
 			cr.y2_leaver_code,
 			cr.y2_leaver_date,
