@@ -322,5 +322,6 @@
     <Build Include="rpd\Tables\ObligationCalculationOrganisationSubmitterType.sql" />
     <Build Include="dbo\Views\v_PRN_MaterialGroups.sql" />
     <Build Include="dbo\Stored Procedures\GetLatestAcceptedGrantedOrgData.sql" />
+    <Build Include="dbo\Stored Procedures\sp_insert_log.sql" />
   </ItemGroup>
 </Project>
