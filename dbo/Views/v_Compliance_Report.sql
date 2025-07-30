@@ -189,14 +189,14 @@ LEFT JOIN reg_submissions f
     ON f.organisation_id=Org.referenceNumber AND f.rn_asc = 1 and f.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
 LEFT JOIN reg_submissions l
     ON l.organisation_id=Org.referenceNumber AND l.rn_desc = 1 and l.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
+LEFT JOIN lookup_dates LDateP 
+	ON LDateP.Producer_Type=cd.organisation_size and LDateP.Submission_Type='Packaging' and LdateP.relevant_year=rel.Relevant_year --592034 moved join earlier to enable filtering by submission period in POM data join
 LEFT JOIN pom_sub fpom
-    ON fpom.organisation_id=Org.referenceNumber AND fpom.rn_asc = 1 and fpom.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
+    ON fpom.organisation_id=Org.referenceNumber AND fpom.rn_asc = 1 and fpom.Relevant_Year=rel.Relevant_year and fpom.SubmissionPeriod=LDateP.submission_period--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) 592034 add submission period to join cond
 LEFT JOIN reg_pom lpom
-    ON lpom.organisation_id=Org.referenceNumber AND lpom.rn_desc = 1 and lpom.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
+    ON lpom.organisation_id=Org.referenceNumber AND lpom.rn_desc = 1 and lpom.Relevant_Year=rel.Relevant_year and lpom.SubmissionPeriod=LDateP.submission_period--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) 592034 add submission period to join cond
 LEFT JOIN lookup_dates LDateR 
 	ON LDateR.Producer_Type=cd.organisation_size and LDateR.Submission_Type='Registration' and LdateR.relevant_year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) --meta.created>= LDateR.start_date and meta.created<=LDateR.end_date
-LEFT JOIN lookup_dates LDateP 
-	ON LDateP.Producer_Type=cd.organisation_size and LDateP.Submission_Type='Packaging' and LdateP.relevant_year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)-- meta.created>= LDateP.start_date and meta.created<=LDateP.end_date
 LEFT JOIN v_PRN_Recycling_Obligation_stat_Count prn
 	ON Org.id=prn.orgid and prn.YR=rel.Relevant_year and prn.subsidiaryid is null and cd.subsidiary_id is null
 lEFT JOIN org_selected_schemes ss
