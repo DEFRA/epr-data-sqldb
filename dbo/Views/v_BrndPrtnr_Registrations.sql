@@ -7,7 +7,9 @@
 	Updated: 2025-05-08:	YM003:	Ticket - 550651: Registration detail reports to include Registration reference number
 	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
 	Updated: 2025-05-16:    AV005:  Ticket - 542622: Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
-	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal 
+	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
+	Updated: 2025-07-29:	SN006:	Ticket - 542622: Join Criteria created a bug restricting data returned by view. 
+								
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -240,10 +242,13 @@ Join
 --AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
 INNER JOIN dbo.t_rpd_data_SECURITY_FIX sc 
     On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
+
+/************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
    AND (
          IsNull(Trim(cfm.ServiceRoles_Name),'') = IsNull(Trim(sc.ServiceRoles_Role),'')
          OR cfm.ServiceRoles_Name IS NULL
 		 OR sc.ServiceRoles_Role IS NULL)
+ ************************* SN006: Removed.  DO NOT REINTRODUCE **********************************/
 		 
 Left Join
 	dbo.v_rpd_ComplianceSchemes_Active		csa 
