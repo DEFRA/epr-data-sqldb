@@ -1,16 +1,14 @@
-﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations] AS With 
+﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations_ST_R11]
+AS With 
 /****************************************************************************************************************************
 	History:
+
 	Created: 2025-03-17:	SN001:	Ticket - 520206:	Organisation Submissions with Brand and Partner.  Added Relevant Year Column
 														Reduced columns to ones only used in PBI
+
 	Updated: 2025-04-16:	YM002:	Ticket - 513367,515430:	Mid year changes  - Registration detail reports to include the 4 new columns added in the Registration file for DP and CS
-	Updated: 2025-05-08:	YM003:	Ticket - 550651: Registration detail reports to include Registration reference number
-	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
-	Updated: 2025-05-16:    AV005:  Ticket - 542622: Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
-	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
-	Updated: 2025-07-29:	SN006:	Ticket - 592352: Join Criteria created a bug restricting data returned by view.
-	Updated: 2025-08-02		SN007:	Ticket - 593361: Remove duplicate values caused by t_rpd_data_SECURITY_FIX.  
-													 							
+	Updated: 2025-04-29:	ST003:  Ticket - 542622:	Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
+
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -95,22 +93,7 @@ BrPaUn						As
 	Where
 		brOJ.brand_name Is Null And brOJ.brand_type_code IS Null
 			And psOJ.partner_first_name Is Null And psOJ.subsidiary_id Is Null
-),
-
-/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
-secQry as (
-	Select Distinct
-		 sc.FromOrganisation_Type
-		,sc.Organisations_Id
-		,sc.ServiceRoles_Role		
-		,sc.FromOrganisation_ReferenceNumber
-		,sc.FromOrganisation_IsComplianceScheme
-		,sc.FromOrganisation_Name
-	From
-		dbo.t_rpd_data_SECURITY_FIX sc 
 )
-/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
-
 Select 
 	 cd.approved_person_email
 	,cd.approved_person_first_name
@@ -208,16 +191,11 @@ Select
 	,pos.Regulator_User_Name
 	,pos.Decision_Date
 	,pos.ApplicationReferenceNo
-	/**YM003: Registrationreferencenumber column added **/
-	,pos.RegistrationReferenceNumber --YM003
 	,RegistrationType					= IsNull(pos.RegistrationType,2)
 	,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 'Uploaded' Else pos.Regulator_Status End
 
-	/**Ticket -552079: IsResubmission_identifier column added **/
-	,pos.IsResubmission_identifier
-
 	--v_subsidiaryorganisations
-	-- SV001: ,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
+	,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
 
 	--t_cosmos_file_metadata
 	,cfm.FileType
@@ -226,9 +204,9 @@ Select
 	,cfm.SubmittedBy
 	,cfm.SubmissionId
 	,cfm.SubmissionPeriod
-	--,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created) 
-	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cfm.Created) as Created
-	--t_rpd_data_SECURITY_FIX`
+	,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created)
+	
+	--t_rpd_data_SECURITY_FIX
 	,sc.FromOrganisation_Type
 	,sc.Organisations_Id
 	,sc.ServiceRoles_Role
@@ -250,22 +228,20 @@ Join
 		on cd.organisation_id = bp.organisation_id
 			And ISNULL(cd.subsidiary_id,'') = ISNULL(bp.subsidiary_id,'') 
 				And cd.RegistrationSetId = bp.RegistrationSetId
-
+				
 Join
 	dbo.t_cosmos_file_metadata				cfm
 		On cd.[FileName] = cfm.[FileName]
 
---AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
-INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+--ST003 additional join crtieria added ensuring just the role of the submitter of the file is returned.		
+INNER JOIN dbo.t_rpd_data_SECURITY_FIX sc 
     On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
-
-/************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
    AND (
          IsNull(Trim(cfm.ServiceRoles_Name),'') = IsNull(Trim(sc.ServiceRoles_Role),'')
          OR cfm.ServiceRoles_Name IS NULL
-		 OR sc.ServiceRoles_Role IS NULL)
- ************************* SN006: Removed.  DO NOT REINTRODUCE **********************************/
-		 
+		 OR sc.ServiceRoles_Role IS NULL
+       )
+
 Left Join
 	dbo.v_rpd_ComplianceSchemes_Active		csa 
 		On cfm.ComplianceSchemeId = csa.externalid
@@ -273,6 +249,11 @@ Left Join
 	dbo.v_submitted_pom_org_file_status		pos
 		On cd.[Filename] = pos.[Filename]
 			And pos.RegistrationType = 2 
-	
+Left Join
+	dbo.v_subsidiaryorganisations			so
+		On cd.organisation_id = so.FirstOrganisation_ReferenceNumber
+			And IsNull(Trim(cd.subsidiary_id),'') = IsNull(Trim(so.SubsidiaryId),'')
+				And IsNull(Trim(cd.companies_house_number),'') = IsNull(Trim(so.SecondOrganisation_CompaniesHouseNumber),'')
+					And so.RelationToDate Is Null		
 Where 
 	Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) > 2024;

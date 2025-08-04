@@ -1,0 +1,56 @@
+﻿CREATE VIEW [apps].[v_All_POM_Submissions] AS SELECT *,'Direct' data_type
+FROM t_POM_Submissions direct
+WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName
+ 
+FROM v_POM_Operator_Submissions operators )
+ 
+union 
+select
+[Org_Name]
+      ,[PCS_Or_Direct_Producer]
+      ,[Compliance_Scheme]
+      ,[Org_Type]
+      ,[Org_Sub_Type]
+      ,[organisation_size]
+      ,[Submission_Date]
+      ,[submission_period]
+	 --       ,[organisation_id]
+      ,[organisation_id_producer]
+      ,[subsidiary_id]
+      ,[CH_Number]
+      ,[Nation_Of_Enrolment]
+      ,[packaging_activity]
+      ,[packaging_type]
+      ,[packaging_class]
+      ,[packaging_material]
+      ,[packaging_sub_material]
+      ,[from_nation]
+      ,[to_nation]
+      ,[quantity_kg]
+      ,[quantity_unit]
+      ,[Quantity_kg_extrapolated]
+      ,[Quantity_units_extrapolated]
+      ,[ToOrganisation_NationName]
+      ,[Nation]
+      ,[FromOrganisation_NationName]
+      ,[FileName]
+      ,[ServiceRoles_Role]
+      ,[SubmittedBy]
+      ,[filetype]
+      ,[Users_Email]
+      ,[Persons_Email]
+      ,[metafile]
+      ,[JOINFIELD]
+      ,[relative_move]
+      ,[SubmtterEmail]
+      ,[ServiceRoles_Name]
+      ,[Trading_Name]
+      ,[registered_addr_line1]
+        ,[registered_addr_line2]
+        ,[registered_city]
+        ,[registered_addr_country]
+        ,[registered_addr_postcode]
+      ,[OriginalFileName] ,'Member'
+	  from v_POM_Operator_Submissions 
+where   [organisation_id_producer] <>   [organisation_id]
+and compliance_scheme is not null;
