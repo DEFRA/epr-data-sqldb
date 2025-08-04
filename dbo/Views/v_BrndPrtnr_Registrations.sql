@@ -8,8 +8,9 @@
 	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
 	Updated: 2025-05-16:    AV005:  Ticket - 542622: Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
 	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
-	Updated: 2025-07-29:	SN006:	Ticket - 542622: Join Criteria created a bug restricting data returned by view. 
-								
+	Updated: 2025-07-29:	SN006:	Ticket - 592352: Join Criteria created a bug restricting data returned by view.
+	Updated: 2025-08-02		SN007:	Ticket - 593361: Remove duplicate values caused by t_rpd_data_SECURITY_FIX.  
+													 							
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -94,7 +95,22 @@ BrPaUn						As
 	Where
 		brOJ.brand_name Is Null And brOJ.brand_type_code IS Null
 			And psOJ.partner_first_name Is Null And psOJ.subsidiary_id Is Null
+),
+
+/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+secQry as (
+	Select Distinct
+		 sc.FromOrganisation_Type
+		,sc.Organisations_Id
+		,sc.ServiceRoles_Role		
+		,sc.FromOrganisation_ReferenceNumber
+		,sc.FromOrganisation_IsComplianceScheme
+		,sc.FromOrganisation_Name
+	From
+		dbo.t_rpd_data_SECURITY_FIX sc 
 )
+/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+
 Select 
 	 cd.approved_person_email
 	,cd.approved_person_first_name
@@ -240,7 +256,7 @@ Join
 		On cd.[FileName] = cfm.[FileName]
 
 --AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
-INNER JOIN dbo.t_rpd_data_SECURITY_FIX sc 
+INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
     On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
 
 /************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
@@ -257,11 +273,6 @@ Left Join
 	dbo.v_submitted_pom_org_file_status		pos
 		On cd.[Filename] = pos.[Filename]
 			And pos.RegistrationType = 2 
---Left Join
---	dbo.v_subsidiaryorganisations			so
---		On cd.organisation_id = so.FirstOrganisation_ReferenceNumber
---			And IsNull(Trim(cd.subsidiary_id),'') = IsNull(Trim(so.SubsidiaryId),'')
---				And IsNull(Trim(cd.companies_house_number),'') = IsNull(Trim(so.SecondOrganisation_CompaniesHouseNumber),'')
---					And so.RelationToDate Is Null		
+	
 Where 
 	Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) > 2024;
