@@ -10,7 +10,7 @@
 	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
 	Updated: 2025-07-29:	SN006:	Ticket - 592352: Join Criteria created a bug restricting data returned by view.
 	Updated: 2025-08-02		SN007:	Ticket - 593361: Remove duplicate values caused by t_rpd_data_SECURITY_FIX.  
-													 							
+
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
@@ -102,7 +102,7 @@ secQry as (
 	Select Distinct
 		 sc.FromOrganisation_Type
 		,sc.Organisations_Id
-		,sc.ServiceRoles_Role		
+		--,sc.ServiceRoles_Role		
 		,sc.FromOrganisation_ReferenceNumber
 		,sc.FromOrganisation_IsComplianceScheme
 		,sc.FromOrganisation_Name
@@ -231,7 +231,8 @@ Select
 	--t_rpd_data_SECURITY_FIX`
 	,sc.FromOrganisation_Type
 	,sc.Organisations_Id
-	,sc.ServiceRoles_Role
+	,ServiceRoles_Role = cfm.ServiceRoles_Name		/*** SN007 ***/
+	--,ServiceRoles_Role2 = sc.ServiceRoles_Role
 	,sc.FromOrganisation_ReferenceNumber
 	,sc.FromOrganisation_IsComplianceScheme
 	,sc.FromOrganisation_Name
@@ -250,7 +251,6 @@ Join
 		on cd.organisation_id = bp.organisation_id
 			And ISNULL(cd.subsidiary_id,'') = ISNULL(bp.subsidiary_id,'') 
 				And cd.RegistrationSetId = bp.RegistrationSetId
-
 Join
 	dbo.t_cosmos_file_metadata				cfm
 		On cd.[FileName] = cfm.[FileName]
