@@ -10,25 +10,63 @@
 	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
 	Updated: 2025-07-29:	SN006:	Ticket - 592352: Join Criteria created a bug restricting data returned by view.
 	Updated: 2025-08-02		SN007:	Ticket - 593361: Remove duplicate values caused by t_rpd_data_SECURITY_FIX.  
-													 							
+
 ******************************************************************************************************************************/
 CompanyDetails_with_regid	As
 (
-	Select	c_meta.RegistrationSetId,c.* 
+	Select	c_meta.RegistrationSetId,
+	c_meta.[ServiceRoles_Name], 
+	c_meta.SubmissionPeriod,
+	c_meta.SubmissionId,
+	c_meta.ComplianceSchemeId,
+	c_meta.FileType,
+	c_meta.[Filename] as metafilename,
+	c_meta.OriginalFileName,
+	c_meta.SubmittedBy,
+	c_meta.created,
+	c.* 
 	From	[rpd].[CompanyDetails]			c
-	Join	[rpd].[cosmos_file_metadata]	c_meta	on c_meta.[Filename] = c.[Filename]
-),
+	Join	[dbo].[t_cosmos_file_metadata]	c_meta	on c_meta.[Filename] = c.[Filename] 
+)
+
+
+
+,
 Brands_with_regid			As
 (
-	Select	b_meta.RegistrationSetId,b.* 
+	Select	b_meta.RegistrationSetId,
+	b_meta.[ServiceRoles_Name],
+	b_meta.SubmissionPeriod,
+	b_meta.SubmissionId,
+	b_meta.ComplianceSchemeId,
+	b_meta.FileType,
+	b_meta.[Filename] as metafilename,
+	b_meta.OriginalFileName,
+	b_meta.SubmittedBy,
+	b_meta.created,
+
+	b.* 
 	From	[rpd].[Brands]					b
-	Join	[rpd].[cosmos_file_metadata]	b_meta	on b_meta.[Filename] = b.[Filename]
-),
+	join [dbo].[t_cosmos_file_metadata]	b_meta	on b_meta.[Filename] = b.[Filename]
+)
+
+
+,
 Partner_with_regid			As
 (
-	Select	p_meta.RegistrationSetId,p.* 
+	Select	p_meta.RegistrationSetId,
+	p_meta.[ServiceRoles_Name],
+	p_meta.SubmissionPeriod,
+	p_meta.SubmissionId,
+	p_meta.ComplianceSchemeId,
+	p_meta.FileType,
+	p_meta.[Filename] as metafilename,
+	p_meta.OriginalFileName,
+	p_meta.SubmittedBy,
+	p_meta.created,
+	p.* 
 	From	[rpd].[Partnerships]			p
-	Join	[rpd].[cosmos_file_metadata]	p_meta	on p_meta.[Filename] = p.[Filename]
+	Join	[dbo].[t_cosmos_file_metadata]	p_meta	on p_meta.[Filename] = p.[Filename]
 ),
 BrPaUn						As 
 (
@@ -36,6 +74,15 @@ BrPaUn						As
 		 cd.organisation_id
 		,cd.subsidiary_id
 		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
 		,br.brand_name
 		,br.brand_type_code
 		,partner_first_name		= Null
@@ -55,6 +102,15 @@ BrPaUn						As
 		 cd.organisation_id
 		,cd.subsidiary_id
 		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
 		,brand_name				= Null
 		,brand_type_code		= Null
 		,ps.partner_first_name		
@@ -68,11 +124,21 @@ BrPaUn						As
 			on cd.organisation_id = ps.organisation_id
 				And ISNULL(cd.subsidiary_id,'') = ISNULL(ps.subsidiary_id,'') 
 					And cd.RegistrationSetId = ps.RegistrationSetId
+				
 	Union --All
 	Select
 		 cd.organisation_id
 		,cd.subsidiary_id
 		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
 		,brOJ.brand_name
 		,brOJ.brand_type_code
 		,psOJ.partner_first_name		
@@ -81,37 +147,47 @@ BrPaUn						As
 		,psOJ.partner_email
 	From
 		CompanyDetails_with_regid	cd
+
+
 	Left Join 
 		Partner_with_regid			psOJ	
 			on cd.organisation_id = psOJ.organisation_id
 				And ISNULL(cd.subsidiary_id,'') = ISNULL(psOJ.subsidiary_id,'') 
 					And cd.RegistrationSetId = psOJ.RegistrationSetId
+						
 
 	Left Join 
 		Brands_with_regid			brOJ			
 			on cd.organisation_id = brOJ.organisation_id
 				And ISNULL(cd.subsidiary_id,'') = ISNULL(brOJ.subsidiary_id,'') 
 					And cd.RegistrationSetId = brOJ.RegistrationSetId
+						
 	Where
 		brOJ.brand_name Is Null And brOJ.brand_type_code IS Null
 			And psOJ.partner_first_name Is Null And psOJ.subsidiary_id Is Null
-),
+)
+
+
+
+,
+
 
 /*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
 secQry as (
 	Select Distinct
 		 sc.FromOrganisation_Type
 		,sc.Organisations_Id
-		,sc.ServiceRoles_Role		
+		--,sc.ServiceRoles_Role		
 		,sc.FromOrganisation_ReferenceNumber
 		,sc.FromOrganisation_IsComplianceScheme
 		,sc.FromOrganisation_Name
 	From
 		dbo.t_rpd_data_SECURITY_FIX sc 
 )
+
 /*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
 
-Select 
+Select distinct
 	 cd.approved_person_email
 	,cd.approved_person_first_name
 	,cd.approved_person_job_title
@@ -191,6 +267,15 @@ Select
     ,cd.leaver_date					--YM002
     ,cd.organisation_change_reason  --YM002
     ,cd.joiner_date					--YM002
+	,cd.[ServiceRoles_Name]
+	,cd.SubmissionId as cdsubmisionid
+	,cd.ComplianceSchemeId
+	,cd.FileType
+	,cd.[Filename]
+	,cd.OriginalFileName
+	,cd.SubmittedBy
+	,cd.created as metacreated
+	,cd.SubmissionPeriod
 	
 	--Brand
 	,bp.brand_name
@@ -218,30 +303,31 @@ Select
 
 	--v_subsidiaryorganisations
 	-- SV001: ,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
-
+	/** Fix for the PRE BUG - 06/08/2025 */
 	--t_cosmos_file_metadata
-	,cfm.FileType
-	,cfm.[Filename]
-	,cfm.OriginalFileName
-	,cfm.SubmittedBy
-	,cfm.SubmissionId
-	,cfm.SubmissionPeriod
+	----,cfm.FileType
+	----,cfm.[Filename]
+	----,cfm.OriginalFileName
+	----,cfm.SubmittedBy
+	----,cfm.SubmissionId
+	----,cfm.SubmissionPeriod
+	--,cfm.[ServiceRoles_Name]
 	--,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created) 
-	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cfm.Created) as Created
+	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cd.Created) as Created
 	--t_rpd_data_SECURITY_FIX`
-	,sc.FromOrganisation_Type
-	,sc.Organisations_Id
-	,sc.ServiceRoles_Role
-	,sc.FromOrganisation_ReferenceNumber
-	,sc.FromOrganisation_IsComplianceScheme
-	,sc.FromOrganisation_Name
+	----,sc.FromOrganisation_Type
+	----,sc.Organisations_Id
+	------,sc.ServiceRoles_Role
+	----,sc.FromOrganisation_ReferenceNumber
+	----,sc.FromOrganisation_IsComplianceScheme
+	----,sc.FromOrganisation_Name
 
 	--v_rpd_ComplianceSchemes_Active
 	,ComplianceSchemes_Id			= csa.[Id]
 	,ComplianceSchemes_Name			= csa.[Name]
 
 	--New Column Removed from PowerBI
-	,RelevantYear = Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4)
+	,RelevantYear = Right(dbo.udf_DQ_SubmissionPeriod(cd.SubmissionPeriod),4)
 	
 From
 	CompanyDetails_with_regid				cd
@@ -251,13 +337,14 @@ Join
 			And ISNULL(cd.subsidiary_id,'') = ISNULL(bp.subsidiary_id,'') 
 				And cd.RegistrationSetId = bp.RegistrationSetId
 
-Join
-	dbo.t_cosmos_file_metadata				cfm
-		On cd.[FileName] = cfm.[FileName]
+/** Fix for the PRE BUG - 06/08/2025 */
+--Join
+--	dbo.t_cosmos_file_metadata				cfm
+--		On cd.[FileName] = cfm.[FileName]  and cd.SubmissionId = cfm.SubmissionId
 
 --AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
-INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
-    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
+--INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+--    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
 
 /************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
    AND (
@@ -268,11 +355,11 @@ INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove d
 		 
 Left Join
 	dbo.v_rpd_ComplianceSchemes_Active		csa 
-		On cfm.ComplianceSchemeId = csa.externalid
+		On cd.ComplianceSchemeId = csa.externalid
 Left Join
 	dbo.v_submitted_pom_org_file_status		pos
 		On cd.[Filename] = pos.[Filename]
 			And pos.RegistrationType = 2 
 	
 Where 
-	Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) > 2024;
+	Right(dbo.udf_DQ_SubmissionPeriod(cd.SubmissionPeriod),4) > 2024;
