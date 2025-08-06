@@ -9,6 +9,7 @@ History:
 	Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
 	Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
 	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
+	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
 *****************************************************************************************************/
 	
 As 
@@ -22,8 +23,8 @@ As
 			,A.Org_Type
 			,A.Org_Sub_Type
 			,A.organisation_size
-			/*,A.Submission_Date*/
-			,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Submission_Date
+			,A.Submission_Date --JP003
+			,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Application_Submission_Date --JP003
 			,A.submission_period
 			,A.SubmitterID
 			,A.organisation_id
