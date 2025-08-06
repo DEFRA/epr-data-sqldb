@@ -19,10 +19,10 @@
     [FileName]              NVARCHAR (4000) NULL,
     [load_ts]               DATETIME2 (7)   NULL,
     [SubmtterEmail]         NVARCHAR (4000) NULL,
-    [ServiceRoles_Name]     NVARCHAR (4000) NULL,
+    [ServiceRoles_Name]     NVARCHAR (100)  NULL,
     [ComplianceSchemeId]    NVARCHAR (4000) NULL,
     [LastUpdatedOn_History] DATETIME        NULL,
-    [Service_Name_History]  NVARCHAR (4000) NULL,
+    [Service_Name_History]  NVARCHAR (100)  NULL,
     [RegistrationSetId]     NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
