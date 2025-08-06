@@ -13,7 +13,8 @@ org As (
 	Updated: 2025-06-30		SN009:	Ticket - 552710		Update Update to take into account SubmitterId addition columns in 
 														ObligationCalculations
 	Updated: 2025-06-30		SN010:						Regrouping Material to match front end PRN
-	
+	Updated: 2025-08-05		SN011:	Ticket - 513680     Added NationId to check the RLS (Row level security) for PRN Details and Obligations Power BI report
+
 ******************************************************************************************************************************/
 
 /*** SN:003 ***/
@@ -202,6 +203,8 @@ obgns As (
 	  ,pl.PrnSignatory
 	  ,pl.PrnSignatoryPosition
 	  ,pl.[Signature]
+	  ,o.NationId  --513680--
+
 	From 
 		rpd.ObligationCalculations	ob
 	/*** SN007: Added ***/
@@ -265,6 +268,7 @@ obgnsGrp As (
 		,o.PrnSignatoryPosition
 		,o.[Signature]
 		,MaterialObligationValue =  sum(MaterialObligationValue)
+		,o.NationId   --513680---
 	From
 		obgns		o
 	Where o.LatestFlg = 1
@@ -288,6 +292,7 @@ obgnsGrp As (
 		,o.PrnSignatory
 		,o.PrnSignatoryPosition
 		,o.[Signature]	
+		,o.NationId   --513680---
 )
 
 /*** ^^^^ ** SN002 ** ^^^^ ***/
@@ -313,11 +318,17 @@ obgnsGrp As (
 		,AwaitingTonnage	= Sum(IsNull(p.AwaitingTonnage,0))
 		,RemainObligation	= Sum(o.MaterialObligationValue) - Sum(IsNull(p.AcceptedTonnage,0))
 		,RemainStatus = Case When Sum(o.MaterialObligationValue) - Sum(IsNull(p.AcceptedTonnage,0)) >0 Then 'Not Met' Else 'Met'	End	
+		,Nation	= IsNull(na.[Name],'Not Set')  --513680---
 	From
 		obgnsgrp		o
 	Left Join
 		prntt			p		
 			on o.PrnObliJoin  = p.PrnObliJoin
+	--513680 Start--
+	Left Join
+	rpd.nations			na
+		on o.NationId = na.Id
+	--513680 End--
 	
 	Group By
 		o.ExternalOrgId
@@ -335,4 +346,5 @@ obgnsGrp As (
 		,o.IsComplianceScheme
 		,o.PrnSignatory
 		,o.PrnSignatoryPosition
-		,o.[Signature];
+		,o.[Signature]
+		,na.[Name];
