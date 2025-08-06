@@ -78,7 +78,7 @@
     [organisation_change_reason]            NVARCHAR (4000) NULL,
     [joiner_date]                           NVARCHAR (4000) NULL,
     [ServiceRoles_Name]                     NVARCHAR (100)  NULL,
-    [cdsubmisionid]                         NVARCHAR (4000) NULL,
+    [SubmissionId]                          NVARCHAR (4000) NULL,
     [ComplianceSchemeId]                    NVARCHAR (4000) NULL,
     [FileType]                              NVARCHAR (4000) NULL,
     [Filename]                              NVARCHAR (4000) NULL,

@@ -268,7 +268,7 @@ Select distinct
     ,cd.organisation_change_reason  --YM002
     ,cd.joiner_date					--YM002
 	,cd.[ServiceRoles_Name]
-	,cd.SubmissionId as cdsubmisionid
+	,cd.SubmissionId --as cdsubmisionid
 	,cd.ComplianceSchemeId
 	,cd.FileType
 	,cd.[Filename]
