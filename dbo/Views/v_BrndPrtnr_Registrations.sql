@@ -267,8 +267,8 @@ Select distinct
     ,cd.leaver_date					--YM002
     ,cd.organisation_change_reason  --YM002
     ,cd.joiner_date					--YM002
-	,cd.[ServiceRoles_Name]
-	,cd.SubmissionId as cdsubmisionid
+	,cd.[ServiceRoles_Name] AS ServiceRoles_Role
+	,cd.SubmissionId --as cdsubmisionid
 	,cd.ComplianceSchemeId
 	,cd.FileType
 	,cd.[Filename]
@@ -315,12 +315,12 @@ Select distinct
 	--,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created) 
 	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cd.Created) as Created
 	--t_rpd_data_SECURITY_FIX`
-	----,sc.FromOrganisation_Type
-	----,sc.Organisations_Id
-	------,sc.ServiceRoles_Role
-	----,sc.FromOrganisation_ReferenceNumber
-	----,sc.FromOrganisation_IsComplianceScheme
-	----,sc.FromOrganisation_Name
+	,sc.FromOrganisation_Type
+	,sc.Organisations_Id
+	--,sc.ServiceRoles_Role
+	,sc.FromOrganisation_ReferenceNumber
+	,sc.FromOrganisation_IsComplianceScheme
+	,sc.FromOrganisation_Name
 
 	--v_rpd_ComplianceSchemes_Active
 	,ComplianceSchemes_Id			= csa.[Id]
@@ -343,8 +343,8 @@ Join
 --		On cd.[FileName] = cfm.[FileName]  and cd.SubmissionId = cfm.SubmissionId
 
 --AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
---INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
---    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
+INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
 
 /************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
    AND (
