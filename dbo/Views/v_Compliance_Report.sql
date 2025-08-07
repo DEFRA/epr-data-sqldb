@@ -1,5 +1,5 @@
 ﻿CREATE VIEW [dbo].[v_Compliance_Report] AS WITH reg_submissions AS (
-/*Returns information about registration files partitioned over org id and submission period so that we return the first and latest dates for an org in that period*/
+/*Returns information about registration files partitioned over org id and submission period so that we return the first and latest dates for an org in that period - SN force change*/
     SELECT
 		cfm.organisationid,
 		cd.organisation_id,
@@ -73,12 +73,14 @@ csOrg.Name as operatorName,
 cs.Name as schemeName,
 case when ROW_NUMBER() OVER (PARTITION BY producerOrg.ReferenceNumber ORDER BY oc.CreatedOn desc) = 1 then 'latest scheme'
 else 'old scheme' end as latestScheme,
-oc.CreatedOn
+oc.CreatedOn,
+n.Name as CS_Nation  -- 567886 added CS nation for RLS
 from rpd.SelectedSchemes ss
 join rpd.OrganisationsConnections oc on oc.Id = ss.OrganisationConnectionId
 join rpd.ComplianceSchemes cs on cs.Id = ss.ComplianceSchemeId
 join rpd.Organisations producerOrg on producerOrg.Id = oc.FromOrganisationId
 join rpd.Organisations csOrg on csOrg.Id = oc.ToOrganisationId
+left join rpd.Nations n on n.id = cs.NationId
 )
 	/*Select uses max and Group By as a work-around to merge first and latest dates onto one line  */
   SELECT
@@ -111,7 +113,9 @@ max(Organisation_Change_Reason) AS Organisation_Change_Reason,
 Prn_Accepted,
 Prn_Awaiting_Acceptance,
 Recycling_Obligation,
-Prn_Outstanding
+Prn_Outstanding,
+Org_Nation,
+CS_Nation
 from
 
 (
@@ -175,8 +179,9 @@ SELECT
 	prn.[TOTAL PRN/PERN Accepted] as [Prn_Accepted], -- from view v_PRN_Recycling_Obligation_stat_Count
 	prn.[TOTAL PRN/PERN Awaiting Acceptance] as [Prn_Awaiting_Acceptance],-- from v_PRN_Recycling_Obligation_stat_Count
 	prn.[Recyling_Obligation] as [Recycling_Obligation],-- from v_PRN_Recycling_Obligation_stat_Count
-	prn.[TOTAL PRN/PERN Outstanding] as [Prn_Outstanding]-- from v_PRN_Recycling_Obligation_stat_Count
-
+	prn.[TOTAL PRN/PERN Outstanding] as [Prn_Outstanding],-- from v_PRN_Recycling_Obligation_stat_Count
+	n.Name as Org_Nation, --567886 added Org nation for RLS
+	ss.CS_Nation
 FROM rpd.Organisations Org
 cross join rel_year rel
 left join	rpd.CompanyDetails cd 
@@ -201,6 +206,8 @@ LEFT JOIN v_PRN_Recycling_Obligation_stat_Count prn
 	ON Org.id=prn.orgid and prn.YR=rel.Relevant_year and prn.subsidiaryid is null and cd.subsidiary_id is null
 lEFT JOIN org_selected_schemes ss
 	ON ss.producerId = Org.ReferenceNumber and latestScheme = 'latest scheme' --ensures only the latest scheme is shown
+LEFT JOIN rpd.Nations n
+	On Org.NationId = n.id
 	)A
 	
 	group by
@@ -217,4 +224,6 @@ Registration_Submission_Deadline_Date,
 Prn_Accepted,
 Prn_Awaiting_Acceptance,
 Recycling_Obligation,
-Prn_Outstanding;
+Prn_Outstanding,
+Org_Nation,
+CS_Nation;
