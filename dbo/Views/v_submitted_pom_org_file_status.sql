@@ -20,6 +20,7 @@
 	Updated: 2025-04-24:	PM006:	Ticket - 543160		Rewritten to handle status as per the ticekt 543160
 	Updated: 2025-05-14:	PM008:	Ticket - 552117		Adding app submitted ts for the ticket 552117
 	Updated: 2025-06-17:	PM009:	Ticket - 548534		POM resubmission fix - updated comments
+	Updated: 2025-08-08:	PM010:	Ticket - 599145		Picking first submitted records by fileid to find if it is resubmitted or not
 ******************************************************************************************************************************/
 --SQL to find resubmitted POM file ids
 submitted_file_list as
@@ -50,12 +51,22 @@ group by sfl.SubmissionId, sfl.FileId
 ),
 
 --Sub query to find the resubmission records
+--with 
 resubmission_ids as
 (
-select distinct ISNULL(IsResubmission,0) as IsResubmission_identifier, Fileid 
-from rpd.SubmissionEvents
-where Fileid is not null and IsResubmission is not null
-),
+	select IsResubmission_identifier, Fileid
+	from
+	(
+		select distinct ISNULL(IsResubmission,0) as IsResubmission_identifier, Fileid
+			, row_number() over(partition by Fileid order by CONVERT(DATETIME,substring(Created,1,23))) resubmission_ids_submitted_rank
+		from rpd.SubmissionEvents
+		where Type = 'Submitted'
+		and Fileid is not null --and IsResubmission is not null
+	) A
+	where resubmission_ids_submitted_rank = 1
+)
+--select * from resubmission_ids where Fileid = '665a9626-4f3b-4e5b-b966-423825d0848a' 
+,
 
 
 --Find file id for the records that are missing fileid in decision records
