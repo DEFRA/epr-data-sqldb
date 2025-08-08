@@ -474,8 +474,7 @@ main as (
 				src
 Where
 				src.RegIsLatest = 1
-			And
-				Right(Org_SubmissionPeriod,4) = Right(pom_SubmissionPeriod,4)+1
+
 )
 
 Select *
