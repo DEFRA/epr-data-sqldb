@@ -361,7 +361,7 @@ begin
 					,total_packaging_material_weight
 					,has_HH_PB						
 					,pom_submission_date				= Convert(Datetime,substring(cfm.Created,1,23))
-					,RelevantYear						= Try_Convert(int,Right((cfm.submissionperiod),4))
+					,pom_RelevantYear					= Try_Convert(int,Right((cfm.submissionperiod),4)) + 1
 					,Pom_Created_frmtDT					= Convert(datetime2,Replace(Replace(cfm.Created,'T', ' '),'Z', ' '))
 					,pom_subPeriod_ord					= pso.SubPeriodOrdr
 					,pom_Created						= pfs.Created
@@ -389,10 +389,8 @@ begin
 					,Org_Submission_Date								= reg.reg_SubmissionDate
 					,Org_Regulator_Status								= reg.Regulator_Status
 					,landing_cd_filename								= reg.org_filename
-					,RelevantYear										= Case When reg.RelevantYear >=2025 And reg.FileType='Companydetails' 
-																			Then reg.RelevantYear
-																			Else reg.RelevantYear + 1
-																		 End
+					,reg.RelevantYear														
+				    ,pom.pom_RelevantYear									
 					,CS_or_DP											= Case When reg.IsComplianceScheme = 1 Then 'Compliance Scheme' Else 'Direct Producer' End 
 					,reg.CS_Name									
 					,reg.CS_Nation
@@ -406,7 +404,7 @@ begin
 					,reg.org_organisation_id
 					,reg.org_subsidiary_id
 					,reg.organisation_name
-					,reg.organisation_size
+					,org_organisation_size								= reg.organisation_size
 					,reg.Org_Sub_Type
 					,reg.Brand_Owner_Org			
 					,reg.Packer_Filler_Org			
@@ -454,32 +452,34 @@ begin
 																		Else 'Non Compliant' 
 																	 End
 					,reg.RegIsLatest
-	From
+		From
 					RegFileLtst					reg
 
 				Left Join
 					PomFileLtst					pom
 						on reg.org_organisation_id = pom.pom_organisation_id
 							And IsNull(reg.org_subsidiary_id,'x') = IsNull(pom.pom_subsidiary_id,'x')
-							
-			
-			),
-main as (
+		),
+		main as (
 
-			Select 
-				 src.*
-				,PomIsLatest								= Row_Number() Over(Partition By pom_organisation_id  Order by Pom_Submission_Date Desc )
-				
-			From
-				src
-Where
-				src.RegIsLatest = 1
+					Select 
+						 src.*
+						,PomIsLatest								= Row_Number() Over(Partition By pom_organisation_id  Order by Pom_Submission_Date Desc )			
+					From
+						src
+		Where
+						src.RegIsLatest = 1
 
-)
+		)
 
-Select *
-from Main
-where PomIsLatest = 1;
+		Select 
+			mn.* 
+		From 
+			Main		mn
+		Where 
+			mn.PomIsLatest = 1
+		And 
+			mn.RelevantYear = mn.pom_RelevantYear;
 
 
 	end;
