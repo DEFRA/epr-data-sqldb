@@ -406,7 +406,7 @@ begin
 					,reg.org_organisation_id
 					,reg.org_subsidiary_id
 					,reg.organisation_name
-					,reg.organisation_size
+					,org_organisation_size								= reg.organisation_size
 					,reg.Org_Sub_Type
 					,reg.Brand_Owner_Org			
 					,reg.Packer_Filler_Org			
@@ -461,6 +461,7 @@ begin
 					PomFileLtst					pom
 						on reg.org_organisation_id = pom.pom_organisation_id
 							And IsNull(reg.org_subsidiary_id,'x') = IsNull(pom.pom_subsidiary_id,'x')
+								And reg.RelevantYear = pom.RelevantYear
 							
 			
 			),
