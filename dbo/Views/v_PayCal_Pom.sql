@@ -19,6 +19,8 @@
 	Updated 2025-02-19: ST004: 510600: Added null validation to OrganisationId field to ensure no records with null come through
 	Updated 2025-07-14: ST005: 577281: Overhaul of the logic that determines the latest file 
 	Updated 2025-07-16: ST006: 577281: Additional CTE's: latest_accepted_registration and Latest_Org_Data_Selection + joins to the dataset to check pom data for valid registration in place
+	Updated 2025-08-12: ST007: 601349: Added in 'Accepted' status alongside 'Granted' as resubmission registration files only ever go to Accepted
+	Updated 2025-08-12: ST008: 601349: Added in additional criteria on check for to_country IS NULL to cater for pom files that have a blank space instead of null in production
  *****************************************************************************************************************/	
   ----Find latest Registration file with data submitted for a given organisation--
   --ST006
@@ -50,7 +52,8 @@
 											-- Only considering Granted files--
 											INNER JOIN dbo.v_submitted_pom_org_file_status sofs ON sofs.cfm_fileid = cfm.fileid 
 											AND sofs.filetype = 'CompanyDetails' 
-											AND sofs.Regulator_Status = 'Granted'
+											--ST007 Added Accepted Status to cater for resubmission registration files
+											AND sofs.Regulator_Status IN ('Granted','Accepted')
 											--Criteria to exclude small organisations
 											AND cd.Organisation_size = 'L' 
 											--Filter to ensure only selecting the file where they are not a leaver (MYC) currently not in scope
@@ -121,7 +124,7 @@ INNER JOIN Latest_Org_Data_Selection lods ON lods.organisation_id = p.organisati
 AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
 WHERE p.packaging_type IN ('HH','CW','PB') 
 and Organisation_size = 'L' 
-AND to_country IS NULL
+AND (to_country IS NULL OR  LTRIM(RTRIM(to_country)) = '')
 AND p.organisation_id IS NOT NULL
 
 UNION ALL
@@ -147,5 +150,5 @@ AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
 WHERE p.packaging_type = 'HDC' 
 and p.packaging_material = 'GL' 
 and Organisation_size = 'L' 
-AND to_country IS NULL
+AND (to_country IS NULL OR  LTRIM(RTRIM(to_country)) = '')
 AND p.organisation_id IS NOT NULL;
