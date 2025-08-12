@@ -10,6 +10,8 @@ History:
 	Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
 	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
 	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
+	Updated 2025-08-12: TS001: ticket 601453; adding [Is_resubmitted_POM_identifier] column for the POM reports
+
 *****************************************************************************************************/
 	
 As 
@@ -61,7 +63,12 @@ As
 			,A.OriginalFileName
 			,A.data_type
 			,A.OrganisationID
-		, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
+			,d.Regulator_Status,
+			d.Regulator_User_Name,
+			d.Decision_Date ,
+			d.Regulator_Rejection_Comments,
+			-- TS001
+			d.[Is_resubmitted_POM_identifier]
 	-- SV001 -,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
 	,Null as subsidiary_name
 	
