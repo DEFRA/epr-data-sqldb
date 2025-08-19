@@ -11,6 +11,7 @@ History:
 	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
 	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
 	Updated 2025-08-12: TS001: ticket 601453; adding [Is_resubmitted_POM_identifier] column for the POM reports
+	Updated 2025-08-19: TS002: ticket 603393; Changing the handling Application_submitted_ts logic
 
 *****************************************************************************************************/
 	
@@ -26,7 +27,8 @@ As
 			,A.Org_Sub_Type
 			,A.organisation_size
 			,A.Submission_Date --JP003
-			,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Application_Submission_Date --JP003
+			--,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Application_Submission_Date --JP003
+			,convert(datetime2,d.Application_submitted_ts,127) as Application_Submission_Date -- TS002
 			,A.submission_period
 			,A.SubmitterID
 			,A.organisation_id
