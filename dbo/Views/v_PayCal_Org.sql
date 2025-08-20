@@ -1,5 +1,4 @@
-﻿CREATE VIEW [dbo].[v_PayCal_Org]
-AS WITH latest_accepted_record AS(
+﻿CREATE VIEW [dbo].[v_PayCal_Org] AS WITH latest_accepted_record AS(
 /*****************************************************************************************************************
 	History:
 	Created 2024-10-04: VK001:425541: Created initial version of the view based on the logic we had in pyspark notebook
@@ -10,6 +9,7 @@ AS WITH latest_accepted_record AS(
 	Updated 2025-07-15: ST004: 577281: Overhaul of the logic that determines the latest file including a join to v_submitted_pom_org_file_status to handle resubmission files granted status
 	Updated 2025-07-16: ST005: 577281: Exclude Small Producers from the extraction as agreed on PayCal Surgery Session with DG3. Only Large Producers to be extracted
 	Updated 2025-08-12: ST006: 601349: Added in 'Accepted' status alongside 'Granted' as resubmission files only ever go to Accepted
+	Updated 2025-08-20: ST007: 603381: Removed filtering for Large organisations from CTE latest_accepted_record as we need to identify latest file regardless of org size
  *****************************************************************************************************************/
 
 		SELECT DISTINCT 
@@ -39,10 +39,7 @@ AS WITH latest_accepted_record AS(
 		--ST006
 		INNER JOIN dbo.v_submitted_pom_org_file_status sofs ON sofs.cfm_fileid = cfm.fileid AND sofs.filetype = 'CompanyDetails' 
 		AND sofs.Regulator_Status IN ('Granted','Accepted')
-		--ST005 excluding Small Producers, only Large Producers extracted--
-		WHERE		cd.Organisation_size = 'L' 
-		--Filter to ensure only selecting the file where they are not a leaver (MYC) currently not in scope
-		--AND leaver_code IS NULL	
+		--ST007 - Removed Large organisation filter - remains in main select below
 		)
 
 

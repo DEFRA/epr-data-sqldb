@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_PayCal_Pom] AS WITH latest_accepted_registration AS(
+﻿CREATE VIEW [dbo].[v_PayCal_Pom]
+AS WITH latest_accepted_registration AS(
 /*****************************************************************************************************************
 	History:
 	Created 2024-10-04:	ST001: 425541: Created initial version of the view based on the logic we had in pyspark notebook
@@ -21,6 +22,8 @@
 	Updated 2025-07-16: ST006: 577281: Additional CTE's: latest_accepted_registration and Latest_Org_Data_Selection + joins to the dataset to check pom data for valid registration in place
 	Updated 2025-08-12: ST007: 601349: Added in 'Accepted' status alongside 'Granted' as resubmission registration files only ever go to Accepted
 	Updated 2025-08-12: ST008: 601349: Added in additional criteria on check for to_country IS NULL to cater for pom files that have a blank space instead of null in production
+	Updated 2025-08-19: ST009: 603939: Converting Subsidiary_id's that are 'Blank' to Nulls so that it matches org extraction due to bad front end validation. Blanks causing issues for the calculator application
+	Updated 2025-08-20: ST010: 603381: Removal of filtering for Large organisations from CTE latest_accepted_registration and moving to other CTE Latest_Org_Data_Selection which selects data. Ensuring latest file found regardless of org size
  *****************************************************************************************************************/	
   ----Find latest Registration file with data submitted for a given organisation--
   --ST006
@@ -54,11 +57,7 @@
 											AND sofs.filetype = 'CompanyDetails' 
 											--ST007 Added Accepted Status to cater for resubmission registration files
 											AND sofs.Regulator_Status IN ('Granted','Accepted')
-											--Criteria to exclude small organisations
-											AND cd.Organisation_size = 'L' 
-											--Filter to ensure only selecting the file where they are not a leaver (MYC) currently not in scope
-											--AND leaver_code IS NULL	
-										) a
+											) a
 									WHERE latest_producer_accepted_record_per_SP = 1
 									)		
  ----Find latest POM file with data submitted for a given organisation--
@@ -96,6 +95,9 @@
 								FROM rpd.CompanyDetails cd
 								INNER JOIN latest_accepted_registration lar ON cd.filename = lar.filename 
 								--Ensuring this is kept at a per org level of extraction, otherwise we would extract all data from the file 
+								--In latest_accepted_registration finding the latest file regardless of org size
+								--Restricting here to those records where the organisation size is Large
+								AND cd.Organisation_size = 'L' 
 								AND lar.organisation_id = cd.organisation_id
 								AND cd.organisation_id IS NOT NULL
 								AND cd.organisation_name IS NOT NULL
@@ -107,7 +109,7 @@
 -----------------------------
 SELECT 
 p.organisation_id,
-p.subsidiary_id,
+NULLIF(LTRIM(RTRIM(p.subsidiary_id)), '') as subsidiary_id,
 p.submission_period,
 p.packaging_activity,
 p.packaging_type,
@@ -132,7 +134,7 @@ UNION ALL
 --HDC packaging_type - specifically restricted to just GL (Glass) materials--
 SELECT 
 p.organisation_id,
-p.subsidiary_id,
+NULLIF(LTRIM(RTRIM(p.subsidiary_id)), '') as subsidiary_id,
 p.submission_period,
 p.packaging_activity,
 p.packaging_type,
