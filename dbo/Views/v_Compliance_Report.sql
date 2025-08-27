@@ -1,5 +1,5 @@
 ﻿CREATE VIEW [dbo].[v_Compliance_Report] AS WITH reg_submissions AS (
-/*Returns information about registration files partitioned over org id and submission period so that we return the first and latest dates for an org in that period - SN force change*/
+/*Returns information about registration files*/
     SELECT
 		cfm.organisationid,
 		cd.organisation_id,
@@ -11,14 +11,20 @@
         sub.Regulator_Status,
 		CASE WHEN CAST('20' + RIGHT(RTRIM(cfm.SubmissionPeriod), 2) AS INT) < 2025 THEN CAST('20' + RIGHT(RTRIM(cfm.SubmissionPeriod), 2) AS INT) + 1
 		ELSE CAST('20' + RIGHT(RTRIM(cfm.SubmissionPeriod), 2) AS INT) 
-		END AS [Relevant_Year],
-        ROW_NUMBER() OVER (PARTITION BY cd.organisation_id,cfm.SubmissionPeriod ORDER BY CAST(cfm.Created AS DATETIME2)) AS rn_asc,
-        ROW_NUMBER() OVER (PARTITION BY cd.organisation_id,cfm.SubmissionPeriod ORDER BY CAST(cfm.Created AS DATETIME2) DESC) AS rn_desc
+		END AS [Relevant_Year]
 	FROM [rpd].[cosmos_file_metadata] cfm inner join rpd.CompanyDetails cd on cd.FileName=cfm.FileName
 	join [dbo].[v_submitted_pom_org_file_status] sub on sub.FileName = cfm.FileName 
 	WHERE UPPER(cfm.FileType) ='COMPANYDETAILS'
 	
 ),
+/* Assigns first and latest registration file by organisation id and relevant year (bug fix 605827)*/
+first_latest_reg_submissions AS (
+SELECT *,
+	ROW_NUMBER() OVER (PARTITION BY organisation_id, Relevant_Year ORDER BY CAST(SubmissionTime AS DATETIME2)) AS rn_asc,
+    ROW_NUMBER() OVER (PARTITION BY organisation_id, Relevant_Year ORDER BY CAST(SubmissionTime AS DATETIME2) DESC) AS rn_desc
+	FROM reg_submissions
+),
+ 
  reg_pom AS (
  /*Returns information about POM files partitioned over org id and submission period so that we return the first and latest dates for an org in that period. 
  Uses the same code as reg_submissions but is seperate to allow for easier bug fixing*/
@@ -190,9 +196,9 @@ LEFT JOIN dbo.t_cosmos_file_metadata meta
     ON LOWER(LTRIM(RTRIM(cd.FileName))) = LOWER(LTRIM(RTRIM(meta.FileName)))
 LEFT JOIN rpd.ComplianceSchemes cs
     ON cs.ExternalId = meta.ComplianceSchemeId
-LEFT JOIN reg_submissions f
+LEFT JOIN first_latest_reg_submissions f
     ON f.organisation_id=Org.referenceNumber AND f.rn_asc = 1 and f.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
-LEFT JOIN reg_submissions l
+LEFT JOIN first_latest_reg_submissions l
     ON l.organisation_id=Org.referenceNumber AND l.rn_desc = 1 and l.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
 LEFT JOIN lookup_dates LDateP 
 	ON LDateP.Producer_Type=cd.organisation_size and LDateP.Submission_Type='Packaging' and LdateP.relevant_year=rel.Relevant_year --592034 moved join earlier to enable filtering by submission period in POM data join
