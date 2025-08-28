@@ -10,7 +10,8 @@
 	Updated: 2025-06-11:	YM007:  Ticket - 548936:    Master script not to show resubmitted POM submission with "Uploaded" status
 	Updated: 2025-07-08:	YM008:  Ticket - 569433:    Master script - Org size to show only Parent Organisation
 	Updated: 2025-08-27:	PM009:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
-	Updated: 2025-08-28:	PM010:  Ticket - 605105:    Master script - New 4 additional columns will be introduced to split the plastics to “Rigid & Flexible” on Large producer 
+	Updated: 2025-08-28:	AA010:  Ticket - 605105:    Master script - New 4 additional columns will be introduced to split the plastics to “Rigid & Flexible” on Large producer 
+	Updated: 2025-08-28:	PM011:  Ticket - 605220:    Master script - New columns with RAM and RAM-M For rigid, flexible columns added as part 605105
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -569,6 +570,34 @@ PIVOT(
 							[PB-PL-Rigid],
 							[PB-PL-Flexible])
 ) AS PivotTable ),
+agg_POM_by_RAM_and_subtype as
+(
+	select FileName,organisation_id,[HH-PL-Rigid-RAM],[HH-PL-Rigid-RAM-M],[HH-PL-Flexible-RAM],[HH-PL-Flexible-RAM-M],
+								[PB-PL-Rigid-RAM],[PB-PL-Rigid-RAM-M],[PB-PL-Flexible-RAM],[PB-PL-Flexible-RAM-M]
+	FROM
+	(
+			select FileName
+			, organisation_id, Packaging_type +'-'+ packaging_material+'-'+ISNULL(packaging_material_subtype,'')+'-'+ 
+					case 
+						when trim(ram_rag_rating) in ('A','G','R') then 'RAM'
+						when trim(ram_rag_rating) in ('A-M','G-M','R-M') then 'RAM-M'
+						end as Type_Material_by_RAM
+			, packaging_material_weight
+			from rpd.pom
+			where ram_rag_rating is not null
+			and Packaging_type in ('HH','PB') 
+			and packaging_material in ('PL')
+			and trim(packaging_material_subtype) in ('Rigid','Flexible')
+	) as TablePivot
+	PIVOT
+	(
+		sum(packaging_material_weight)
+		FOR Type_Material_by_RAM in (
+								[HH-PL-Rigid-RAM],[HH-PL-Rigid-RAM-M],[HH-PL-Flexible-RAM],[HH-PL-Flexible-RAM-M],
+								[PB-PL-Rigid-RAM],[PB-PL-Rigid-RAM-M],[PB-PL-Flexible-RAM],[PB-PL-Flexible-RAM-M]
+							)
+	) AS PivotTable
+),
 --
 /** YM002 515336 Addition of Transitional packaging Data **/
 agg_transitional_packaging_units_POM as
@@ -708,6 +737,10 @@ select
 	,ISNULL(aps.[HH-PL-Flexible],0) as [Total Household packaging-Plastic-Flexible] /** PM010 **/
 	,ISNULL(ap_ram.[HH-PL-RAM],0) as [Total Household packaging-Plastic RAM]
 	,ISNULL(ap_ram.[HH-PL-RAM-M],0) as [Total Household packaging-Plastic RAM-M]
+	,ISNULL(ap_ram_st.[HH-PL-Rigid-RAM],0) as [Total Household packaging-Plastic-Rigid RAM]
+	,ISNULL(ap_ram_st.[HH-PL-Rigid-RAM-M],0) as [Total Household packaging-Plastic-Rigid RAM-M]
+	,ISNULL(ap_ram_st.[HH-PL-Flexible-RAM],0) as [Total Household packaging-Plastic-Flexible RAM]
+	,ISNULL(ap_ram_st.[HH-PL-Flexible-RAM-M],0) as [Total Household packaging-Plastic-Flexible RAM-M]
 	,ISNULL(ap.[HH-ST],0) as [Total Household packaging-Steel]
 	,ISNULL(ap_ram.[HH-ST-RAM],0) as [Total Household packaging-Steel RAM]
 	,ISNULL(ap_ram.[HH-ST-RAM-M],0) as [Total Household packaging-Steel RAM-M]
@@ -768,6 +801,10 @@ select
 	,ISNULL(aps.[PB-PL-Flexible],0) as [Public binned-Plastic-Flexible]     /** PM010 **/
 	,ISNULL(ap_ram.[PB-PL-RAM],0) as [Public binned-Plastic RAM]
 	,ISNULL(ap_ram.[PB-PL-RAM-M],0) as [Public binned-Plastic RAM-M]
+	,ISNULL(ap_ram_st.[PB-PL-Rigid-RAM],0) as [Public binned-Plastic-Rigid RAM]
+	,ISNULL(ap_ram_st.[PB-PL-Rigid-RAM-M],0) as [Public binned-Plastic-Rigid RAM-M]
+	,ISNULL(ap_ram_st.[PB-PL-Flexible-RAM],0) as [Public binned-Plastic-Flexible RAM]
+	,ISNULL(ap_ram_st.[PB-PL-Flexible-RAM-M],0) as [Public binned-Plastic-Flexible RAM-M]
 	,ISNULL(ap.[PB-ST],0) as [Public binned-Steel]
 	,ISNULL(ap_ram.[PB-ST-RAM],0) as [Public binned-Steel RAM]
 	,ISNULL(ap_ram.[PB-ST-RAM-M],0) as [Public binned-Steel RAM-M]
@@ -822,4 +859,5 @@ left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_file
 left join agg_POM_by_subtype aps on aps.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and aps.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]) 
 /** YM002 515336 Transitional_packaging_unit addition **/
 left join agg_transitional_packaging_units_POM atpu on atpu.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and atpu.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
-left join agg_POM_by_RAM ap_ram on ap_ram.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap_ram.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
+left join agg_POM_by_RAM ap_ram on ap_ram.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap_ram.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+left join agg_POM_by_RAM_and_subtype ap_ram_st on ap_ram_st.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap_ram_st.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
