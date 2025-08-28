@@ -3,7 +3,7 @@
 	History:
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
-	Updated: 2025-08-27:	PM003:  Ticket - 605220:    Master script - New column with RAM and RAM-M
+	Updated: 2025-08-27:	PM003:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
 ******************************************************************************************************************************/
 a.Org_ID
 ,Org_name

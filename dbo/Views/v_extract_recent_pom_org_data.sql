@@ -9,7 +9,7 @@
 	Updated: 2025-06-11:	YM006:  Ticket - 561770:	Masterscript - Check and update the Logic for First and Latest Registration File Submissions in master script - Registration resubmission
 	Updated: 2025-06-11:	YM007:  Ticket - 548936:    Master script not to show resubmitted POM submission with "Uploaded" status
 	Updated: 2025-07-08:	YM008:  Ticket - 569433:    Master script - Org size to show only Parent Organisation
-	Updated: 2025-08-27:	PM009:  Ticket - 605220:    Master script - New column with RAM and RAM-M
+	Updated: 2025-08-27:	PM009:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
 ******************************************************************************************************************************/
 TwoRow as
 (
