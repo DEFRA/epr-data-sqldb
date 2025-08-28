@@ -4,6 +4,7 @@
 	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
 	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
 	Updated: 2025-08-27:	PM003:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
+	Updated: 2025-08-28:	PM011:  Ticket - 605220:    Master script - New columns with RAM and RAM-M For rigid, flexible columns added as part 605105
 ******************************************************************************************************************************/
 a.Org_ID
 ,Org_name
@@ -88,6 +89,10 @@ a.Org_ID
 ,[Total Household packaging-Plastic-Flexible] --added newly for US 605105
 ,[Total Household packaging-Plastic RAM]
 ,[Total Household packaging-Plastic RAM-M]
+,[Total Household packaging-Plastic-Rigid RAM]
+,[Total Household packaging-Plastic-Rigid RAM-M]
+,[Total Household packaging-Plastic-Flexible RAM]
+,[Total Household packaging-Plastic-Flexible RAM-M]
 ,[Total Household packaging-Steel]
 ,[Total Household packaging-Steel RAM]
 ,[Total Household packaging-Steel RAM-M]
@@ -146,6 +151,10 @@ a.Org_ID
 ,[Public binned-Plastic-Flexible]   --added newly for US 605105
 ,[Public binned-Plastic RAM]
 ,[Public binned-Plastic RAM-M]
+,[Public binned-Plastic-Rigid RAM]
+,[Public binned-Plastic-Rigid RAM-M]
+,[Public binned-Plastic-Flexible RAM]
+,[Public binned-Plastic-Flexible RAM-M]
 ,[Public binned-Steel]
 ,[Public binned-Steel RAM]
 ,[Public binned-Steel RAM-M]
