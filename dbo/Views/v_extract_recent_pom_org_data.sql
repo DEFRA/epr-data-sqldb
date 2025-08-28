@@ -9,6 +9,8 @@
 	Updated: 2025-06-11:	YM006:  Ticket - 561770:	Masterscript - Check and update the Logic for First and Latest Registration File Submissions in master script - Registration resubmission
 	Updated: 2025-06-11:	YM007:  Ticket - 548936:    Master script not to show resubmitted POM submission with "Uploaded" status
 	Updated: 2025-07-08:	YM008:  Ticket - 569433:    Master script - Org size to show only Parent Organisation
+	Updated: 2025-08-27:	PM009:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
+	Updated: 2025-08-28:	PM010:  Ticket - 605105:    Master script - New 4 additional columns will be introduced to split the plastics to “Rigid & Flexible” on Large producer 
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -519,6 +521,55 @@ agg_units_POM as
 		FOR Type_Material in ([CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD])
 	) AS PivotTable
 ),
+agg_POM_by_RAM as
+(
+	select FileName,organisation_id,[HDC-GL-RAM],[PB-AL-RAM],[PB-FC-RAM],[PB-GL-RAM],[PB-OT-RAM],[PB-PC-RAM],[PB-PL-RAM],[PB-ST-RAM],[PB-WD-RAM],[HH-AL-RAM],[HH-FC-RAM],[HH-GL-RAM],[HH-OT-RAM],[HH-PC-RAM],[HH-PL-RAM],[HH-ST-RAM],[HH-WD-RAM],
+								[HDC-GL-RAM-M],[PB-AL-RAM-M],[PB-FC-RAM-M],[PB-GL-RAM-M],[PB-OT-RAM-M],[PB-PC-RAM-M],[PB-PL-RAM-M],[PB-ST-RAM-M],[PB-WD-RAM-M],[HH-AL-RAM-M],[HH-FC-RAM-M],[HH-GL-RAM-M],[HH-OT-RAM-M],[HH-PC-RAM-M],[HH-PL-RAM-M],[HH-ST-RAM-M],[HH-WD-RAM-M]
+	FROM
+	(
+			select FileName
+			, organisation_id, Packaging_type +'-'+ packaging_material+'-'+ 
+					case 
+						when trim(ram_rag_rating) in ('A','G','R') then 'RAM'
+						when trim(ram_rag_rating) in ('A-M','G-M','R-M') then 'RAM-M'
+						end as Type_Material_by_RAM
+			, packaging_material_weight
+			from rpd.pom
+			where ram_rag_rating is not null
+	) as TablePivot
+	PIVOT
+	(
+		sum(packaging_material_weight)
+		FOR Type_Material_by_RAM in (
+								[HDC-GL-RAM],[PB-AL-RAM],[PB-FC-RAM],[PB-GL-RAM],[PB-OT-RAM],[PB-PC-RAM],[PB-PL-RAM],[PB-ST-RAM],[PB-WD-RAM],[HH-AL-RAM],[HH-FC-RAM],[HH-GL-RAM],[HH-OT-RAM],[HH-PC-RAM],[HH-PL-RAM],[HH-ST-RAM],[HH-WD-RAM],
+								[HDC-GL-RAM-M],[PB-AL-RAM-M],[PB-FC-RAM-M],[PB-GL-RAM-M],[PB-OT-RAM-M],[PB-PC-RAM-M],[PB-PL-RAM-M],[PB-ST-RAM-M],[PB-WD-RAM-M],[HH-AL-RAM-M],[HH-FC-RAM-M],[HH-GL-RAM-M],[HH-OT-RAM-M],[HH-PC-RAM-M],[HH-PL-RAM-M],[HH-ST-RAM-M],[HH-WD-RAM-M]
+							)
+	) AS PivotTable
+),
+--
+/** PM010 - New 4 column addtion **/
+ agg_POM_by_subtype as
+(select FileName,
+        organisation_id,
+		[HH-PL-Rigid],
+		[HH-PL-Flexible],
+		[PB-PL-Rigid],
+		[PB-PL-Flexible]
+   FROM (select FileName, 
+                organisation_id,
+				Packaging_type +'-'+ packaging_material+'-'+ISNULL(packaging_material_subtype,'') as Type_Material, packaging_material_weight 
+    from [rpd].[Pom]
+    where Packaging_type in ('HH','PB') 
+	  and packaging_material in ('PL')
+	  and packaging_material_subtype in ('Rigid','Flexible') ) as TablePivot 
+PIVOT(
+      sum(packaging_material_weight) 
+	  FOR Type_Material in ([HH-PL-Rigid],
+	                        [HH-PL-Flexible],
+							[PB-PL-Rigid],
+							[PB-PL-Flexible])
+) AS PivotTable ),
+--
 /** YM002 515336 Addition of Transitional packaging Data **/
 agg_transitional_packaging_units_POM as
 (
@@ -623,6 +674,8 @@ select
 	,ISNULL(ap.[HDC-FC],0) as [Household drinks containers-Fibre Composite (Kg)]
 	,ISNULL(aup.[HDC-FC],0) as [Household drinks containers-Fibre Composite (No.Units)]
 	,ISNULL(ap.[HDC-GL],0) as [Household drinks containers-Glass (Kg)]
+	,ISNULL(ap_ram.[HDC-GL-RAM],0) as [Household drinks containers-Glass RAM (Kg)]
+	,ISNULL(ap_ram.[HDC-GL-RAM-M],0) as [Household drinks containers-Glass RAM-M (Kg)]
 	,ISNULL(aup.[HDC-GL],0) as [Household drinks containers-Glass (No.Units)]
 	,ISNULL(ap.[HDC-OT],0) as [Household drinks containers-Other (Kg)]
 	,ISNULL(aup.[HDC-OT],0) as [Household drinks containers-Other (No.Units)]
@@ -636,13 +689,31 @@ select
 	,ISNULL(aup.[HDC-WD],0) as [Household drinks containers-Wood (No.Units)]
 
 	,ISNULL(ap.[HH-AL],0) as [Total Household packaging-Aluminium]
+	,ISNULL(ap_ram.[HH-AL-RAM],0) as [Total Household packaging-Aluminium RAM]
+	,ISNULL(ap_ram.[HH-AL-RAM-M],0) as [Total Household packaging-Aluminium RAM-M]
 	,ISNULL(ap.[HH-FC],0) as [Total Household packaging-Fibre Composite]
+	,ISNULL(ap_ram.[HH-FC-RAM],0) as [Total Household packaging-Fibre Composite RAM]
+	,ISNULL(ap_ram.[HH-FC-RAM-M],0) as [Total Household packaging-Fibre Composite RAM-M]
 	,ISNULL(ap.[HH-GL],0) as [Total Household packaging-Glass]
+	,ISNULL(ap_ram.[HH-GL-RAM],0) as [Total Household packaging-Glass RAM]
+	,ISNULL(ap_ram.[HH-GL-RAM-M],0) as [Total Household packaging-Glass RAM-M]
 	,ISNULL(ap.[HH-OT],0) as [Total Household packaging-Other]
+	,ISNULL(ap_ram.[HH-OT-RAM],0) as [Total Household packaging-Other RAM]
+	,ISNULL(ap_ram.[HH-OT-RAM-M],0) as [Total Household packaging-Other RAM-M]
 	,ISNULL(ap.[HH-PC],0) as [Total Household packaging-Paper / Card]
+	,ISNULL(ap_ram.[HH-PC-RAM],0) as [Total Household packaging-Paper / Card RAM]
+	,ISNULL(ap_ram.[HH-PC-RAM-M],0) as [Total Household packaging-Paper / Card RAM-M]
 	,ISNULL(ap.[HH-PL],0) as [Total Household packaging-Plastic]
+	,ISNULL(aps.[HH-PL-Rigid],0) as [Total Household packaging-Plastic-Rigid]       /** PM010 **/
+	,ISNULL(aps.[HH-PL-Flexible],0) as [Total Household packaging-Plastic-Flexible] /** PM010 **/
+	,ISNULL(ap_ram.[HH-PL-RAM],0) as [Total Household packaging-Plastic RAM]
+	,ISNULL(ap_ram.[HH-PL-RAM-M],0) as [Total Household packaging-Plastic RAM-M]
 	,ISNULL(ap.[HH-ST],0) as [Total Household packaging-Steel]
+	,ISNULL(ap_ram.[HH-ST-RAM],0) as [Total Household packaging-Steel RAM]
+	,ISNULL(ap_ram.[HH-ST-RAM-M],0) as [Total Household packaging-Steel RAM-M]
 	,ISNULL(ap.[HH-WD],0) as [Total Household packaging-Wood]
+	,ISNULL(ap_ram.[HH-WD-RAM],0) as [Total Household packaging-Wood RAM]
+	,ISNULL(ap_ram.[HH-WD-RAM-M],0) as [Total Household packaging-Wood RAM-M]
 
 	,ISNULL(ap.[NDC-AL],0) as [Non-household drinks containers-Aluminium (Kg)]
 	,ISNULL(aup.[NDC-AL],0) as [Non-household drinks containers-Aluminium (No.Units)]
@@ -678,13 +749,31 @@ select
 	,ISNULL(ap.[OW-ST],0) as [Self-managed organisation waste-Steel]
 	,ISNULL(ap.[OW-WD],0) as [Self-managed organisation waste-Wood]
 	,ISNULL(ap.[PB-AL],0) as [Public binned-Aluminium]
+	,ISNULL(ap_ram.[PB-AL-RAM],0) as [Public binned-Aluminium RAM]
+	,ISNULL(ap_ram.[PB-AL-RAM-M],0) as [Public binned-Aluminium RAM-M]
 	,ISNULL(ap.[PB-FC],0) as [Public binned-Fibre Composite]
+	,ISNULL(ap_ram.[PB-FC-RAM],0) as [Public binned-Fibre Composite RAM]
+	,ISNULL(ap_ram.[PB-FC-RAM-M],0) as [Public binned-Fibre Composite RAM-M]
 	,ISNULL(ap.[PB-GL],0) as [Public binned-Glass]
+	,ISNULL(ap_ram.[PB-GL-RAM],0) as [Public binned-Glass RAM]
+	,ISNULL(ap_ram.[PB-GL-RAM-M],0) as [Public binned-Glass RAM-M]
 	,ISNULL(ap.[PB-OT],0) as [Public binned-Other]
+	,ISNULL(ap_ram.[PB-OT-RAM],0) as [Public binned-Other RAM]
+	,ISNULL(ap_ram.[PB-OT-RAM-M],0) as [Public binned-Other RAM-M]
 	,ISNULL(ap.[PB-PC],0) as [Public binned-Paper / Card]
+	,ISNULL(ap_ram.[PB-PC-RAM],0) as [Public binned-Paper / Card RAM]
+	,ISNULL(ap_ram.[PB-PC-RAM-M],0) as [Public binned-Paper / Card RAM-M]
 	,ISNULL(ap.[PB-PL],0) as [Public binned-Plastic]
+	,ISNULL(aps.[PB-PL-Rigid],0) as [Public binned-Plastic-Rigid]           /** PM010 **/
+	,ISNULL(aps.[PB-PL-Flexible],0) as [Public binned-Plastic-Flexible]     /** PM010 **/
+	,ISNULL(ap_ram.[PB-PL-RAM],0) as [Public binned-Plastic RAM]
+	,ISNULL(ap_ram.[PB-PL-RAM-M],0) as [Public binned-Plastic RAM-M]
 	,ISNULL(ap.[PB-ST],0) as [Public binned-Steel]
+	,ISNULL(ap_ram.[PB-ST-RAM],0) as [Public binned-Steel RAM]
+	,ISNULL(ap_ram.[PB-ST-RAM-M],0) as [Public binned-Steel RAM-M]
 	,ISNULL(ap.[PB-WD],0) as [Public binned-Wood]
+	,ISNULL(ap_ram.[PB-WD-RAM],0) as [Public binned-Wood RAM]
+	,ISNULL(ap_ram.[PB-WD-RAM-M],0) as [Public binned-Wood RAM-M]
 	,ISNULL(ap.[RU-AL],0) as [Reusable packaging-Aluminium]
 	,ISNULL(ap.[RU-FC],0) as [Reusable packaging-Fibre Composite]
 	,ISNULL(ap.[RU-GL],0) as [Reusable packaging-Glass]
@@ -712,7 +801,6 @@ select
 	,ISNULL(atpu.ST,0) as [Transitional organisation packaging - all-Steel]
 	,ISNULL(atpu.WD,0) as [Transitional organisation packaging - all-Wood]
 	,bs.Reporting_Year
-	
 From base_sql bs
 
 left join f_org_sql fos on fos.[Org ID] = bs.[Org ID] and fos.[Rank] = bs.RankId
@@ -730,5 +818,8 @@ left join t_rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID
 
 left join agg_POM ap on ap.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
 left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+/** PM010 **/
+left join agg_POM_by_subtype aps on aps.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and aps.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]) 
 /** YM002 515336 Transitional_packaging_unit addition **/
-left join agg_transitional_packaging_units_POM atpu on atpu.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and atpu.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
+left join agg_transitional_packaging_units_POM atpu on atpu.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and atpu.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+left join agg_POM_by_RAM ap_ram on ap_ram.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap_ram.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);
