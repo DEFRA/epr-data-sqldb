@@ -12,6 +12,7 @@
 	Updated: 2025-08-27:	PM009:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
 	Updated: 2025-08-28:	AA010:  Ticket - 605105:    Master script - New 4 additional columns will be introduced to split the plastics to “Rigid & Flexible” on Large producer 
 	Updated: 2025-08-28:	PM011:  Ticket - 605220:    Master script - New columns with RAM and RAM-M For rigid, flexible columns added as part 605105
+	Updated: 2025-09-01:	PM012:  Ticket - 607670:    Master script - Split file as small or Large for the year 2025
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -53,7 +54,7 @@ ORG as
 							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
 							when cfm.SubmissionPeriod in ('January to December 2025') then 4
 							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
-							when cfm.SubmissionPeriod = 'July to December 2025' then 6
+							when cfm.SubmissionPeriod in ('January to December 2026','July to December 2025') then 6
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
 							when cfm.SubmissionPeriod = 'July to December 2026' then 8
 							when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
@@ -64,7 +65,7 @@ ORG as
 							end as SubmissionPeriod
 					, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
 							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','January to December 2025') then 2024
-							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
+							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','January to December 2026','July to December 2025') then 2025
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
 							when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
 							when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
