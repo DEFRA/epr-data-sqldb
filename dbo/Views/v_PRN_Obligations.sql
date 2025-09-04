@@ -14,7 +14,7 @@ org As (
 														ObligationCalculations
 	Updated: 2025-06-30		SN010:						Regrouping Material to match front end PRN
 	Updated: 2025-08-05		SN011:	Ticket - 513680     Added NationId to check the RLS (Row level security) for PRN Details and Obligations Power BI report
-
+	Updated: 2025-09-04		SN012:  Replace o.Name with cs.Name in CTEs csa and cs_ch
 ******************************************************************************************************************************/
 
 /*** SN:003 ***/
@@ -40,7 +40,7 @@ org As (
 cs_ch As (  /*** SN004: Added ***/
 	Select
 	 cs.ExternalID
-	,OrganistionName		= o.[Name]
+	,OrganistionName		= cs.[Name]  /** SN012: **/
 	,o.ReferenceNumber
 	,NationId = Case When IScomplianceScheme = 1 Then cs.NationId Else o.NationId End  /*** SN008: Updated ***/
 	,o.IsComplianceScheme
@@ -62,9 +62,9 @@ Join
 csa As (
 	Select  
 		 ExternalID			= c.ComplianceSchemeId
-		,OrganistionName	= o.[Name]
+		,OrganistionName	= cs.[Name]				/** SN012: **/
 		,ReferenceNumber	= o.ReferenceNumber
-		,cs.NationId
+		,cs.NationId		
 		,IsComplianceScheme = 1
 		,o.Town
 		,o.PostCode
