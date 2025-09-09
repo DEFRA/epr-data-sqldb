@@ -25,9 +25,9 @@ all_pom_with_status as
 ),
 all_pending_or_accepted_org_pom_files as
 (
-	select * From all_org_with_status where Regulator_Status = 'ACCEPTED' or Regulator_Status = ''
+	select * From all_org_with_status where upper(Regulator_Status) = 'ACCEPTED' or Regulator_Status = '' or upper(Regulator_Status) = 'PENDING' 
 	union 
-	select * From all_pom_with_status where Regulator_Status = 'ACCEPTED' or Regulator_Status = ''
+	select * From all_pom_with_status where upper(Regulator_Status) = 'ACCEPTED' or Regulator_Status = '' or upper(Regulator_Status) = 'PENDING'
 ),
 all_pending_or_accepted_org_pom_files_with_rank as
 (
