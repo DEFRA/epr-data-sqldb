@@ -79,7 +79,7 @@ assign_accepted_to_cancelled as
 org_result as
 (
 	SELECT DISTINCT
-				cd.organisation_id AS 'Organisation_ID'
+				cds.organisation_id AS 'Organisation_ID'
 				,cds.organisation_size as 'Large/Small'
 				,cds.liable_for_disposal_costs_flag as required_to_pay_disposal_fee
 				,case when UPPER(ISNULL(cds.organisation_size, 'L')) ='L' and (meta.ComplianceSchemeId is null and cds.subsidiary_id is null) then 'Yes' else 'No' END as subject_to_recycling_and_certification_obligations
@@ -140,7 +140,8 @@ org_result as
 			FROM all_latest_org_files cd
 			inner join [rpd].[CompanyDetails] cds 
 				on cds.Filename = cd.Filename  
-					and cds.organisation_id = cd.organisation_id and cds.leaver_date is null
+				--	and cds.organisation_id = cd.organisation_id 
+				and cds.leaver_date is null
  			left join [dbo].[v_cosmos_file_metadata] meta
 				on meta.FileName = cd.FileName
 			LEFT JOIN dbo.v_rpd_ComplianceSchemes_Active cs
