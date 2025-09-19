@@ -1,4 +1,11 @@
 ﻿CREATE VIEW [dbo].[v_POM] AS SELECT 
+/****************************************************************************************************************************
+	History:
+ 
+	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
+	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn 		
+	
+******************************************************************************************************************************/
 	p.organisation_id,
 	p.subsidiary_id, 
 	so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
@@ -17,6 +24,7 @@
 	p.packaging_material_units as quantity_unit, --alias added,
 	p.load_ts,
 	p.FileName,
+	p.transitional_packaging_units, /**YM001 : Added new column transitional_packaging_units **/
 	CASE
 		WHEN p.submission_period =  '2023-P2' THEN CAST(p.packaging_material_weight * 1.50  AS DECIMAL(16,2))
 		WHEN p.submission_period =  '2024-P2' THEN CAST(p.packaging_material_weight * 2 AS DECIMAL(16,2)) 
@@ -38,7 +46,7 @@
 	,CONVERT(DATETIME,substring(meta.created,1,23)) File_submitted_time
 
 ,case when dense_rank() over(partition by sp.Text, p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
-	
+,PkgOrgJoinColumn = Concat(p.packaging_type,'-',organisation_size)	/**SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn**/
 
 FROm rpd.POM p
 --FROM dbo.v_rpd_Pom_Active p

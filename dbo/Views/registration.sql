@@ -1,5 +1,13 @@
 ﻿CREATE VIEW [dbo].[registration] AS SELECT 
-a.[organisation_id]
+
+/****************************************************************************************************************************
+	History:
+	Updated: 2024-11-15:	BL001:	Ticket - 460892:	Adding the new column [organisation_size]
+
+******************************************************************************************************************************/
+
+a.[organisation_id]   
+,a.[organisation_size]   /** BL001 new column added **/  
 ,a.[subsidiary_id]
 ,a.[organisation_name]
 ,a.[trading_name]

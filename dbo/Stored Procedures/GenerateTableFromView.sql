@@ -228,6 +228,34 @@ set @start_dt = getdate()
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', NULL, @start_dt, getdate(), 'Completed',@batch_id
 
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_CompanyBrandPartnerFileUploadSet', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_CompanyBrandPartnerFileUploadSet;
+    END;	
+
+    SELECT *
+    INTO dbo.t_CompanyBrandPartnerFileUploadSet
+    FROM dbo.v_CompanyBrandPartnerFileUploadSet;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
+set @start_dt = getdate()
+
+    IF OBJECT_ID('dbo.t_Registration_Comparison_Landing_Page', 'U') IS NOT NULL
+    BEGIN
+        DROP TABLE dbo.t_Registration_Comparison_Landing_Page;
+    END;	
+
+    SELECT *
+    INTO dbo.t_Registration_Comparison_Landing_Page
+    FROM dbo.v_Registration_Comparison_Landing_Page;
+
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', NULL, @start_dt, getdate(), 'Completed',@batch_id
+
 
 --Recording count from each table
 select @cnt =count(1) from dbo.t_pom_codes;
@@ -292,6 +320,12 @@ select @cnt =count(1) from dbo.t_enrolled_not_registered;
 INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
 
+select @cnt =count(1) from dbo.t_CompanyBrandPartnerFileUploadSet;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', @cnt, NULL, getdate(), 'Completed',@batch_id
 
+select @cnt =count(1) from dbo.t_Registration_Comparison_Landing_Page;
+INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 END;
