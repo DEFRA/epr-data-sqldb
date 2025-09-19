@@ -1,5 +1,4 @@
 ﻿CREATE TABLE [rpd].[Submissions] (
-    [OrganisationMembers]    INT             NULL,
     [Created]                NVARCHAR (4000) NULL,
     [OrganisationId]         NVARCHAR (4000) NULL,
     [IsSubmitted]            BIT             NULL,
@@ -14,13 +13,12 @@
     [Decision]               NVARCHAR (4000) NULL,
     [RegulatorDecision]      NVARCHAR (4000) NULL,
     [FileId]                 NVARCHAR (4000) NULL,
-    [RejectionComments]      NVARCHAR (4000) NULL,
     [id]                     NVARCHAR (4000) NULL,
     [UserId]                 NVARCHAR (4000) NULL,
     [SubmittedBy]            NVARCHAR (4000) NULL,
+    [IsResubmission]         BIT             NULL,
     [Type]                   NVARCHAR (4000) NULL,
     [ComplianceSchemeId]     NVARCHAR (4000) NULL,
     [load_ts]                DATETIME2 (7)   NULL
 )
-WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = HASH([SubmissionId]));

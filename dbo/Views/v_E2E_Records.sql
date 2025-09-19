@@ -107,12 +107,12 @@
 ,partner.partner_phone_number as Partner_partner_phone_number
 ,partner.partner_email as Partner_partner_email
 
-from v_rpd_data_SECURITY_FIX en
+from dbo.v_rpd_data_SECURITY_FIX en
 
-join registration reg
+join dbo.registration reg
 on en.FromOrganisation_ReferenceNumber = reg.organisation_id
 
-join v_POM pom
+join dbo.v_POM pom
 on reg.organisation_id = pom.organisation_id
 
 left join rpd.Brands brand

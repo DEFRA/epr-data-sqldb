@@ -74,6 +74,7 @@
     [secondary_contact_person_job_title]                             NVARCHAR (4000) NULL,
     [load_ts]                                                        DATETIME2 (7)   NOT NULL,
     [FileName]                                                       NVARCHAR (4000) NULL,
+    [organisation_size]                                              NVARCHAR (4000) NULL,
     [brand_name]                                                     NVARCHAR (4000) NULL,
     [brand_type_code]                                                NVARCHAR (4000) NULL,
     [partner_first_name]                                             NVARCHAR (4000) NULL,
@@ -243,7 +244,7 @@
     [BlobName]                                                       NVARCHAR (4000) NULL,
     [BlobContainerName]                                              NVARCHAR (4000) NULL,
     [FileType]                                                       NVARCHAR (4000) NULL,
-    [Created]                                                        DATETIME        NULL,
+    [Created]                                                        DATETIME2 (7)   NULL,
     [OriginalFileName]                                               NVARCHAR (4000) NULL,
     [OrganisationId]                                                 NVARCHAR (4000) NULL,
     [DataSourceType]                                                 NVARCHAR (4000) NULL,
@@ -260,13 +261,8 @@
     [Decision_Date]                                                  NVARCHAR (4000) NULL,
     [Regulator_Status]                                               NVARCHAR (4000) NULL,
     [Regulator_User_Name]                                            NVARCHAR (4000) NULL,
-    [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL
+    [Regulator_Rejection_Comments]                                   NVARCHAR (4000) NULL,
+    [RegistrationType]                                               INT             NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
-
-
-
-
 

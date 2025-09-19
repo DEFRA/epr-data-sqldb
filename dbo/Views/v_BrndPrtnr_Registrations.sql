@@ -1,0 +1,365 @@
+﻿CREATE VIEW [dbo].[v_BrndPrtnr_Registrations] AS With 
+/****************************************************************************************************************************
+	History:
+	Created: 2025-03-17:	SN001:	Ticket - 520206:	Organisation Submissions with Brand and Partner.  Added Relevant Year Column
+														Reduced columns to ones only used in PBI
+	Updated: 2025-04-16:	YM002:	Ticket - 513367,515430:	Mid year changes  - Registration detail reports to include the 4 new columns added in the Registration file for DP and CS
+	Updated: 2025-05-08:	YM003:	Ticket - 550651: Registration detail reports to include Registration reference number
+	Updated: 2025-05-14:	PM004	Ticket - 552117: Rel 9/10 - Resubmission date -  Taking uplodded date not submitted date
+	Updated: 2025-05-16:    AV005:  Ticket - 542622: Fix duplicate records issue on report - Added additional join criteria when joining to t_rpd_data_SECURITY_FIX
+	Updated: 2025-07-02:	SV001:	Ticket - 576281: Subsidiary Retrofit column reference removal
+	Updated: 2025-07-29:	SN006:	Ticket - 592352: Join Criteria created a bug restricting data returned by view.
+	Updated: 2025-08-02		SN007:	Ticket - 593361: Remove duplicate values caused by t_rpd_data_SECURITY_FIX.  
+
+******************************************************************************************************************************/
+CompanyDetails_with_regid	As
+(
+	Select	c_meta.RegistrationSetId,
+	c_meta.[ServiceRoles_Name], 
+	c_meta.SubmissionPeriod,
+	c_meta.SubmissionId,
+	c_meta.ComplianceSchemeId,
+	c_meta.FileType,
+	c_meta.[Filename] as metafilename,
+	c_meta.OriginalFileName,
+	c_meta.SubmittedBy,
+	c_meta.created,
+	c.* 
+	From	[rpd].[CompanyDetails]			c
+	Join	[dbo].[t_cosmos_file_metadata]	c_meta	on c_meta.[Filename] = c.[Filename] 
+)
+
+
+
+,
+Brands_with_regid			As
+(
+	Select	b_meta.RegistrationSetId,
+	b_meta.[ServiceRoles_Name],
+	b_meta.SubmissionPeriod,
+	b_meta.SubmissionId,
+	b_meta.ComplianceSchemeId,
+	b_meta.FileType,
+	b_meta.[Filename] as metafilename,
+	b_meta.OriginalFileName,
+	b_meta.SubmittedBy,
+	b_meta.created,
+
+	b.* 
+	From	[rpd].[Brands]					b
+	join [dbo].[t_cosmos_file_metadata]	b_meta	on b_meta.[Filename] = b.[Filename]
+)
+
+
+,
+Partner_with_regid			As
+(
+	Select	p_meta.RegistrationSetId,
+	p_meta.[ServiceRoles_Name],
+	p_meta.SubmissionPeriod,
+	p_meta.SubmissionId,
+	p_meta.ComplianceSchemeId,
+	p_meta.FileType,
+	p_meta.[Filename] as metafilename,
+	p_meta.OriginalFileName,
+	p_meta.SubmittedBy,
+	p_meta.created,
+	p.* 
+	From	[rpd].[Partnerships]			p
+	Join	[dbo].[t_cosmos_file_metadata]	p_meta	on p_meta.[Filename] = p.[Filename]
+),
+BrPaUn						As 
+(
+	Select
+		 cd.organisation_id
+		,cd.subsidiary_id
+		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
+		,br.brand_name
+		,br.brand_type_code
+		,partner_first_name		= Null
+		,partner_last_name		= Null
+		,partner_phone_number	= Null
+		,partner_email			= Null
+	From
+		CompanyDetails_with_regid	cd
+	Join 
+		Brands_with_regid			br			
+			on cd.organisation_id = br.organisation_id
+				And ISNULL(cd.subsidiary_id,'') = ISNULL(br.subsidiary_id,'') 
+					And cd.RegistrationSetId = br.RegistrationSetId
+	Union --All
+
+	Select
+		 cd.organisation_id
+		,cd.subsidiary_id
+		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
+		,brand_name				= Null
+		,brand_type_code		= Null
+		,ps.partner_first_name		
+		,ps.partner_last_name
+		,ps.partner_phone_number
+		,ps.partner_email
+	From
+		CompanyDetails_with_regid	cd
+	Join 
+		Partner_with_regid			ps	
+			on cd.organisation_id = ps.organisation_id
+				And ISNULL(cd.subsidiary_id,'') = ISNULL(ps.subsidiary_id,'') 
+					And cd.RegistrationSetId = ps.RegistrationSetId
+				
+	Union --All
+	Select
+		 cd.organisation_id
+		,cd.subsidiary_id
+		,cd.RegistrationSetId
+		,cd.[ServiceRoles_Name]
+		,cd.SubmissionPeriod
+		,cd.SubmissionId
+		,cd.ComplianceSchemeId
+		,cd.FileType
+		,cd.metafilename
+		,cd.OriginalFileName
+		,cd.SubmittedBy
+		,cd.created
+		,brOJ.brand_name
+		,brOJ.brand_type_code
+		,psOJ.partner_first_name		
+		,psOJ.partner_last_name
+		,psOJ.partner_phone_number
+		,psOJ.partner_email
+	From
+		CompanyDetails_with_regid	cd
+
+
+	Left Join 
+		Partner_with_regid			psOJ	
+			on cd.organisation_id = psOJ.organisation_id
+				And ISNULL(cd.subsidiary_id,'') = ISNULL(psOJ.subsidiary_id,'') 
+					And cd.RegistrationSetId = psOJ.RegistrationSetId
+						
+
+	Left Join 
+		Brands_with_regid			brOJ			
+			on cd.organisation_id = brOJ.organisation_id
+				And ISNULL(cd.subsidiary_id,'') = ISNULL(brOJ.subsidiary_id,'') 
+					And cd.RegistrationSetId = brOJ.RegistrationSetId
+						
+	Where
+		brOJ.brand_name Is Null And brOJ.brand_type_code IS Null
+			And psOJ.partner_first_name Is Null And psOJ.subsidiary_id Is Null
+)
+
+
+
+,
+
+
+/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+secQry as (
+	Select Distinct
+		 sc.FromOrganisation_Type
+		,sc.Organisations_Id
+		--,sc.ServiceRoles_Role		
+		,sc.FromOrganisation_ReferenceNumber
+		,sc.FromOrganisation_IsComplianceScheme
+		,sc.FromOrganisation_Name
+	From
+		dbo.t_rpd_data_SECURITY_FIX sc 
+)
+
+/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+
+Select distinct
+	 cd.approved_person_email
+	,cd.approved_person_first_name
+	,cd.approved_person_job_title
+	,cd.approved_person_last_name
+	,cd.approved_person_phone_number
+	,cd.audit_addr_city
+	,cd.audit_addr_country
+	,cd.audit_addr_county
+	,cd.audit_addr_line1
+	,cd.audit_addr_line2
+	,cd.audit_addr_postcode
+	,cd.companies_house_number
+	,cd.delegated_person_email
+	,cd.delegated_person_first_name
+	,cd.delegated_person_job_title
+	,cd.delegated_person_last_name
+	,cd.delegated_person_phone_number
+	,cd.home_nation_code
+	,cd.liable_for_disposal_costs_flag
+	,cd.main_activity_sic
+	,cd.meet_reporting_requirements_flag
+	,cd.organisation_id
+	,cd.organisation_name
+	,cd.organisation_size
+	,cd.organisation_sub_type_code
+	,cd.organisation_type_code
+	,cd.packaging_activity_hl
+	,cd.packaging_activity_im
+	,cd.packaging_activity_om
+	,cd.packaging_activity_pf
+	,cd.packaging_activity_se
+	,cd.packaging_activity_sl
+	,cd.packaging_activity_so
+	,cd.primary_contact_person_email
+	,cd.primary_contact_person_first_name
+	,cd.primary_contact_person_job_title
+	,cd.primary_contact_person_last_name
+	,cd.primary_contact_person_phone_number
+	,cd.principal_addr_city
+	,cd.principal_addr_country
+	,cd.principal_addr_county
+	,cd.principal_addr_line1
+	,cd.principal_addr_line2
+	,cd.principal_addr_phone_number
+	,cd.principal_addr_postcode
+	,cd.produce_blank_packaging_flag
+	,cd.registered_addr_country
+	,cd.registered_addr_county
+	,cd.registered_addr_line1
+	,cd.registered_addr_line2
+	,cd.registered_addr_phone_number
+	,cd.registered_addr_postcode
+	,cd.registered_city
+	,cd.registration_type_code
+	,cd.secondary_contact_person_email
+	,cd.secondary_contact_person_first_name
+	,cd.secondary_contact_person_job_title
+	,cd.secondary_contact_person_last_name
+	,cd.secondary_contact_person_phone_number
+	,cd.service_of_notice_addr_city
+	,cd.service_of_notice_addr_country
+	,cd.service_of_notice_addr_county
+	,cd.service_of_notice_addr_line1
+	,cd.service_of_notice_addr_line2
+	,cd.service_of_notice_addr_phone_number
+	,cd.service_of_notice_addr_postcode
+	,cd.sole_trader_email
+	,cd.sole_trader_first_name
+	,cd.sole_trader_last_name
+	,cd.sole_trader_phone_number
+	,cd.subsidiary_id							-- Subsidiary ID (User Generated)
+	,cd.total_tonnage
+	,cd.trading_name
+	,cd.turnover
+	/**YM002: below four new columns added**/
+	,cd.leaver_code					--YM002
+    ,cd.leaver_date					--YM002
+    ,cd.organisation_change_reason  --YM002
+    ,cd.joiner_date					--YM002
+	,cd.[ServiceRoles_Name] AS ServiceRoles_Role
+	,cd.SubmissionId --as cdsubmisionid
+	,cd.ComplianceSchemeId
+	,cd.FileType
+	,cd.[Filename]
+	,cd.OriginalFileName
+	,cd.SubmittedBy
+	,cd.created as metacreated
+	,cd.SubmissionPeriod
+	
+	--Brand
+	,bp.brand_name
+	,bp.brand_type_code
+	
+	--Partner
+	,bp.partner_first_name
+	,bp.partner_last_name
+	,bp.partner_phone_number
+	,bp.partner_email
+	
+
+	--SubmissionFileStatus
+	,pos.Regulator_Rejection_Comments
+	,pos.Regulator_User_Name
+	,pos.Decision_Date
+	,pos.ApplicationReferenceNo
+	/**YM003: Registrationreferencenumber column added **/
+	,pos.RegistrationReferenceNumber --YM003
+	,RegistrationType					= IsNull(pos.RegistrationType,2)
+	,Regulator_Status					= Case	When pos.Regulator_Status Is Null Then 'Uploaded' Else pos.Regulator_Status End
+
+	/**Ticket -552079: IsResubmission_identifier column added **/
+	,pos.IsResubmission_identifier
+
+	--v_subsidiaryorganisations
+	-- SV001: ,SubsidiaryOrganisation_ReferenceNumber		= so.SecondOrganisation_ReferenceNumber
+	/** Fix for the PRE BUG - 06/08/2025 */
+	--t_cosmos_file_metadata
+	----,cfm.FileType
+	----,cfm.[Filename]
+	----,cfm.OriginalFileName
+	----,cfm.SubmittedBy
+	----,cfm.SubmissionId
+	----,cfm.SubmissionPeriod
+	--,cfm.[ServiceRoles_Name]
+	--,Created							= isnull(convert(datetime2,pos.Created,127) , cfm.Created) 
+	, coalesce(convert(datetime2,pos.Application_submitted_ts,127),convert(datetime2,pos.Created,127), cd.Created) as Created
+	--t_rpd_data_SECURITY_FIX`
+	,sc.FromOrganisation_Type
+	,sc.Organisations_Id
+	--,sc.ServiceRoles_Role
+	,sc.FromOrganisation_ReferenceNumber
+	,sc.FromOrganisation_IsComplianceScheme
+	,sc.FromOrganisation_Name
+
+	--v_rpd_ComplianceSchemes_Active
+	,ComplianceSchemes_Id			= csa.[Id]
+	,ComplianceSchemes_Name			= csa.[Name]
+
+	--New Column Removed from PowerBI
+	,RelevantYear = Right(dbo.udf_DQ_SubmissionPeriod(cd.SubmissionPeriod),4)
+	
+From
+	CompanyDetails_with_regid				cd
+Join
+	BrPaUn									bp		
+		on cd.organisation_id = bp.organisation_id
+			And ISNULL(cd.subsidiary_id,'') = ISNULL(bp.subsidiary_id,'') 
+				And cd.RegistrationSetId = bp.RegistrationSetId
+
+/** Fix for the PRE BUG - 06/08/2025 */
+--Join
+--	dbo.t_cosmos_file_metadata				cfm
+--		On cd.[FileName] = cfm.[FileName]  and cd.SubmissionId = cfm.SubmissionId
+
+--AV005 additional join crtieria added ensuring just the role of the submitter of the file is returned.
+INNER JOIN secQry sc			/*** SN007:  Replaced t_rpd_data_SECURITY_FIX to remove duplicates  ***/
+    On cd.organisation_id = sc.FromOrganisation_ReferenceNumber 
+
+/************************* SN006: Removed.  DO NOT REINTRODUCE **********************************
+   AND (
+         IsNull(Trim(cfm.ServiceRoles_Name),'') = IsNull(Trim(sc.ServiceRoles_Role),'')
+         OR cfm.ServiceRoles_Name IS NULL
+		 OR sc.ServiceRoles_Role IS NULL)
+ ************************* SN006: Removed.  DO NOT REINTRODUCE **********************************/
+		 
+Left Join
+	dbo.v_rpd_ComplianceSchemes_Active		csa 
+		On cd.ComplianceSchemeId = csa.externalid
+Left Join
+	dbo.v_submitted_pom_org_file_status		pos
+		On cd.[Filename] = pos.[Filename]
+			And pos.RegistrationType = 2 
+	
+Where 
+	Right(dbo.udf_DQ_SubmissionPeriod(cd.SubmissionPeriod),4) > 2024;

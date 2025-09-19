@@ -13,6 +13,7 @@
     [packaging_material_weight]    FLOAT (53)      NULL,
     [packaging_material_units]     FLOAT (53)      NULL,
     [transitional_packaging_units] FLOAT (53)      NULL,
+    [ram_rag_rating]               NVARCHAR (4000) NULL,
     [load_ts]                      DATETIME2 (7)   NOT NULL,
     [FileName]                     NVARCHAR (4000) NULL
 )

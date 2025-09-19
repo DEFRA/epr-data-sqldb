@@ -3,12 +3,17 @@
 	History:
  
 	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
+	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn
+	Updated: 2025-05-28:	TS003:	Ticket - 549751:	Added to fix system generated subsidiary results
+	Updated: 2025-07-03:	SV001:	Ticket - 576285:	Subsidiary Retrofit column removal 
+
 	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn 		
+
 	
 ******************************************************************************************************************************/
 	p.organisation_id,
 	p.subsidiary_id, 
-	so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
+	-- SV001 -so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber,
 	p.organisation_size,
 	'' as organisation_sub_type_code,
 	sp.Text submission_period,
@@ -48,8 +53,12 @@
 ,case when dense_rank() over(partition by sp.Text, p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
 ,PkgOrgJoinColumn = Concat(p.packaging_type,'-',organisation_size)	/**SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn**/
 
+,p.ram_rag_rating
+
+
+
 FROm rpd.POM p
---FROM dbo.v_rpd_Pom_Active p
+JOIN [dbo].[v_rpd_Organisations_Active_Pom] oap ON oap.referencenumber = p.organisation_id
 LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
 								AND sp.Type = 'submission_period'
 LEFT JOIN dbo.t_PoM_Codes pa ON pa.Code = p.packaging_activity 
@@ -64,8 +73,4 @@ LEFT JOIN dbo.t_PoM_Codes tn ON tn.Code = p.to_country
 								AND tn.Type = 'nation'
 LEFT JOIN dbo.t_PoM_Codes fn ON fn.Code = p.from_country 
 								AND fn.Type = 'nation'
-LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName
-LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = p.organisation_id
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(p.subsidiary_id),'')
-			and so.RelationToDate is NULL;
+LEFT JOIN [rpd].[cosmos_file_metadata] meta ON meta.FileName = p.FileName;

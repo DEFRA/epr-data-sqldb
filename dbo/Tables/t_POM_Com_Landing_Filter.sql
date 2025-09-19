@@ -12,11 +12,8 @@
     [submittedby]            NVARCHAR (4000) NOT NULL,
     [submtteremail]          NVARCHAR (4000) NULL,
     [serviceroles_name]      NVARCHAR (4000) NULL,
-    [submission_date]        DATETIME        NULL
+    [submission_date]        DATETIME2 (7)   NULL,
+    [Regulator_Status]       NVARCHAR (4000) NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
-
-
 

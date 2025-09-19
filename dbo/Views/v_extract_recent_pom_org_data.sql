@@ -1,4 +1,15 @@
-﻿CREATE VIEW [v_extract_recent_pom_org_data] AS with 
+﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_data] AS with
+/****************************************************************************************************************************
+	History:
+	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
+	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
+	Created: 2025-05-28:	YM003:	Ticket - 549638:	Masterscript - Logic change for First and Latest Registration File Submissions for status queried
+	Updated: 2025-05-30:	PM004:  Ticket - 515339:	Masterscript - Fix for flags Organisation visible in PowerBI Packaging reports, Organisation exists in most recent organisation data submission
+	Updated: 2025-06-04:	YM005:  Ticket - 562694:	Masterscript - Removing Queried record if there are more than one Queried next to each other
+	Updated: 2025-06-11:	YM006:  Ticket - 561770:	Masterscript - Check and update the Logic for First and Latest Registration File Submissions in master script - Registration resubmission
+	Updated: 2025-06-11:	YM007:  Ticket - 548936:    Master script not to show resubmitted POM submission with "Uploaded" status
+	Updated: 2025-07-08:	YM008:  Ticket - 569433:    Master script - Org size to show only Parent Organisation
+******************************************************************************************************************************/
 TwoRow as
 (
 	select 1 as RankId , 'Jan to June 2023 - H1' as SP, 2023 as Reporting_Year
@@ -28,16 +39,16 @@ TwoRow as
 
 ORG as
 (
-		select *
-			, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_submission
-			, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_submission
+		select *	
+			, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_submission
+			, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_submission
 		from 
 		(
 			select distinct o.id as OrganisationId, cd.organisation_id as ReferenceNumber
 					, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
 							when cfm.SubmissionPeriod = 'July to December 2023' then 2
 							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
-							when cfm.SubmissionPeriod = 'July to December 2024' then 4
+							when cfm.SubmissionPeriod in ('January to December 2025') then 4
 							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
 							when cfm.SubmissionPeriod = 'July to December 2025' then 6
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
@@ -49,7 +60,7 @@ ORG as
 							else 0
 							end as SubmissionPeriod
 					, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
-							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024') then 2024
+							when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','January to December 2025') then 2024
 							when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
 							when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
 							when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
@@ -66,7 +77,19 @@ ORG as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, cd.FileName as cd_filename
-					, fs.Regulator_Status
+					, case upper(trim(ISNULL(fs.Regulator_Status,'PENDING')))
+						when 'QUERIED' then 'PENDING'
+						when 'GRANTED' then 'ACCEPTED'
+						when 'REFUSED' then 'ACCEPTED'
+						when 'CANCELLED' then 'ACCEPTED'
+						when 'APPROVED' then 'ACCEPTED'
+						else upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) end as Regulator_Status
+					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Actual_Regulator_Status
+					, case when cd.subsidiary_id is null then cd.organisation_size 
+					     else null end as cd_organisation_size--YM008
+					--,cd.organisation_size as cd_organisation_size
+					, '202X-P0'as cd_submission_period_code --YM001
+					, fs.IsResubmission_identifier--YM006
 			from [rpd].[CompanyDetails] cd
 			left join rpd.Organisations o on o.ReferenceNumber = cd.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = cd.FileName
@@ -77,19 +100,128 @@ ORG as
 			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = cd.filename
 		) A
 ),
+ORG_REJECTED_SUBMISSION_ONLY as --YM006
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_rejected_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_rejected_submission
+	from ORG
+	where Regulator_Status = 'REJECTED' and IsResubmission_identifier=0
+),
+ORG_REJECTED_RESUBMISSION_ONLY as --YM006
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_rejected_resubmission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_rejected_resubmission
+	from ORG
+	where Regulator_Status = 'REJECTED' and IsResubmission_identifier=1
+),
+ORG_PENDING_ACCEPTED_RESUBMISSION_ONLY as --YM006
+(
+	select DISTINCT *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_pending_accepted_resubmission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_pending_accepted_resubmission
+	from ORG
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED')  and IsResubmission_identifier=1
+),
+ORG_PENDING_ACCEPT_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_pending_accepted_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_pending_accepted_submission
+	from ORG
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') and IsResubmission_identifier=0
+),
+
+/** YM003 : Logic change for First and Latest Registration File Submissions for status queried **/
+ORG_QUERIED as
+(select * from ORG_PENDING_ACCEPT_ONLY where Actual_Regulator_Status = 'QUERIED' ),
+
+ORG_LATEST_IS_NOT_QUERIED as --YM003
+(
+select distinct pa.OrganisationId, pa.ReferenceNumber, pa.SubmissionPeriod
+from ORG_PENDING_ACCEPT_ONLY pa
+inner join ORG_QUERIED oq on oq.OrganisationId = pa.OrganisationId and oq.ReferenceNumber = pa.ReferenceNumber and oq.SubmissionPeriod = pa.SubmissionPeriod
+where pa.Last_pending_accepted_submission = 1
+and pa.Actual_Regulator_Status <> 'QUERIED'
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED as --YM003
+(
+select OPA.* from ORG_PENDING_ACCEPT_ONLY OPA
+left join ORG_LATEST_IS_NOT_QUERIED ONQ on OPA.OrganisationId = ONQ.OrganisationId and OPA.ReferenceNumber = ONQ.ReferenceNumber and OPA.SubmissionPeriod = ONQ.SubmissionPeriod
+where ONQ.OrganisationId is null 
+		or 
+		(OPA.Actual_Regulator_Status <> 'QUERIED' and  ONQ.OrganisationId is not null)
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD as --YM005
+(
+	select * 
+		, lead(Actual_Regulator_Status,1,NULL) over (partition by OrganisationId,	ReferenceNumber,	SubmissionPeriod order by Submission_time asc) as lead_Actual_Regulator_Status
+		, lead(FileName,1,NULL) over (partition by OrganisationId,	ReferenceNumber,	SubmissionPeriod order by Submission_time asc) as lead_FileName
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED as --YM005
+(
+	select * from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD
+	except(
+		select * 
+		from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD
+		where Actual_Regulator_Status = 'QUERIED' and lead_Actual_Regulator_Status = 'QUERIED' and FileName <> lead_FileName
+		)
+),
+
+ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK as --YM005
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc,cd_organisation_size desc) as First_pending_accepted_submission_updated
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc,cd_organisation_size desc) as Last_pending_accepted_submission_updated 
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED
+),
+
+ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED as --YM003
+(
+	select rej.*
+	from ORG_REJECTED_SUBMISSION_ONLY rej
+	left join ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	where pa.OrganisationId is null
+),
+ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED_RESUB as --YM006
+(
+	select rej.* from ORG_REJECTED_RESUBMISSION_ONLY rej
+	left join ORG_PENDING_ACCEPTED_RESUBMISSION_ONLY par
+	on par.OrganisationId = rej.OrganisationId and par.ReferenceNumber = rej.ReferenceNumber and par.SubmissionPeriod = rej.SubmissionPeriod
+	where rej.Actual_Regulator_Status ='Rejected' and par.OrganisationId is null 
+),
 f_org_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
-	from ORG 
-	where First_submission = 1
- ),
-l_org_sql as
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code ,IsResubmission_identifier
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK --YM001--YM003 --YM005--YM006
+	where First_pending_accepted_submission_updated = 1
+	union 
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code ,IsResubmission_identifier--YM006
+	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED 
+	where Last_rejected_submission = 1
+ ) ,
+ l_org_sql as
+ (select [Org ID],	Rank,	ReportingYear	,[Submission date time],	[Submitted by]	,[Submission status],	[Regulator Decision],	[Actual Regulator Decision],	[Who submitted],[CS Nation],	cd_filename,	ComplianceSchemeId,	cd_organisation_size,	cd_submission_period_code ,IsResubmission_identifier from (select a.*, row_number() over(partition by [Org ID], ReportingYear,[Rank] order by [Submission date time] desc) as Lastest_status from 
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId
-	from ORG 
-	where Last_submission = 1
+select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code,IsResubmission_identifier --YM001--YM006
+	from ORG_PENDING_ACCEPT_ONLY_UPDATED_WITH_LEAD_DUPLICATE_QUERIED_REMOVED_WITH_RANK --YM003 --YM005
+	where Last_pending_accepted_submission_updated = 1
+	union 
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code ,IsResubmission_identifier--YM001,YM006
+	from ORG_REJECTED_WITH_OUT_PENDING_ACCEPTED_RESUB 
+	where Last_rejected_resubmission = 1
+	union 
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , cd_filename, ComplianceSchemeId, cd_organisation_size,cd_submission_period_code ,IsResubmission_identifier--YM001,YM006
+	from ORG_PENDING_ACCEPTED_RESUBMISSION_ONLY
+	where Last_pending_accepted_resubmission=1) a
+	) b where Lastest_status=1
  ),
-
+ 
 POM as
 (
 		select *
@@ -130,7 +262,17 @@ POM as
 					, N.Name as 'CS Nation'
 					, case when cs.id is NULL then 'DP' else 'CS' end as 'Who submitted'
 					, pm.FileName as pm_filename
-					, fs.Regulator_Status
+					, case upper(trim(ISNULL(fs.Regulator_Status,'PENDING')))
+						when 'QUERIED' then 'PENDING'
+						when 'GRANTED' then 'ACCEPTED'
+						when 'REFUSED' then 'ACCEPTED'
+						when 'CANCELLED' then 'ACCEPTED'
+						when 'APPROVED' then 'ACCEPTED'
+						else upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) end as Regulator_Status
+					, upper(trim(ISNULL(fs.Regulator_Status,'PENDING'))) as Actual_Regulator_Status
+					, pm.organisation_size as pm_organisation_size
+					, pm.submission_period as pm_submission_period_code --YM001
+					, fs.IsResubmission_identifier --YM006
 			from [rpd].[Pom] pm
 			left join rpd.Organisations o on o.ReferenceNumber = pm.organisation_id
 			left join [rpd].[cosmos_file_metadata] cfm on cfm.FileName = pm.FileName
@@ -139,55 +281,83 @@ POM as
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
 			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
+			where fs.Regulator_Status <> 'Uploaded' --YM007
 		) A
+),
+POM_REJECTED_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_rejected_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_rejected_submission
+	from POM
+	where Regulator_Status = 'REJECTED' 
+),
+POM_PENDING_ACCEPT_ONLY as
+(
+	select *
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time asc, Source asc) as First_pending_accepted_submission
+		, row_number() over(partition by OrganisationId, ReferenceNumber, SubmissionPeriod order by Submission_time desc, Source asc) as Last_pending_accepted_submission
+	from POM
+	where (Regulator_Status = 'PENDING' or  Regulator_Status = 'ACCEPTED') 
+),
+POM_REJECTED_WITH_OUT_PENDING_ACCEPTED as
+(
+	select rej.*
+	from POM_REJECTED_ONLY rej
+	left join POM_PENDING_ACCEPT_ONLY pa on pa.OrganisationId = rej.OrganisationId and pa.ReferenceNumber = rej.ReferenceNumber and pa.SubmissionPeriod = rej.SubmissionPeriod
+	where pa.OrganisationId is null
 ),
 f_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
-	from POM 
-	where First_submission = 1
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size,pm_submission_period_code ,IsResubmission_identifier --YM001
+	from POM_PENDING_ACCEPT_ONLY 
+	where First_pending_accepted_submission = 1
+	union
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size,pm_submission_period_code ,IsResubmission_identifier--YM001
+	from POM_REJECTED_WITH_OUT_PENDING_ACCEPTED 
+	where Last_rejected_submission = 1
  ),
 l_pom_sql as
  (
-	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId
-	from POM 
-	where Last_submission = 1
+	select ReferenceNumber as 'Org ID', SubmissionPeriod as 'Rank', ReportingYear, Submission_time as 'Submission date time', case when ComplianceSchemeId is null then 'DP' else CS_Name end as 'Submitted by',	File_Status as 'Submission status', Regulator_Status as 'Regulator Decision', Actual_Regulator_Status as 'Actual Regulator Decision',	[Who submitted], [CS Nation] , pm_filename, ComplianceSchemeId, pm_organisation_size,pm_submission_period_code ,IsResubmission_identifier--YM001
+	from POM_PENDING_ACCEPT_ONLY 
+	where Last_pending_accepted_submission = 1
  ),
-Rank_On_CS_Submission as
+Rank_On_CS_Submission_for_org_file as
 (
 	select *
 		, row_number() over(partition by ComplianceSchemeId, FileType, SubmissionPeriod order by Submission_time desc) as Rank_on_submission_timestamp
 	from
 	(
-		select cfm.OrganisationId,  cfm.FileType, 
-							case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
-								when cfm.SubmissionPeriod = 'July to December 2023' then 2
-								when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
-								when cfm.SubmissionPeriod = 'July to December 2024' then 4
-								when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
-								when cfm.SubmissionPeriod = 'July to December 2025' then 6
-								when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
-								when cfm.SubmissionPeriod = 'July to December 2026' then 8
-								when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
-								when cfm.SubmissionPeriod = 'July to December 2027' then 10
-								when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
-								when cfm.SubmissionPeriod = 'July to December 2028' then 12
-								else 0
-								end as SubmissionPeriod
-							, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
-								when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024') then 2024
-								when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
-								when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
-								when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
-								when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
-								else 0
-								end as ReportingYear
+		select cfm.OrganisationId,  cfm.FileType 
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
+										when cfm.SubmissionPeriod = 'July to December 2023' then 2
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
+										when cfm.SubmissionPeriod in ('January to December 2025') then 4
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
+										when cfm.SubmissionPeriod = 'July to December 2025' then 6
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
+										when cfm.SubmissionPeriod = 'July to December 2026' then 8
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
+										when cfm.SubmissionPeriod = 'July to December 2027' then 10
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
+										when cfm.SubmissionPeriod = 'July to December 2028' then 12
+										else 0
+										end as SubmissionPeriod
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','January to December 2025') then 2024
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
+										else 0
+										end as ReportingYear
 								, cfm.ComplianceSchemeId
 		, CONVERT(DATETIME,substring(cfm.Created,1,23)) as Submission_time
 		, cfm.FileName
 		From [rpd].[cosmos_file_metadata] cfm
 		left join [rpd].[error_files_not_processed] ef on ef.FileName = cfm.FileName
-		where cfm.FileType in ('CompanyDetails','Pom')
+		where cfm.FileType in ('CompanyDetails')
 		and cfm.ComplianceSchemeId is not null
 	) A
 ),
@@ -195,21 +365,63 @@ Rank_On_CS_Submission as
 Latest_org_by_CS as
 (
 	select distinct CD.organisation_id, cs.id as ComplianceSchemeId, SubmissionPeriod, 'Y' as Is_present_latest_cs_sub_org
-	from Rank_On_CS_Submission RS
+	from Rank_On_CS_Submission_for_org_file RS
 	inner join [rpd].[CompanyDetails] CD on RS.FileName = CD.FileName
 	inner join [rpd].[ComplianceSchemes] cs on cs.ExternalId = RS.ComplianceSchemeId
 	where Rank_on_submission_timestamp = 1
 	and FileType = 'CompanyDetails' 
 ),
+
+Rank_On_CS_Submission_for_pom_file as
+(
+	select *
+		, row_number() over(partition by ComplianceSchemeId, FileType, SubmissionPeriod order by Submission_time desc) as Rank_on_submission_timestamp
+	from
+	(
+		select cfm.OrganisationId,  cfm.FileType 
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023') then 1 
+										when cfm.SubmissionPeriod = 'July to December 2023' then 2
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024') then 3 
+										when cfm.SubmissionPeriod = 'July to December 2024' then 4
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025') then 5 
+										when cfm.SubmissionPeriod = 'July to December 2025' then 6
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026') then 7 
+										when cfm.SubmissionPeriod = 'July to December 2026' then 8
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027') then 9 
+										when cfm.SubmissionPeriod = 'July to December 2027' then 10
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028') then 11 
+										when cfm.SubmissionPeriod = 'July to December 2028' then 12
+										else 0
+										end as SubmissionPeriod
+								, case when cfm.SubmissionPeriod in ('Jan to Jun 2023','January to June 2023','July to December 2023') then 2023 
+										when cfm.SubmissionPeriod in ('Jan to Jun 2024','January to June 2024','July to December 2024') then 2024
+										when cfm.SubmissionPeriod in ('Jan to Jun 2025','January to June 2025','July to December 2025') then 2025
+										when cfm.SubmissionPeriod in ('Jan to Jun 2026','January to June 2026','July to December 2026') then 2026
+										when cfm.SubmissionPeriod in ('Jan to Jun 2027','January to June 2027','July to December 2027') then 2027
+										when cfm.SubmissionPeriod in ('Jan to Jun 2028','January to June 2028','July to December 2028') then 2028
+										else 0
+										end as ReportingYear
+								, cfm.ComplianceSchemeId
+		, CONVERT(DATETIME,substring(cfm.Created,1,23)) as Submission_time
+		, cfm.FileName
+		From [rpd].[cosmos_file_metadata] cfm
+		left join [rpd].[error_files_not_processed] ef on ef.FileName = cfm.FileName
+		where cfm.FileType in ('Pom')
+		and cfm.ComplianceSchemeId is not null
+	) A
+),
+
 Latest_pom_by_CS as
 (
 	select distinct PM.organisation_id, cs.id as ComplianceSchemeId, SubmissionPeriod, 'Y' as Is_present_latest_cs_sub_pom
-	from Rank_On_CS_Submission RS
+	from Rank_On_CS_Submission_for_pom_file RS
 	inner join [rpd].[Pom] PM on RS.FileName = PM.FileName
 	inner join [rpd].[ComplianceSchemes] cs on cs.ExternalId = RS.ComplianceSchemeId
 	where Rank_on_submission_timestamp = 1
-	and FileType = 'POM'
+	and FileType = 'Pom'
 ),
+--YM006
+/*
 rptRegistrationRegistered as
 (
 	select distinct organisation_id, 'Y' as Is_Present_in_Reg_report
@@ -217,9 +429,11 @@ rptRegistrationRegistered as
 ),
 rptPOM_All_Submissions as
 (
-	select distinct organisation_id, 'Y' as Is_Present_in_POM_report
+	select distinct OrganisationID as organisation_id, 'Y' as Is_Present_in_POM_report
 	from [dbo].[v_POM_All_Submissions]
+	where OrganisationID is not null
 ),
+*/
  enr as
  (
 		select pocon.OrganisationId, ES.[Name] , CONVERT(DATETIME,substring(E.CreatedOn,1,23)) 'Enrolment_date_time', CONVERT(DATETIME,substring(E.LastUpdatedOn,1,23)) 'Enrolment_status_date_time',
@@ -271,9 +485,9 @@ submission_count as
 	select [Org ID],ReportingYear, count(1) as cnt
 	from
 	(
-		select * from l_org_sql
+		select [Org ID],ReportingYear from l_org_sql
 		union all 
-		select * From l_pom_sql
+		select [Org ID],ReportingYear From l_pom_sql
 	) A 
 	group by [Org ID],ReportingYear
 ),
@@ -304,70 +518,55 @@ agg_units_POM as
 		sum(packaging_material_units)
 		FOR Type_Material in ([CW-AL],[CW-FC],[CW-GL],[CW-OT],[CW-PC],[CW-PL],[CW-ST],[CW-WD],[HDC-AL],[HDC-FC],[HDC-GL],[HDC-OT],[HDC-PC],[HDC-PL],[HDC-ST],[HDC-WD],[HH-AL],[HH-FC],[HH-GL],[HH-OT],[HH-PC],[HH-PL],[HH-ST],[HH-WD],[NDC-AL],[NDC-FC],[NDC-GL],[NDC-OT],[NDC-PC],[NDC-PL],[NDC-ST],[NDC-WD],[NH-AL],[NH-FC],[NH-GL],[NH-OT],[NH-PC],[NH-PL],[NH-ST],[NH-WD],[OW-AL],[OW-FC],[OW-GL],[OW-OT],[OW-PC],[OW-PL],[OW-ST],[OW-WD],[PB-AL],[PB-FC],[PB-GL],[PB-OT],[PB-PC],[PB-PL],[PB-ST],[PB-WD],[RU-AL],[RU-FC],[RU-GL],[RU-OT],[RU-PC],[RU-PL],[RU-ST],[RU-WD],[SP-AL],[SP-FC],[SP-GL],[SP-OT],[SP-PC],[SP-PL],[SP-ST],[SP-WD])
 	) AS PivotTable
+),
+/** YM002 515336 Addition of Transitional packaging Data **/
+agg_transitional_packaging_units_POM as
+(
+	select FileName,organisation_id,AL,FC,GL,PC,PL,ST,WD,OT
+	FROM
+	(
+			select FileName, organisation_id, packaging_material , transitional_packaging_units
+			from rpd.pom
+	) as TablePivot
+	PIVOT
+	(
+		sum(transitional_packaging_units)
+		FOR packaging_material in (AL,FC,GL,PC,PL,ST,WD,OT)
+	) AS PivotTable
 )
 select 
 	
-	bs.[Org ID]  as Org_ID								--,case when bs.RankId = 1 then bs.[Org ID] else '' end as Org_ID
-	,bs.[Org Name] as Org_name							--,case when bs.RankId = 1 then bs.[Org Name] else '' end as Org_name	
-	,bs.CH as CH_number									--,case when bs.RankId = 1 then bs.CH else '' end as CH_number
-	,bs.[Nation of Enrolment] as Nation_of_enrolment	--,case when bs.RankId = 1 then bs.[Nation of Enrolment] else '' end as Nation_of_enrolment
-	,bs.Enrolment_date_time as Enrolment_date_time		--,case when bs.RankId = 1 then bs.Enrolment_date_time else NULL end as Enrolment_date_time
-	,bs.[Status of enrolment] as Enrolment_status		--,case when bs.RankId = 1 then bs.[Status of enrolment] else '' end as Enrolment_status
-	--,case when bs.RankId = 1 then bs.Enrolment_status_date_time else '' end as Enrolment_status_date_time 
-	,bs.[Nation of Compliance Scheme regulator] as Nation_of_Compliance_Scheme_regulator	--,case when bs.RankId = 1 then bs.[Nation of Compliance Scheme regulator] else '' end as Nation_of_Compliance_Scheme_regulator
-
+	bs.[Org ID]  as Org_ID								
+	,bs.[Org Name] as Org_name						
+	,bs.CH as CH_number								
+	,bs.[Nation of Enrolment] as Nation_of_enrolment	
+	,bs.Enrolment_date_time as Enrolment_date_time		
+	,bs.[Status of enrolment] as Enrolment_status		
+	,bs.[Nation of Compliance Scheme regulator] as Nation_of_Compliance_Scheme_regulator
 	,bs.SP as Packaging_data_submission_period
-
 	, fps.[Submission date time] as Packaging_data_first_submission_datetime
 	,ISNULL(fps.[Submitted by],'') as Packaging_data_first_submitted_CS_or_Direct
-	--, case when fps.[Who submitted] = 'CS' then fps.[Submitted by] else 'DP' end as Packaging_data_first_submitted_CS_or_Direct
-	--, fps.[Submitted by] as [F POM Submitted by]
 	, ISNULL(fps.[CS Nation],'') Packaging_data_first_submitted_CS_Nation
-	--, fps.[Submission status] as [F POM Submission status]
-	, ISNULL(fps.[Regulator Decision],'') as Packaging_data_first_submission_status
-	--, fps.[Who submitted] as [F POM Who submitted]
-	--, fps.pm_filename as F_pm_filename
-	--, fps.ComplianceSchemeId as F_pm_CS_id
-
-
-	, lps.[Submission date time] as Packaging_data_latest_submission_datetime
+	, ISNULL(fps.[Actual Regulator Decision],'') as Packaging_data_first_submission_status
+	, fps.pm_organisation_size as Packaging_data_first_submission_organisation_size
+	, fps.pm_submission_period_code as Packaging_data_first_submission_period_code --YM001
+    , lps.[Submission date time] as Packaging_data_latest_submission_datetime
 	, ISNULL(lps.[Submitted by],'') as Packaging_data_latest_submitted_CS_or_Direct
-	--, case when lps.[Who submitted] = 'CS' then lps.[Submitted by] else 'DP' end as Packaging_data_latest_submitted_CS_or_Direct
-	--, lps.[Submitted by] as [L POM Submitted by]
 	, ISNULL(lps.[CS Nation],'') Packaging_data_latest_submitted_CS_Nation
-	--, lps.[Submission status] as [L POM Submission status]
-	, ISNULL(lps.[Regulator Decision],'') as Packaging_data_latest_submission_status
-	--, lps.[Who submitted] as [L POM Who submitted]
-	--, lps.pm_filename as L_pm_filename
-	--, lps.ComplianceSchemeId as L_pm_CS_id
-
+	, ISNULL(lps.[Actual Regulator Decision],'') as Packaging_data_latest_submission_status
+	, lps.pm_organisation_size as Packaging_data_latest_submission_organisation_size
+	, lps.pm_submission_period_code as Packaging_data_latest_submission_period_code --YM001
 	,bs.SP as Organisation_data_submission_period
-
-
-
 	, fos.[Submission date time] as Organisation_data_first_submission_datetime
 	, ISNULL(fos.[Submitted by],'') as Organisation_data_first_submitted_CS_or_Direct
-	--, case when fos.[Who submitted] = 'CS' then fos.[Submitted by] else 'DP' end as Organisation_data_first_submitted_CS_or_Direct
-	--, fos.[Submitted by] as [F ORG Submitted by]
 	, ISNULL(fos.[CS Nation],'') Organisation_data_first_submitted_CS_Nation
-	--, fos.[Submission status] as [F ORG Submission status]
-	, ISNULL(fos.[Regulator Decision],'') as Organisation_data_first_submission_status
-	--, fos.[Who submitted] as [F ORG Who submitted]
-	--, fos.cd_filename as F_cd_filename
-	--, fos.ComplianceSchemeId as F_org_CS_id
-
+	, ISNULL(fos.[Actual Regulator Decision],'') as Organisation_data_first_submission_status
+	, fos.cd_organisation_size as Organisation_data_first_submission_organisation_size
 	, los.[Submission date time] as Organisation_data_latest_submission_datetime
 	, ISNULL(los.[Submitted by],'') as Organisation_data_latest_submitted_CS_or_Direct
-	--, case when los.[Who submitted] = 'CS' then los.[Submitted by] else 'DP' end as Organisation_data_latest_submitted_CS_or_Direct
-	--, los.[Submitted by] as [L ORG Submitted by]
 	, ISNULL(los.[CS Nation],'') Organisation_data_latest_submitted_CS_Nation
-	--, los.[Submission status] as [L ORG Submission status]
-	, ISNULL(los.[Regulator Decision],'') as Organisation_data_latest_submission_status
-	--, los.[Who submitted] as [L ORG Who submitted]
-	--, los.cd_filename as L_cd_filename
-	--, los.ComplianceSchemeId as L_org_CS_id
-	
-
+	, ISNULL(los.[Actual Regulator Decision],'') as Organisation_data_latest_submission_status
+	, los.cd_organisation_size as Organisation_data_latest_submission_organisation_size
 	, case 
 		when lps.[Submitted by] is null or lps.[Submitted by] = 'DP'
 			then 'NA'
@@ -380,28 +579,36 @@ select
 		else
 			ISNULL(loby.Is_present_latest_cs_sub_org,'N') 
 		end as Organisation_exists_in_most_recent_organisation_data_submission
-	,ISNULL(rptPom.Is_Present_in_POM_report,'N') as Organisation_visible_in_PowerBI_Packaging_reports	--, case when bs.RankId = 1 then ISNULL(rptPom.Is_Present_in_POM_report,'') else '' end as Organisation_visible_in_PowerBI_Packaging_reports
-	,ISNULL(rptReg.Is_Present_in_Reg_report,'N') as Organisation_visible_in_PowerBI_Orgdata_reports		--, case when bs.RankId = 1 then ISNULL(rptReg.Is_Present_in_Reg_report,'') else '' end as Organisation_visible_in_PowerBI_Orgdata_reports
-
+	,ISNULL(rptPom.Is_Present_in_POM_report,'N') as Organisation_visible_in_PowerBI_Packaging_reports	
+	,ISNULL(rptReg.Is_Present_in_Reg_report,'N') as Organisation_visible_in_PowerBI_Orgdata_reports		
 	, case 
-		when fps.pm_filename = lps.pm_filename 
+		when fps.pm_filename = lps.pm_filename and fps.pm_filename is not null and lps.pm_filename is not null
 			then 'Y' 
-		when ISNULL(fps.pm_filename,'') <> ISNULL(lps.pm_filename,'') and fps.pm_filename is not null 
+		when fps.pm_filename is not null and lps.pm_filename is null
+			then 'Y'
+		when fps.pm_filename <> lps.pm_filename and fps.pm_filename is not null and lps.pm_filename is not null
 			then 'N' 
+		when fps.pm_filename is null and lps.pm_filename is null
+			then 'NA'
 		else 'NA' 
-	end as Single_File_Submission_Packaging
+		end as Single_File_Submission_Packaging
+	,fps.pm_filename as fps_pm_filename
+	,lps.pm_filename  as lps_pm_filename
 	, case 
-		when fos.cd_filename = los.cd_filename 
+		when fos.cd_filename = los.cd_filename and fos.cd_filename is not null and los.cd_filename is not null
 			then 'Y' 
-		when ISNULL(fos.cd_filename,'') <> ISNULL(los.cd_filename,'') and fos.cd_filename is not null 
+		when fos.cd_filename is not null and los.cd_filename is null
+			then 'Y'
+		when fos.cd_filename <> los.cd_filename and fos.cd_filename is not null and los.cd_filename is not null
 			then 'N' 
+		when fos.cd_filename is null and los.cd_filename is null
+			then 'NA'
 		else 'NA' 
-	end as Single_File_Submission_Orgdata   
-	, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						--, case when sub_c.cnt = 4 and bs.RankId = 1 then 'Y' else '' end as Reported_mandated_data_sets
-	,CAST(bs.[Org soft deleted?] as varchar(2)) as Organisation_soft_deleted							--, case when bs.RankId = 1 then CAST(bs.[Org soft deleted?] as varchar(2)) else '' end as Organisation_soft_deleted
-
-	--,ap.FileName
-	--,ap.organisation_id
+		end as Single_File_Submission_Orgdata   
+	,fos.cd_filename as fos_cd_filename
+	,los.cd_filename  as los_cd_filename
+	--, case when sub_c.cnt = 4 then 'Y' else 'N' end as Reported_mandated_data_sets						
+	,CAST(bs.[Org soft deleted?] as varchar(2)) as Organisation_soft_deleted							
 	,ISNULL(ap.[CW-AL],0) as [Self-managed consumer waste-Aluminium]
 	,ISNULL(ap.[CW-FC],0) as [Self-managed consumer waste-Fibre Composite]
 	,ISNULL(ap.[CW-GL],0) as [Self-managed consumer waste-Glass]
@@ -494,6 +701,16 @@ select
 	,ISNULL(ap.[SP-PL],0) as [Small organisation packaging - all-Plastic]
 	,ISNULL(ap.[SP-ST],0) as [Small organisation packaging - all-Steel]
 	,ISNULL(ap.[SP-WD],0) as [Small organisation packaging - all-Wood]
+	
+/** YM002 515336 Transitional_packaging_unit addition **/
+	,ISNULL(atpu.AL,0) as [Transitional organisation packaging - all-Aluminium]
+	,ISNULL(atpu.FC,0) as [Transitional organisation packaging - all-Fibre Composite]
+	,ISNULL(atpu.GL,0) as [Transitional organisation packaging - all-Glass]
+	,ISNULL(atpu.OT,0) as [Transitional organisation packaging - all-Other]
+	,ISNULL(atpu.PC,0) as [Transitional organisation packaging - all-Paper / Card]
+	,ISNULL(atpu.PL,0) as [Transitional organisation packaging - all-Plastic]
+	,ISNULL(atpu.ST,0) as [Transitional organisation packaging - all-Steel]
+	,ISNULL(atpu.WD,0) as [Transitional organisation packaging - all-Wood]
 	,bs.Reporting_Year
 	
 From base_sql bs
@@ -504,12 +721,14 @@ left join l_org_sql los on los.[Org ID] = bs.[Org ID] and los.[Rank] = bs.RankId
 left join f_pom_sql fps on fps.[Org ID] = bs.[Org ID] and fps.[Rank] = bs.RankId
 left join l_pom_sql lps on lps.[Org ID] = bs.[Org ID] and lps.[Rank] = bs.RankId
 
-left join submission_count sub_c on sub_c.[Org ID] = bs.[Org ID] and sub_c.ReportingYear = bs.Reporting_Year
+--left join submission_count sub_c on sub_c.[Org ID] = bs.[Org ID] and sub_c.ReportingYear = bs.Reporting_Year
 
 left join Latest_org_by_CS loby on loby.organisation_id = bs.[Org ID] and loby.ComplianceSchemeId = los.ComplianceSchemeId and loby.SubmissionPeriod = bs.RankId
 left join Latest_pom_by_CS lpbc on lpbc.organisation_id = bs.[Org ID] and lpbc.ComplianceSchemeId = lps.ComplianceSchemeId and lpbc.SubmissionPeriod = bs.RankId
-left join rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
-left join rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
+left join t_rptRegistrationRegistered rptReg on rptReg.organisation_id = bs.[Org ID]
+left join t_rptPOM_All_Submissions rptPom on rptPom.organisation_id = bs.[Org ID]
 
-left join agg_POM ap on ap.FileName = lps.pm_filename and ap.organisation_id = lps.[Org ID]
-left join agg_units_POM aup on aup.FileName = lps.pm_filename and aup.organisation_id = lps.[Org ID];
+left join agg_POM ap on ap.FileName =  ISNULL(lps.pm_filename,fps.pm_filename) and ap.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+left join agg_units_POM aup on aup.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and aup.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID])
+/** YM002 515336 Transitional_packaging_unit addition **/
+left join agg_transitional_packaging_units_POM atpu on atpu.FileName = ISNULL(lps.pm_filename,fps.pm_filename) and atpu.organisation_id = ISNULL(lps.[Org ID],fps.[Org ID]);

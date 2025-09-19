@@ -7,8 +7,14 @@
 	Updated: 2025-01-13		SN003:						Include Ability to map CSIds
 	Updated: 2025-01-29		SN004:	Ticket  - 501685	Remove Duplicate Status coming from PrnStatusHistory
 	Updated: 2025-01-30		SN005:	Ticket  - 501253	ComplianceSchemes not in Metafile data joined by Companies House no.
-
-******************************************************************************************************************************/
+	Updated: 2025-02-28		SN006:	N/A					v_Organisations_Active replaced with v_Organisations_Active_pom
+	Updated: 2025-02-28		SN007:	Ticket	- 527575	Added PRNMaterialMapping table to resolve NPWD and PRN materialname mismatch
+	Updated: 2025-02-28		SN008:	Ticket	- 527557	Update cs_ch Nation to remove duplicate nation in UNION
+	Updated: 2025-06-02		SN009:  N/A					Nation case statemnt (SN002) replaced with lookup to rpd.nations table
+	Updated: 2025-06-06		SN010:	Ticket	- 517612	Use prn.StatusUpdatedOn intially for Accepted/Rejected/Cancelled/Rejected 
+														datetime.  If null uses PrnStatusHistory.CreatedOn
+	Updated: 2025-06-09		SN011:						Join commented out as no longer in use in PowerBI. Left as placeholder
+*****************************************************************************************************************************/
 	Select 
 		 PrnStatusHistoryId		= sth.Id
 		,PrnIdFk				= sth.PrnIdFk
@@ -34,7 +40,16 @@ st_pvt As (
 			Max(PrnStatusDate) for PrnStatusName In ([ACCEPTED],[REJECTED],[CANCELLED],[AWAITINGACCEPTANCE])
 	) stp Where IsLatest=1			/*** SN0004: Added ***/
 ), 
-org As (  /*** SN:003 ***/
+
+/*** SN007: Added ***/
+pmm As (
+	Select *
+	From
+		dbo.v_PRN_MaterialGroups
+	
+), /*** SN007: Added ***/
+/*** SN:003 ***/
+org As (  
 	Select
 		 o.ExternalID
 		,o.ReferenceNumber
@@ -44,21 +59,21 @@ org As (  /*** SN:003 ***/
 		,o.Postcode 
 		,RowNumber	=1
 	From
-		dbo.v_rpd_Organisations_Active	o
+		dbo.v_rpd_Organisations_Active_POM	o /*** SN006: Replaced ***/
 ),
 cs_ch As (  /*** SN005: Added ***/
 	Select
-	 cs.ExternalID
-	,o.ReferenceNumber
-	,o.NationId
-	,o.IsComplianceScheme
-	,o.Town
-	,o.Postcode 
-	,RowNumber	=1
-From
-	dbo.v_rpd_Organisations_Active	o
-Join
-	rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
+		 cs.ExternalID
+		,o.ReferenceNumber
+		,NationId = Case When IScomplianceScheme = 1 Then cs.NationId Else o.NationId End  /*** SN008: Updated ***/
+		,o.IsComplianceScheme
+		,o.Town
+		,o.Postcode 
+		,RowNumber	=1
+	From
+		dbo.v_rpd_Organisations_Active_POM	o		/*** SN006: Replaced ***/
+	Join
+		rpd.ComplianceSchemes			cs On o.CompaniesHouseNumber = cs.CompaniesHouseNumber
 ),
 csa As (
 	Select  
@@ -112,18 +127,18 @@ org_csa As (
 	
 ), /*** SN:003 ***/
 prn As (
-	Select 
+	Select Distinct
 		 p.Id
 		,p.ExternalId
 		,p.PrnNumber
-		,ExternalOrgId					= p.OrganisationId
+		,ExternalOrgId				= p.OrganisationId
 		,p.OrganisationName
 		,p.ProducerAgency
 		,p.ReprocessorExporterAgency
 		,p.PrnStatusId
-		,PrnStatus						= s.StatusDescription
+		,PrnStatus					= s.StatusDescription
 		,p.TonnageValue
-		,p.MaterialName
+		,MaterialName				= Replace(Coalesce(pmm.PRNMaterialName,pmmNPWD.PRNMaterialName,p.MaterialName,null),' ','') /*** SN008: Added ***/
 		,p.IssuerNotes
 		,p.IssuerReference
 		,p.PrnSignatory
@@ -131,12 +146,16 @@ prn As (
 		,p.[Signature]
 		,IssueDate					= convert(date,p.IssueDate)
 		,IssueTime					= convert(time,p.IssueDate)
-		,AcceptedDate				= convert(date,st.PrnAcceptedDate)
-		,AcceptedTime				= convert(time,st.PrnAcceptedDate)
-		,CancelledDate				= convert(date,st.PrnCancelledDate)
-		,CancelledTime				= convert(time,st.PrnCancelledDate)
+		,AcceptedDate				= convert(date,Case When p.PrnStatusId=1 Then Coalesce(p.StatusUpdatedOn, st.PrnAcceptedDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,AcceptedTime				= convert(time,Case When p.PrnStatusId=1 Then Coalesce(p.StatusUpdatedOn, st.PrnAcceptedDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,RejectedDate				= convert(date,Case When p.PrnStatusId=2 Then Coalesce(p.StatusUpdatedOn, st.PrnRejectedDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,RejectedTime				= convert(time,Case When p.PrnStatusId=2 Then Coalesce(p.StatusUpdatedOn, st.PrnRejectedDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,CancelledDate				= convert(date,Case When p.PrnStatusId=3 Then Coalesce(p.StatusUpdatedOn, st.PrnCancelledDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,CancelledTime				= convert(time,Case When p.PrnStatusId=3 Then Coalesce(p.StatusUpdatedOn, st.PrnCancelledDate, p.CreatedOn) Else Null End)			/*** SN010:***/
+		,AwaitingAcceptanceDate		= convert(date,Case When p.PrnStatusId=4 Then Coalesce(p.StatusUpdatedOn, st.PrnAwaitingAcceptanceDate, p.CreatedOn) Else Null End)	/*** SN010:***/
+		,AwaitingAcceptanceTime		= convert(time,Case When p.PrnStatusId=4 Then Coalesce(p.StatusUpdatedOn, st.PrnAwaitingAcceptanceDate, p.CreatedOn) Else Null End)	/*** SN010:***/
 		,p.ProcessToBeUsed
-		,p.DecemberWaste
+		,p.DecemberWaste  
 		,p.StatusUpdatedOn
 		,p.IssuedByOrg
 		,p.AccreditationNumber
@@ -157,32 +176,42 @@ prn As (
 	Left Join
 		rpd.PrnStatus			s
 			On p.PrnStatusId = s.id
+	Left Join 
+		pmm			pmmNPWD 
+			on Replace(rTrim(p.MaterialName),' ','') = Replace(rTrim(pmmNPWD.NPWDMaterialName),' ','') /*** SN007: Added ***/
+	Left Join 
+		pmm 
+			on Replace(rTrim(p.MaterialName),' ','') = Replace(rTrim(pmm.PRNMaterialName),' ','') /*** SN007: Added ***/
 )
 
 Select p.id,
 	 p.PrnNumber
 	,p.ExternalOrgId
-	,OrganisationId					= o.[ReferenceNumber]
+	,OrganisationId					= o.ReferenceNumber
 	,p.OrganisationName
 	,p.ProducerAgency
 	,p.ReprocessorExporterAgency
 	,p.PrnStatus
+	,p.StatusUpdatedOn
+	,p.IssueDate
+	,p.IssueTime
+	,p.AcceptedDate
+	,p.AcceptedTime
+	,p.RejectedDate
+	,p.RejectedTime
+	,p.CancelledDate
+	,p.CancelledTime
+	,p.AwaitingAcceptanceDate
+	,p.AwaitingAcceptanceTime
 	,p.TonnageValue
-	,p.MaterialName
+	,MaterialName				= Case When p.MaterialName ='Paperandboard' Then 'Paper' Else p.MaterialName End
 	,p.IssuerNotes
 	,p.IssuerReference
 	,p.PrnSignatory
 	,p.PrnSignatoryPosition
 	,p.[Signature]
-	,p.IssueDate
-	,p.IssueTime
-	,p.AcceptedDate
-	,p.AcceptedTime
-	,p.CancelledDate
-	,p.CancelledTime
 	,p.ProcessToBeUsed
 	,p.DecemberWaste
-	,p.StatusUpdatedOn
 	,IssuedByOrganisationName		= p.IssuedByOrg
 	,p.AccreditationNumber
 	,p.ReprocessingSite
@@ -193,20 +222,17 @@ Select p.id,
 	,p.CreatedOn
 	,p.LastUpdatedBy
 	,p.LastUpdatedDate
-	,p.IsExport
+	,p.IsExport						/*** 0 = PRN, 1 = PERN ***/
 	,ProducerType					= Case o.[IsComplianceScheme] When 1 Then 'Compliance Scheme' When 0 Then 'Direct Registrant' Else NULL End
 	,o.Town
 	,o.Postcode
-	,Nation							= Case o.NationId					/** SN002 **/
-										When 1 Then 'England'
-										When 2 Then 'Northern Ireland'
-										When 3 Then 'Scotland'
-										When 4 Then 'Wales'
-										Else 'Not Set'
-									 End
-	,PrnObliJoin			= Concat(Ltrim(Rtrim(p.ExternalOrgId)),'-',Ltrim(Rtrim(p.MaterialName)),'-',Ltrim(Rtrim(p.ObligationYear)))
+	,Nation					= IsNull(na.[Name],'Not Set')	/*** SN009: Added ***/
+	,PrnObliJoin			= Concat(Ltrim(Rtrim(p.ExternalOrgId)),'-',Ltrim(Rtrim(p.MaterialName)),'-',Ltrim(Rtrim(p.ObligationYear))) 
 From
 	prn											p
 Join
 	org_csa				o
-		on p.ExternalOrgId = o.ExternalID;
+		on p.ExternalOrgId = o.ExternalID
+Left Join
+	rpd.nations			na
+		on o.NationId = na.Id;

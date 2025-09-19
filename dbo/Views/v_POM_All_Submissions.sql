@@ -1,19 +1,79 @@
 ﻿CREATE VIEW [dbo].[v_POM_All_Submissions] AS With vPOM_AS 
+/***************************************************************************************************
+History:
+
+	Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
+							Ticket 412287 for Release 5.0
+
+	Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
+	Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
+	Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
+	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
+	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
+	Updated 2025-08-12: TS001: ticket 601453; adding [Is_resubmitted_POM_identifier] column for the POM reports
+	Updated 2025-08-19: TS002: ticket 603393; Changing the handling Application_submitted_ts logic
+
+*****************************************************************************************************/
+	
 As 
 (
 
-	select A.*, d.Regulator_Status,	d.Regulator_User_Name,	d.Decision_Date ,	d.Regulator_Rejection_Comments
-	,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
-	/***************************************************************************************************
-	History:
-
-		Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
-								Ticket 412287 for Release 5.0
+	select 
+			A.Org_Name
+			,A.OrganisationName
+			,A.PCS_Or_Direct_Producer
+			,A.Compliance_Scheme
+			,A.Org_Type
+			,A.Org_Sub_Type
+			,A.organisation_size
+			,A.Submission_Date --JP003
+			--,coalesce(convert(datetime2,d.Application_submitted_ts,127),convert(datetime2,d.Created,127), A.Submission_Date) as Application_Submission_Date --JP003
+			,convert(datetime2,d.Application_submitted_ts,127) as Application_Submission_Date -- TS002
+			,A.submission_period
+			,A.SubmitterID
+			,A.organisation_id
+			,A.subsidiary_id
+			,A.CH_Number
+			,A.Nation_Of_Enrolment
+			,A.packaging_activity
+			,A.packaging_type
+			,A.packaging_class
+			,A.packaging_material
+			,A.packaging_sub_material
+			,A.transitional_packaging_units
+			,A.from_nation
+			,A.to_nation
+			,A.quantity_kg
+			,A.quantity_unit
+			,A.Quantity_kg_extrapolated
+			,A.Quantity_units_extrapolated
+			,A.ToOrganisation_NationName
+			,A.Nation
+			,A.FromOrganisation_NationName
+			,A.FileName
+			,A.ServiceRoles_Role
+			,A.SubmittedBy
+			,A.filetype
+			,A.Users_Email
+			,A.Persons_Email
+			,A.metafile
+			,A.JOINFIELD
+			,A.relative_move
+			,A.TransferNation
+			,A.SubmtterEmail
+			,A.ServiceRoles_Name
+			,A.OriginalFileName
+			,A.data_type
+			,A.OrganisationID
+			,d.Regulator_Status,
+			d.Regulator_User_Name,
+			d.Decision_Date ,
+			d.Regulator_Rejection_Comments,
+			-- TS001
+			d.[Is_resubmitted_POM_identifier]
+	-- SV001 -,so.SecondOrganisation_ReferenceNumber as SubsidiaryOrganisation_ReferenceNumber
+	,Null as subsidiary_name
 	
-		Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
-		Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
-
-	*****************************************************************************************************/
 	from
 	(
 			SELECT [Org_Name]
@@ -60,9 +120,9 @@ As
 				  ,[OriginalFileName]
 				  ,'Direct' data_type
 				  ,[organisation_id] OrganisationID -- added TS 12/09/2024
-			FROM t_POM_Submissions direct  
+			FROM dbo.t_POM_Submissions direct  
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
-											FROM v_POM_Operator_Submissions operators )
+							FROM dbo.t_POM_Operator_Submissions operators )
  
 			UNION
 			--add in operator
@@ -110,8 +170,8 @@ As
 				  ,[ServiceRoles_Name]
 				  ,[OriginalFileName], 
 				  'Operator'
-				  ,'' OrganisationID -- added TS 12/09/2024
-			FROM v_POM_Operator_Submissions
+				  ,CAST(NULL AS INT) AS OrganisationID -- added TS 12/09/2024
+			FROM dbo.t_POM_Operator_Submissions
  
 			UNION 
 
@@ -161,16 +221,19 @@ As
 				  ,[OriginalFileName]
 				  ,'Member'
 				  ,[organisation_id_producer] as OrganisationID -- added TS 12/09/2024
-				  from v_POM_Operator_Submissions 
+				  from dbo.t_POM_Operator_Submissions 
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
 left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
-LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
+--SV001- LEFT JOIN dbo.v_subsidiaryorganisations so 
+--	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
+--		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
 
-			and so.RelationToDate is NULL
+--			and so.RelationToDate is NULL
+/** JP002 added join on company details table to get subsidiary name **/
+--left join rpd.CompanyDetails cd on cd.organisation_id = A.OrganisationID
+--and ISNULL((cd.subsidiary_id),'') = ISNULL((A.subsidiary_id),'')
 )
  -- JP001
 Select 

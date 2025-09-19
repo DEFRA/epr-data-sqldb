@@ -159,7 +159,5 @@
     [Decision_Date]                                                  NVARCHAR (4000) NULL,
     [Regulator_User_Name]                                            NVARCHAR (4000) NULL
 )
-WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
-
-
+WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = HASH([Organisations_Id]));
 

@@ -1,9 +1,16 @@
 ﻿CREATE PROC [dbo].[Registration_Comparison_Change_Of_Member_and_Membership] @CompanyRegID_1 [VARCHAR](4000),@CompanyRegID_2 [VARCHAR](4000) AS
 BEGIN
-WITH file1 AS (
+WITH 
+/****************************************************************************************************************************
+	History:
+	Updated: 2025-07-15:	DK001:	Ticket - 576286: Subsidiary Retrofit column reference removal 
+	Updated: 2025-07-24:	YM002:	Ticket - 582597 & 582613: Change of membership logic to be updated to include new Joiner and leaver codes
+******************************************************************************************************************************/
+
+file1 AS (
 SELECT CompanyOrgId
       ,subsidiary_id
-	  ,SubsidiaryOrganisation_ReferenceNumber
+	--  ,SubsidiaryOrganisation_ReferenceNumber
       ,organisation_name
       ,trading_name
       ,companies_house_number
@@ -75,7 +82,11 @@ SELECT CompanyOrgId
       ,secondary_contact_person_phone_number
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
-      ,load_ts
+	  ,organisation_size
+	  ,leaver_code
+	  ,leaver_date
+	  ,organisation_change_reason
+	  ,joiner_date
       ,CompanyFileName
       ,CompanyOriginalFileName
       ,CompanyFileType
@@ -111,7 +122,7 @@ SELECT CompanyOrgId
   SELECT 
 		CompanyOrgId
       ,subsidiary_id
-	  ,SubsidiaryOrganisation_ReferenceNumber
+	--  ,SubsidiaryOrganisation_ReferenceNumber
       ,organisation_name
       ,trading_name
       ,companies_house_number
@@ -183,7 +194,11 @@ SELECT CompanyOrgId
       ,secondary_contact_person_phone_number
       ,secondary_contact_person_email
       ,secondary_contact_person_job_title
-      ,load_ts
+	  ,organisation_size
+	  ,leaver_code
+	  ,leaver_date
+	  ,organisation_change_reason
+	  ,joiner_date
       ,CompanyFileName
       ,CompanyOriginalFileName
       ,CompanyFileType
@@ -223,8 +238,8 @@ SELECT CompanyOrgId
   ,f2.subsidiary_id AS subsidiary_id_2
   ,f1.organisation_name AS organisation_name_1
   ,f2.organisation_name AS organisation_name_2
-  ,f1.SubsidiaryOrganisation_ReferenceNumber AS system_generated_subsidiary_id_1
-  ,f2.SubsidiaryOrganisation_ReferenceNumber AS system_generated_subsidiary_id_2
+ -- ,f1.SubsidiaryOrganisation_ReferenceNumber AS --system_generated_subsidiary_id_1
+  --,f2.SubsidiaryOrganisation_ReferenceNumber AS --system_generated_subsidiary_id_2
   ,f1.companies_house_number AS companies_house_number_1
   ,f2.companies_house_number AS companies_house_number_2
   ,f1.main_activity_sic as main_activity_sic_1
@@ -233,22 +248,67 @@ SELECT CompanyOrgId
   ,f2.subsidiary_id AS file2_subsidiary_id
   ,f1.CSORPD AS file1_CSORPD
   ,f2.CSORPD AS file2_CSORPD
-
+  ,f1.organisation_size AS organisation_size_1
+  ,f2.organisation_size AS organisation_size_2
+  ,f1.leaver_code AS leaver_code_1
+  ,f2.leaver_code AS leaver_code_2
+  ,f1.joiner_date AS joiner_date_1
+  ,f2.joiner_date AS joiner_date_2
+  ,f1.leaver_date AS leaver_date_1
+  ,f2.leaver_date AS leaver_date_2
+  ,f1.organisation_change_reason AS organisation_change_reason_1
+  ,f2.organisation_change_reason AS organisation_change_reason_2
+	/*YM002*/
 	,CASE 
-		WHEN ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') THEN 'No Change'
-		WHEN f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL THEN 'Added'
-		WHEN f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL THEN 'Removed'
-		ELSE 'Changed' 
-	END AS change_status_subsidiary_id
+		WHEN 
+		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') OR
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NULL) OR
+			(f1.subsidiary_id IS NULL AND f2.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL) -- Added Ticket 550897
+		THEN 'No Change'
 
-	--,f1.SubsidiaryOrganisation_ReferenceNumber AS file1_SubsidiaryOrganisation_ReferenceNumber
-	--,f2.SubsidiaryOrganisation_ReferenceNumber AS file2_SubsidiaryOrganisation_ReferenceNumber
-	--,CASE 
-	--	WHEN ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber, '') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber, '') THEN 'No Change'
-	--	WHEN f1.SubsidiaryOrganisation_ReferenceNumber IS NULL AND f2.SubsidiaryOrganisation_ReferenceNumber IS NOT NULL THEN 'Added'
-	--	WHEN f1.SubsidiaryOrganisation_ReferenceNumber IS NOT NULL AND f2.SubsidiaryOrganisation_ReferenceNumber IS NULL THEN 'Removed'
-	--	ELSE 'Changed' 
-	--END AS change_status_SubsidiaryOrganisation_ReferenceNumber
+		WHEN 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL) OR -- 1 VS 1 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL) OR -- 2 VS 1
+			(f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 1 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NULL) OR -- 2 VS 1
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 2 VS 2
+			(f1.subsidiary_id IS NULL AND f1.leaver_date IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_date IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_subsidiary_id
+	
+	/*,CASE 
+		WHEN 
+		    ISNULL(f1.subsidiary_id, '') = ISNULL(f2.subsidiary_id, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NULL) OR
+			(f1.subsidiary_id IS NULL AND f2.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL) -- Added Ticket 550897
+		THEN 'No Change'
+
+		WHEN 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL) OR -- 1 VS 1 
+		    (f1.subsidiary_id IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NULL) OR -- 2 VS 1
+			(f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 1 VS 2
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NULL) OR -- 2 VS 1
+		    (f1.subsidiary_id IS NOT NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 2 VS 2
+			(f1.subsidiary_id IS NULL AND f1.leaver_code IS NULL AND f2.subsidiary_id IS NOT NULL AND f2.leaver_code IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_subsidiary_id */
+
 
 	,f1.organisation_name AS file1_organisation_name
 	,f2.organisation_name AS file2_organisation_name
@@ -909,21 +969,102 @@ SELECT CompanyOrgId
 
 	,f1.CompanyOrgId AS file1_CompanyOrgId
 	,f2.CompanyOrgId AS file2_CompanyOrgId
-	,CASE
-		WHEN ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') THEN 'No Change'
-		WHEN f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL THEN 'Added'
-		WHEN f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL THEN 'Removed'
-		ELSE 'Changed' 
-	END AS change_status_CompanyOrgId
+	/*YM002*/
+	,CASE 
+		WHEN 
+		    ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') and ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') OR
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NULL)
+		THEN 'No Change'
 
-	
+		WHEN 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL) OR -- 1 VS 1 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL) OR -- 2 VS 1
+			(f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 1 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NULL) OR -- 2 VS 1
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL) OR -- 2 VS 2
+			(f1.CompanyOrgId IS NULL AND f1.leaver_date IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_date IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    ELSE 'Changed' 
+END AS change_status_CompanyOrgId
+	/*,CASE 
+		WHEN 
+		    ISNULL(f1.CompanyOrgId, '') = ISNULL(f2.CompanyOrgId, '') and ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') OR
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NULL)
+		THEN 'No Change'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL) OR -- 1 VS 1 
+		    (f1.CompanyOrgId IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.joiner_date IS NOT NULL) OR -- 1 VS 2 
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NULL) OR -- 2 VS 1
+			(f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NULL AND f2.joiner_date IS NOT NULL) -- 2 VS 2
+		THEN 'Added'
+
+		WHEN 
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NULL) OR -- 1 VS 1 and 2 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 1 VS 2
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NULL) OR -- 2 VS 1
+		    (f1.CompanyOrgId IS NOT NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL) OR -- 2 VS 2
+			(f1.CompanyOrgId IS NULL AND f1.leaver_code IS NULL AND f2.CompanyOrgId IS NOT NULL AND f2.leaver_code IS NOT NULL)-- or -- 1 VS 2 new condition !!!!
+		THEN 'Removed'
+    
+    ELSE 'Changed' 
+END AS change_status_CompanyOrgId*/
+
+	,f1.organisation_size AS file1_organisation_size
+	,f2.organisation_size AS file2_organisation_size
+	,CASE
+		WHEN ISNULL(f1.organisation_size, '') = ISNULL(f2.organisation_size, '') THEN 'No Change'
+		WHEN f1.organisation_size IS NULL AND f2.organisation_size IS NOT NULL THEN 'Added'
+		WHEN f1.organisation_size IS NOT NULL AND f2.organisation_size IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_organisation_size
+
+	,f1.leaver_code AS file1_leaver_code
+	,f2.leaver_code AS file2_leaver_code
+	,CASE
+		WHEN ISNULL(f1.leaver_code, '') = ISNULL(f2.leaver_code, '') THEN 'No Change'
+		WHEN f1.leaver_code IS NULL AND f2.leaver_code IS NOT NULL THEN 'Added'
+		WHEN f1.leaver_code IS NOT NULL AND f2.leaver_code IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_leaver_code
+
+	,f1.leaver_date AS file1_leaver_date
+	,f2.leaver_date AS file2_leaver_date
+	,CASE
+		WHEN ISNULL(f1.leaver_date, '') = ISNULL(f2.leaver_date, '') THEN 'No Change'
+		WHEN f1.leaver_date IS NULL AND f2.leaver_date IS NOT NULL THEN 'Added'
+		WHEN f1.leaver_date IS NOT NULL AND f2.leaver_date IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_leaver_date
+
+	,f1.joiner_date AS file1_joiner_date
+	,f2.joiner_date AS file2_joiner_date
+	,CASE
+		WHEN ISNULL(f1.joiner_date, '') = ISNULL(f2.joiner_date, '') THEN 'No Change'
+		WHEN f1.joiner_date IS NULL AND f2.joiner_date IS NOT NULL THEN 'Added'
+		WHEN f1.joiner_date IS NOT NULL AND f2.joiner_date IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_joiner_date
+
+	,f1.organisation_change_reason  AS file1_organisation_change_reason
+	,f1.organisation_change_reason  AS file2_organisation_change_reason
+	,CASE
+		WHEN ISNULL(f1.organisation_change_reason, '') = ISNULL(f2.organisation_change_reason, '') THEN 'No Change'
+		WHEN f1.organisation_change_reason IS NULL AND f2.organisation_change_reason IS NOT NULL THEN 'Added'
+		WHEN f1.organisation_change_reason IS NOT NULL AND f2.organisation_change_reason IS NULL THEN 'Removed'
+		ELSE 'Changed' 
+	END AS change_status_organisation_change_reason
 	FROM file1 f1
 
-	FULL OUTER JOIN file2  f2 ON f2.CompanyOrgId = f1.CompanyOrgId AND ISNULL(f1.subsidiary_id,'') = ISNULL(f2.subsidiary_id,'') AND ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber,'') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber,'')
-	and  ISNULL(f1.companies_house_number,'') = ISNULL(f2.companies_house_number,'')
+	FULL OUTER JOIN file2  f2 ON f2.CompanyOrgId = f1.CompanyOrgId AND ISNULL(f1.subsidiary_id,'') = ISNULL(f2.subsidiary_id,'') AND -- ISNULL(f1.SubsidiaryOrganisation_ReferenceNumber,'') = ISNULL(f2.SubsidiaryOrganisation_ReferenceNumber,'') and  
+	ISNULL(f1.companies_house_number,'') = ISNULL(f2.companies_house_number,'')
 	)
-
-
 	 
 	 SELECT DISTINCT
 		-- Organisation ID
@@ -941,8 +1082,8 @@ SELECT CompanyOrgId
 		--subsidiary_id_1,
 		--subsidiary_id_2,
 		
-		--system_generated_subsidiary_id_1,
-		--system_generated_subsidiary_id_2,
+		----system_generated_subsidiary_id_1,
+		----system_generated_subsidiary_id_2,
 		--Organisation Name
 		--,f1.organisation_name AS organisation_name_1
 		--,f2.organisation_name AS organisation_name_2
@@ -952,10 +1093,10 @@ SELECT CompanyOrgId
 		ELSE organisation_name_1 END organisation_name,
 
 
-		-- System Generated Subsidiary ID
-		CASE 
-			WHEN system_generated_subsidiary_id_1 IS NULL THEN system_generated_subsidiary_id_2
-		ELSE system_generated_subsidiary_id_1 END system_generated_subsidiary_id,
+		-- System Generated Subsidiary ID -- DK001
+		--CASE 
+		--	WHEN --system_generated_subsidiary_id_1 IS NULL THEN --system_generated_subsidiary_id_2
+		--ELSE --system_generated_subsidiary_id_1 END --system_generated_subsidiary_id,
 
 		 --Company House Number
 		CASE 
@@ -1004,14 +1145,11 @@ SELECT CompanyOrgId
 								,'service_of_notice_addr_phone_number' ) THEN 'Address change'
 	
 			WHEN column_name IN (
-								--'CompanyOrgId'
+								
 								'organisation_name'
 								,'companies_house_number'
 								,'organisation_type_code'
-								--,'subsidiary_id' 
-								
-								
-								) THEN 'Organisation change'
+								,'organisation_size' )		THEN 'Organisation change'
 
 
 			WHEN column_name IN (
@@ -1043,24 +1181,42 @@ SELECT CompanyOrgId
 								,'PartnerLastName'
 								,'PartnerPhoneNumber'
 								,'PartnerEmail')	THEN 'Partner change'
-			WHEN column_name IN ('subsidiary_id') THEN 
+			WHEN column_name IN (
+								'subsidiary_id'
+								,'leaver_code'
+								,'leaver_date'
+								,'joiner_date'
+								,'organisation_change_reason'
+								) THEN
 				CASE 
-					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Subsidiary change'
+					WHEN  file1_VALUE is not null OR file2_VALUE is not null THEN 'Subsidiary change'
+					
 					ELSE 'Organisation change' END
 			WHEN column_name IN ('CompanyOrgId') THEN 
 				CASE 
 					WHEN  file1_VALUE is not null OR file2_VALUE is not null  THEN 'Member change'
 					ELSE 'Organisation change' END
-
+			
 		ELSE 'Other change' END Change_Category,
 
-		CASE 
+		CASE
 			WHEN (file1_CSORPD = 'Compliance Scheme' or  file2_CSORPD = 'Compliance Scheme') and subsidiary_id_1 is null and subsidiary_id_2 is null THEN 'Member'
 			WHEN file1_CSORPD = 'Producer' and subsidiary_id_1 is null and subsidiary_id_2 is null THEN 'Parent'
 		Else 'Child' END Parent_or_Member_and_Child
 
 		,file1_CSORPD
 		,file2_CSORPD
+		,organisation_size_1
+		,organisation_size_2
+		,leaver_code_1
+		,leaver_code_2
+		,joiner_date_1
+		,joiner_date_2
+		,leaver_date_1
+		,leaver_date_2
+		,organisation_change_reason_1
+		,organisation_change_reason_2
+					
 
 		FROM (
 			SELECT 
@@ -1070,8 +1226,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2 -- DK001
 				companies_house_number_1,
 				companies_house_number_2,
 				'subsidiary_id' AS column_name, 
@@ -1081,31 +1237,20 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
-
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+				
 			FROM resultfile
 			UNION ALL
-			--SELECT 
-			--	CompanyOrgId_1,
-			--	CompanyOrgId_2,
-			--	subsidiary_id_1,
-			--	subsidiary_id_2,
-			--	organisation_name_1,
-			--	organisation_name_2,
-			--	system_generated_subsidiary_id_1,
-			--	system_generated_subsidiary_id_2,
-			--	companies_house_number_1,
-			--	companies_house_number_2,
-			--	'SubsidiaryOrganisation_ReferenceNumber' AS column_name, 
-			--	--file1_SubsidiaryOrganisation_ReferenceNumber AS file1_value,
-			--	--file2_SubsidiaryOrganisation_ReferenceNumber AS file2_value,
-			--	change_status_subsidiary_id AS change_status,
-			--	file1_CSORPD,
-			--	file2_CSORPD,
-			--	main_activity_sic_1,
-			--	main_activity_sic_2
-			--FROM resultfile
-			--UNION ALL
 			SELECT 
 				CompanyOrgId_1,
 				CompanyOrgId_2,
@@ -1113,8 +1258,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'organisation_name' AS column_name, 
@@ -1124,7 +1269,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1134,8 +1289,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'companies_house_number' AS column_name, 
@@ -1145,7 +1300,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1155,8 +1320,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,				
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'organisation_type_code' AS column_name, 
@@ -1166,7 +1331,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1176,8 +1351,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'organisation_sub_type_code' AS column_name, 
@@ -1187,7 +1362,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1197,8 +1382,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_line1' AS column_name, 
@@ -1208,7 +1393,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1218,8 +1413,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_line2' AS column_name, 
@@ -1229,7 +1424,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1239,8 +1444,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_city' AS column_name, 
@@ -1250,7 +1455,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1260,8 +1475,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_county' AS column_name, 
@@ -1271,7 +1486,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1281,8 +1506,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_postcode' AS column_name, 
@@ -1292,7 +1517,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1302,8 +1537,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,				
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_country' AS column_name, 
@@ -1313,7 +1548,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1323,8 +1568,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registered_addr_phone_number' AS column_name, 
@@ -1334,7 +1579,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1344,8 +1599,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'principal_addr_line1' AS column_name, 
@@ -1355,7 +1610,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1366,8 +1631,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'principal_addr_line2' AS column_name, 
@@ -1377,7 +1642,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -1388,8 +1663,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'principal_addr_city' AS column_name, 
@@ -1399,7 +1674,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1409,8 +1694,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'principal_addr_county' AS column_name, 
@@ -1420,7 +1705,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -1431,8 +1726,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'principal_addr_postcode' AS column_name, 
@@ -1442,7 +1737,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1452,8 +1757,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,				
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'principal_addr_country' AS column_name, 
@@ -1463,7 +1768,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1473,8 +1788,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'principal_addr_phone_number' AS column_name, 
@@ -1484,7 +1799,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile	
 			UNION ALL
 			SELECT 
@@ -1494,8 +1819,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'audit_addr_line1' AS column_name, 
@@ -1505,7 +1830,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1515,8 +1850,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				------system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'audit_addr_line2' AS column_name, 
@@ -1526,7 +1861,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1536,8 +1881,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'audit_addr_city' AS column_name, 
@@ -1547,7 +1892,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1557,8 +1912,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'audit_addr_county' AS column_name, 
@@ -1568,7 +1923,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1578,8 +1943,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'audit_addr_postcode' AS column_name, 
@@ -1589,7 +1954,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1599,8 +1974,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'audit_addr_country' AS column_name, 
@@ -1610,7 +1985,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1620,8 +2005,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				----system_generated_subsidiary_id_1,
+				----system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_line1' AS column_name, 
@@ -1631,7 +2016,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1641,8 +2036,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_line2' AS column_name, 
@@ -1652,7 +2047,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1662,8 +2067,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_city' AS column_name, 
@@ -1673,7 +2078,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1683,8 +2098,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_county' AS column_name, 
@@ -1694,7 +2109,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1704,8 +2129,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,		
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_postcode' AS column_name, 
@@ -1715,7 +2140,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1725,8 +2160,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,			
 				'service_of_notice_addr_country' AS column_name, 
@@ -1736,7 +2171,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1746,8 +2191,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'service_of_notice_addr_phone_number' AS column_name, 
@@ -1757,7 +2202,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1767,8 +2222,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'approved_person_first_name' AS column_name, 
@@ -1778,7 +2233,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1788,8 +2253,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'approved_person_last_name' AS column_name, 
@@ -1799,7 +2264,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1809,8 +2284,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'approved_person_phone_number' AS column_name, 
@@ -1820,7 +2295,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1830,8 +2315,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'approved_person_email' AS column_name, 
@@ -1841,7 +2326,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1851,8 +2346,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'approved_person_job_title' AS column_name, 
@@ -1862,7 +2357,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1872,8 +2377,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'delegated_person_first_name' AS column_name, 
@@ -1883,7 +2388,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1893,8 +2408,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'delegated_person_last_name' AS column_name, 
@@ -1904,7 +2419,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1914,8 +2439,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'delegated_person_phone_number' AS column_name, 
@@ -1925,7 +2450,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1935,8 +2470,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'delegated_person_email' AS column_name, 
@@ -1946,7 +2481,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1956,8 +2501,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'delegated_person_job_title' AS column_name, 
@@ -1967,7 +2512,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1977,8 +2532,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'primary_contact_person_first_name' AS column_name, 
@@ -1988,7 +2543,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -1998,8 +2563,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'primary_contact_person_last_name' AS column_name, 
@@ -2009,7 +2574,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2019,8 +2594,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'primary_contact_person_phone_number' AS column_name, 
@@ -2030,7 +2605,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2041,8 +2626,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'primary_contact_person_email' AS column_name, 
@@ -2052,7 +2637,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2062,8 +2657,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'primary_contact_person_job_title' AS column_name, 
@@ -2073,7 +2668,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2083,8 +2688,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'secondary_contact_person_first_name' AS column_name, 
@@ -2094,7 +2699,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2104,8 +2719,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'secondary_contact_person_last_name' AS column_name, 
@@ -2115,7 +2730,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2125,8 +2750,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'secondary_contact_person_phone_number' AS column_name, 
@@ -2136,7 +2761,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2147,8 +2782,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'secondary_contact_person_email' AS column_name, 
@@ -2158,7 +2793,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2168,8 +2813,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'secondary_contact_person_job_title' AS column_name, 
@@ -2179,7 +2824,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2189,8 +2844,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'BrandName' AS column_name, 
@@ -2200,7 +2855,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2210,8 +2875,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'BrandTypeCode' AS column_name, 
@@ -2221,7 +2886,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 				
 			UNION ALL
@@ -2232,8 +2907,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'PartnerFirstName' AS column_name, 
@@ -2243,7 +2918,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2253,8 +2938,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,				
 				'PartnerLastName' AS column_name, 
@@ -2264,7 +2949,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2274,8 +2969,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'PartnerPhoneNumber' AS column_name, 
@@ -2285,7 +2980,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2295,8 +3000,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'PartnerEmail' AS column_name, 
@@ -2306,7 +3011,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			
 			UNION ALL
@@ -2317,8 +3032,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'home_nation_code' AS column_name, 
@@ -2328,7 +3043,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 	
 			UNION ALL
@@ -2339,8 +3064,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'mainactivitysic' AS column_name, 
@@ -2350,7 +3075,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2360,8 +3095,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_so' AS column_name, 
@@ -2371,7 +3106,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2381,8 +3126,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_pf' AS column_name, 
@@ -2392,7 +3137,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2402,8 +3157,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_im' AS column_name, 
@@ -2413,7 +3168,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2423,8 +3188,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_se' AS column_name, 
@@ -2434,7 +3199,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2444,8 +3219,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_hl' AS column_name, 
@@ -2455,7 +3230,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2465,8 +3250,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_om' AS column_name, 
@@ -2476,7 +3261,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2486,8 +3281,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'packaging_activity_sl' AS column_name, 
@@ -2497,7 +3292,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2507,8 +3312,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'registration_type_code' AS column_name, 
@@ -2518,7 +3323,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2528,8 +3343,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'produce_blank_packaging_flag' AS column_name, 
@@ -2539,7 +3354,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2549,8 +3374,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'liable_for_disposal_costs_flag' AS column_name, 
@@ -2560,7 +3385,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2570,8 +3405,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'meet_reporting_requirements_flag' AS column_name, 
@@ -2581,7 +3416,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2591,8 +3436,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'trading_name' AS column_name, 
@@ -2602,7 +3447,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2612,8 +3467,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'turnover' AS column_name, 
@@ -2623,7 +3478,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2633,8 +3498,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'total_tonnage' AS column_name, 
@@ -2644,7 +3509,17 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+				main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
 			UNION ALL
 			SELECT 
@@ -2654,8 +3529,8 @@ SELECT CompanyOrgId
 				subsidiary_id_2,
 				organisation_name_1,
 				organisation_name_2,
-				system_generated_subsidiary_id_1,
-				system_generated_subsidiary_id_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
 				companies_house_number_1,
 				companies_house_number_2,
 				'CompanyOrgId' AS column_name, 
@@ -2665,10 +3540,174 @@ SELECT CompanyOrgId
 				file1_CSORPD,
 				file2_CSORPD,
 				main_activity_sic_1,
-				main_activity_sic_2
+                main_activity_sic_2,
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
 			FROM resultfile
-			
-		) AS unpivoted_table
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'organisation_size' AS column_name, 
+				file1_organisation_size AS file1_value,
+				file2_organisation_size AS file2_value,
+				change_status_organisation_size AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'leaver_code' AS column_name, 
+				file1_leaver_code AS file1_value,
+				file2_leaver_code AS file2_value,
+				change_status_leaver_code AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'leaver_date' AS column_name, 
+				file1_leaver_date AS file1_value,
+				file2_leaver_date AS file2_value,
+				change_status_leaver_date AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'joiner_date' AS column_name, 
+				file1_joiner_date AS file1_value,
+				file2_joiner_date AS file2_value,
+				change_status_joiner_date AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
+			UNION ALL
+			SELECT 
+				CompanyOrgId_1,
+				CompanyOrgId_2,
+				subsidiary_id_1,
+				subsidiary_id_2,
+				organisation_name_1,
+				organisation_name_2,
+				--system_generated_subsidiary_id_1,
+				--system_generated_subsidiary_id_2,
+				companies_house_number_1,
+				companies_house_number_2,
+				'organisation_change_reason' AS column_name, 
+				file1_organisation_change_reason AS file1_value,
+				file2_organisation_change_reason AS file2_value,
+				change_status_organisation_change_reason AS change_status,
+				file1_CSORPD,
+				file2_CSORPD,
+				main_activity_sic_1,
+				main_activity_sic_2, 
+				organisation_size_1,
+				organisation_size_2,
+				leaver_code_1,
+				leaver_code_2,
+				joiner_date_1,
+				joiner_date_2,
+				leaver_date_1,
+				leaver_date_2,
+				organisation_change_reason_1,
+				organisation_change_reason_2
+			FROM resultfile
 
+		) AS unpivoted_table
 
 END

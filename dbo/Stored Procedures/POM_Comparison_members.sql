@@ -16,6 +16,7 @@ BEGIN
 							which has been changed in the v_POM_All_Submission to fetch the correct Organisation and its subsidiaries
 							2- Action has been taken for the NN001 Organisationname has changed to org_id.
 
+	Updated: 2025-07-15:	DK001:	Ticket - 576286: Subsidiary Retrofit column reference removal 
  ******************************************************************************************************************************/
 	
 --this script now only needed for member comparison. 
@@ -23,7 +24,7 @@ WITH file1
 AS (
 	SELECT OrganisationID
 		,[subsidiary_id]
-		,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
+		--,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
 		,[organisation_size]
 		,[submission_period]
 		,[packaging_activity]
@@ -48,11 +49,11 @@ AS (
 		,data_type
 		--,so.[SecondOrganisation_CompaniesHouseNumber]
 	FROM [dbo].[t_POM_Submissions_POM_Comparison]
-	LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
-		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
-			and so.RelationToDate is NULL -- added new sys gen subsidiary id 
+	--LEFT JOIN dbo.v_subsidiaryorganisations so --DK001
+	--on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
+	--	and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
+	--	--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
+	--		and so.RelationToDate is NULL -- added new sys gen subsidiary id 
 			
 
 	WHERE nation = @securityquery
@@ -73,7 +74,7 @@ AS (
 file2 AS (
 	SELECT OrganisationID
 		,[subsidiary_id]
-		,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
+	--	,[SecondOrganisation_ReferenceNumber] as SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
 		,[organisation_size]
 		,[submission_period]
 		,[packaging_activity]
@@ -97,11 +98,11 @@ file2 AS (
 		--,so.[SecondOrganisation_CompaniesHouseNumber]
 		
 	FROM [dbo].[t_POM_Submissions_POM_Comparison]
-	LEFT JOIN dbo.v_subsidiaryorganisations so 
-	on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
-		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
-		--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
-			and so.RelationToDate is NULL -- added new subsidiary column
+	--LEFT JOIN dbo.v_subsidiaryorganisations so --DK001
+	--on so.FirstOrganisation_ReferenceNumber = [dbo].[t_POM_Submissions_POM_Comparison].OrganisationID
+	--	and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].subsidiary_id),'')
+	--	--and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim([dbo].[t_POM_Submissions_POM_Comparison].[CH_Number]),'')
+	--		and so.RelationToDate is NULL -- added new subsidiary column
 	WHERE nation = @securityquery
 		AND FileName = @filename2
 		AND (
@@ -118,7 +119,7 @@ file2 AS (
 	)
 SELECT coalesce(a.OrganisationID, b.OrganisationID) org_id  /** NN001: **/
 	,coalesce(a.[subsidiary_id], b.[subsidiary_id]) [subsidiary_id]
-	,coalesce(a.SubsidiaryOrganisation_ReferenceNumber, b.SubsidiaryOrganisation_ReferenceNumber) SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id
+	--,coalesce(a.SubsidiaryOrganisation_ReferenceNumber, b.SubsidiaryOrganisation_ReferenceNumber) SubsidiaryOrganisation_ReferenceNumber -- added new sys gen subsidiary id --DK001
 	--,coalesce(a.[SecondOrganisation_CompaniesHouseNumber], b.[SecondOrganisation_CompaniesHouseNumber]) -- added new sys gen subsidiary id
 	,coalesce(a.packaging_material, b.packaging_material) packaging_material
 	,coalesce(a.[from_nation], b.[from_nation]) [from_nation]
@@ -153,7 +154,7 @@ FROM file1 a
 FULL JOIN file2 b
 	ON isnull(a.OrganisationID, '') = isnull(b.OrganisationID, '')
 		AND isnull(a.[subsidiary_id], '') = isnull(b.[subsidiary_id], '')
-		AND isnull(a.SubsidiaryOrganisation_ReferenceNumber, '') = isnull(b.SubsidiaryOrganisation_ReferenceNumber, '') -- added new subsidiary column
+		-- AND isnull(a.SubsidiaryOrganisation_ReferenceNumber, '') = isnull(b.SubsidiaryOrganisation_ReferenceNumber, '') -- added new subsidiary column --DK001
 		--AND ISNULL(trim(a.[SecondOrganisation_CompaniesHouseNumber]),'') = ISNULL(trim(b.[SecondOrganisation_CompaniesHouseNumber]),'') -- added new subsidiary column
 		AND isnull(a.[packaging_activity], '') = isnull(b.packaging_activity, '')
 		AND isnull(a.[packaging_type], '') = isnull(b.packaging_type, '')
@@ -178,7 +179,7 @@ WHERE packaging_type = 'Self-managed consumer waste'
 
 SELECT DISTINCT fj.org_id
 	,fj.subsidiary_id
-	,fj.SubsidiaryOrganisation_ReferenceNumber --- added new subsidiary column
+	--,fj.SubsidiaryOrganisation_ReferenceNumber --- added new subsidiary column
 	,fj.organisation_size
 	,fj.compliance_scheme
 	,fj.packaging_type
@@ -214,7 +215,7 @@ SELECT DISTINCT fj.org_id
 		ELSE ''
 		END [registration_type_code2]
 FROM #file_joined fj
-LEFT JOIN t_registration_latest r
+LEFT JOIN dbo.t_registration_latest r
 	ON r.organisation_id = fj.org_id
 		AND r.subsidiary_id = fj.subsidiary_id
 
