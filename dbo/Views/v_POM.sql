@@ -6,6 +6,9 @@
 	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn
 	Updated: 2025-05-28:	TS003:	Ticket - 549751:	Added to fix system generated subsidiary results
 	Updated: 2025-07-03:	SV001:	Ticket - 576285:	Subsidiary Retrofit column removal 
+
+	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn 		
+
 	
 ******************************************************************************************************************************/
 	p.organisation_id,
@@ -49,7 +52,11 @@
 
 ,case when dense_rank() over(partition by sp.Text, p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
 ,PkgOrgJoinColumn = Concat(p.packaging_type,'-',organisation_size)	/**SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn**/
+
 ,p.ram_rag_rating
+
+
+
 FROm rpd.POM p
 JOIN [dbo].[v_rpd_Organisations_Active_Pom] oap ON oap.referencenumber = p.organisation_id
 LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
