@@ -124,9 +124,9 @@ org_result as
 			--	concat(cd.registrationreferencenumber,cds.subsidiary_id) END as ProducerRegistrationNumber_old
 				
 	             ,case when meta.ComplianceSchemeId is not null and cd.regulator_status in ('GRANTED', 'ACCEPTED') 
-	             			                then concat(cd.registrationreferencenumber,cd.organisation_id,cds.subsidiary_id)
+	             			                then concat(cd.registrationreferencenumber,cds.organisation_id,cds.subsidiary_id)
 	              when meta.ComplianceSchemeId is not null and cd.regulator_status = 'CANCELLED'
-	             			                then concat(aac.acc_registrationreferencenumber,cd.organisation_id,cds.subsidiary_id)
+	             			                then concat(aac.acc_registrationreferencenumber,cds.organisation_id,cds.subsidiary_id)
 	              when meta.ComplianceSchemeId is null and cd.regulator_status in ('GRANTED', 'ACCEPTED') 
 	             							then concat(cd.registrationreferencenumber,cds.subsidiary_id)
 	              when meta.ComplianceSchemeId is null and cd.regulator_status = 'CANCELLED'
