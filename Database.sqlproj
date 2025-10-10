@@ -323,5 +323,8 @@
     <Build Include="dbo\Views\v_PRN_MaterialGroups.sql" />
     <Build Include="dbo\Stored Procedures\GetLatestAcceptedGrantedOrgData.sql" />
     <Build Include="dbo\Stored Procedures\sp_insert_log.sql" />
+    <Build Include="rpd\Tables\ScenarioReferences.sql" />
+    <Build Include="rpd\Tables\CodeStatusConfigs.sql" />
+    <Build Include="rpd\Tables\CodeScenarioMapping.sql" />
   </ItemGroup>
 </Project>
