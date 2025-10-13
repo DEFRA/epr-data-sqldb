@@ -22,3 +22,13 @@
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
+
+GO
+CREATE NONCLUSTERED INDEX [IX_cos_SubmissionId]
+    ON [rpd].[cosmos_file_metadata]([SubmissionId] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_cos_FileId]
+    ON [rpd].[cosmos_file_metadata]([FileId] ASC);
+
