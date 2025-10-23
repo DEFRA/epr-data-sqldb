@@ -13,6 +13,7 @@
 	Updated: 2025-08-28:	AA010:  Ticket - 605105:    Master script - New 4 additional columns will be introduced to split the plastics to “Rigid & Flexible” on Large producer 
 	Updated: 2025-08-28:	PM011:  Ticket - 605220:    Master script - New columns with RAM and RAM-M For rigid, flexible columns added as part 605105
 	Updated: 2025-09-01:	PM012:  Ticket - 607670:    Master script - Split file as small or Large for the year 2025
+	Updated: 2025-10-22:	PM013:  Ticket - 624165:    Master script - Masterscript Bug -  Self-Managed Consumer Waste
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -502,6 +503,12 @@ agg_POM as
 	(
 			select FileName, organisation_id, Packaging_type +'-'+ packaging_material as Type_Material, packaging_material_weight
 			from rpd.pom
+			where Packaging_type not in ('CW','OW')
+			union all
+			select FileName, organisation_id, Packaging_type +'-'+ packaging_material as Type_Material, packaging_material_weight
+			from rpd.pom
+			where Packaging_type in ('CW','OW')
+			and (from_country is null or to_country is null)
 	) as TablePivot
 	PIVOT
 	(
