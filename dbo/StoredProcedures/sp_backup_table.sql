@@ -2,7 +2,7 @@ CREATE PROC [dbo].[sp_backup_table] @schema_name [NVARCHAR](128),@table_name [NV
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @backup_table NVARCHAR(258); -- schema + table
+    DECLARE @backup_table NVARCHAR(258);
     DECLARE @sql NVARCHAR(MAX);
     DECLARE @today NVARCHAR(20);
     DECLARE @timestamp NVARCHAR(20);
