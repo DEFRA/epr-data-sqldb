@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /rpd/Views/files_only_processed.sql
+
+.idea/
