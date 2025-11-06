@@ -19,6 +19,7 @@
     [IsResubmission]         BIT             NULL,
     [Type]                   NVARCHAR (4000) NULL,
     [ComplianceSchemeId]     NVARCHAR (4000) NULL,
+    [ProducerSize]           NVARCHAR (1) NULL,
     [load_ts]                DATETIME2 (7)   NULL
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = HASH([SubmissionId]));
