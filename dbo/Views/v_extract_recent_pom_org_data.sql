@@ -15,6 +15,7 @@
 	Updated: 2025-09-01:	PM012:  Ticket - 607670:    Master script - Split file as small or Large for the year 2025
 	Updated: 2025-10-22:	PM013:  Ticket - 624165:    Master script - Masterscript Bug -  Self-Managed Consumer Waste
 	Updated: 2025-11-06:	PM014:  Ticket - RAM M:     Master script - Adding R G A split for each RAM and RAM-M column
+	Updated: 2025-11-18:	PM015:  Ticket - 640727:    Master script - To handle BLANK value along with NULL records
 ******************************************************************************************************************************/
 TwoRow as
 (
@@ -509,7 +510,8 @@ agg_POM as
 			select FileName, organisation_id, Packaging_type +'-'+ packaging_material as Type_Material, packaging_material_weight
 			from rpd.pom
 			where Packaging_type in ('CW','OW')
-			and (from_country is null or to_country is null)
+			--and (from_country is null or to_country is null)
+			and (isnull(TRIM(from_country),'') = '' or isnull(TRIM(to_country),'') = '')
 	) as TablePivot
 	PIVOT
 	(
