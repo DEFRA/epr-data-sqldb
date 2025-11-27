@@ -31,10 +31,16 @@ AS (
 	FROM (
 		SELECT *,
 			Row_number() OVER (
+<<<<<<< HEAD
 				PARTITION BY
                     coalesce(ComplianceSchemeId, meta_OrganisationId),
                     ReportingYear,
                     RegistrationJourney
+=======
+				PARTITION BY coalesce(ComplianceSchemeId, meta_OrganisationId),
+                    ReportingYear,
+                    ProducerSize
+>>>>>>> dc92bc5 (update v_latest_pending_or_accepted_orgfile_by_year.sql)
                 ORDER BY Submission_time DESC
 				) AS cd_rn
 		FROM base_data
@@ -57,7 +63,11 @@ AS (
 		cd.Regulator_Status,
 		cd.ComplianceSchemeName,
 		cd.CS_id,
+<<<<<<< HEAD
         cd.RegistrationJourney
+=======
+        cd.ProducerSize
+>>>>>>> dc92bc5 (update v_latest_pending_or_accepted_orgfile_by_year.sql)
 	FROM latest_CompanyDetails cd
 	LEFT JOIN rpd.organisations o
 		ON cd.meta_OrganisationId = o.ExternalId
