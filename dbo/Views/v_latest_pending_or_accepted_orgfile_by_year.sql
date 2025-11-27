@@ -14,17 +14,14 @@ AS (
 		UPPER(TRIM(ISNULL(st.Regulator_Status, 'PENDING'))) AS Regulator_Status,
 		m.[RegistrationSetId],
 		m.[ComplianceSchemeId],
+        m.ProducerSize,
 		cs.Name AS ComplianceSchemeName,
 		cs.Id AS CS_id,
-		n.name as CS_Nation_name,
-        m.ProducerSize
+		n.name as CS_Nation_name
 	FROM rpd.cosmos_file_metadata m
-	INNER JOIN dbo.v_submitted_pom_org_file_status st
-		ON m.filename = st.FileName
-	LEFT JOIN rpd.ComplianceSchemes cs
-		ON cs.ExternalId = m.ComplianceSchemeId
-	LEFT JOIN [rpd].[Nations] n 
-		ON n.id = cs.Nationid   --  TS_514441
+	INNER JOIN dbo.v_submitted_pom_org_file_status st ON m.filename = st.FileName
+	LEFT JOIN rpd.ComplianceSchemes cs ON cs.ExternalId = m.ComplianceSchemeId
+	LEFT JOIN [rpd].[Nations] n ON n.id = cs.Nationid
 	WHERE UPPER(TRIM(ISNULL(Regulator_Status, 'PENDING'))) IN (	'ACCEPTED', 'PENDING', 'GRANTED', 'QUERIED')
 	),
 
@@ -34,7 +31,8 @@ AS (
 	FROM (
 		SELECT *,
 			Row_number() OVER (
-				PARTITION BY coalesce(ComplianceSchemeId, meta_OrganisationId),
+				PARTITION BY
+                    coalesce(ComplianceSchemeId, meta_OrganisationId),
                     ReportingYear,
                     ProducerSize
                 ORDER BY Submission_time DESC
@@ -49,7 +47,7 @@ cd_org_combined
 AS (
 	SELECT o.ReferenceNumber AS file_submitted_organisation_reference,
 		o.IsComplianceScheme AS file_submitted_organisation_IsComplianceScheme,
-		cd.CS_Nation_name,--TS_514441
+		cd.CS_Nation_name,
 		cd.meta_OrganisationId,
 		cd.SubmissionPeriod,
 		cd.ReportingYear,
