@@ -1,10 +1,4 @@
-﻿CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS WITH 
-/****************************************************************************************************************************
-	History:
- 
-	Updated: 2025-07-15:	DK001:	Ticket - 576287:	Subsidiary Retrofit column removal 
-	
-******************************************************************************************************************************/
+﻿CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS WITH
 base_data
 AS (
 	SELECT m.OrganisationId AS meta_OrganisationId,
@@ -22,7 +16,8 @@ AS (
 		m.[ComplianceSchemeId],
 		cs.Name AS ComplianceSchemeName,
 		cs.Id AS CS_id,
-		n.name as CS_Nation_name	--  TS_514441
+		n.name as CS_Nation_name,
+        m.ProducerSize
 	FROM rpd.cosmos_file_metadata m
 	INNER JOIN dbo.v_submitted_pom_org_file_status st
 		ON m.filename = st.FileName
@@ -40,7 +35,9 @@ AS (
 		SELECT *,
 			Row_number() OVER (
 				PARTITION BY coalesce(ComplianceSchemeId, meta_OrganisationId),
-				ReportingYear ORDER BY Submission_time DESC
+                    ReportingYear,
+                    ProducerSize
+                ORDER BY Submission_time DESC
 				) AS cd_rn
 		FROM base_data
 		WHERE UPPER(FileType) = 'COMPANYDETAILS'
@@ -61,7 +58,8 @@ AS (
 		cd.meta_filename,
 		cd.Regulator_Status,
 		cd.ComplianceSchemeName,
-		cd.CS_id
+		cd.CS_id,
+        cd.ProducerSize
 	FROM latest_CompanyDetails cd
 	LEFT JOIN rpd.organisations o
 		ON cd.meta_OrganisationId = o.ExternalId
@@ -72,7 +70,6 @@ AS (
 	SELECT com.*,
 		cd.organisation_id,
 		cd.subsidiary_id,
-		--ISNULL(sub.SecondOrganisation_ReferenceNumber, o.ReferenceNumber) subsidiary_id_sys_gen,
 		cd.organisation_name,
 		cd.companies_house_number,
 		cd.organisation_size,
@@ -95,28 +92,17 @@ AS (
 		cd.primary_contact_person_last_name,
 		cd.primary_contact_person_email,
 		cd.primary_contact_person_phone_number,
-		--sub.RelationFromDate as Subsidiary_RelationFromDate,
-		--sub.RelationToDate as Subsidiary_RelationToDate,
-		n.name AS Organisation_Nation_Name, --TS_514441
-		org.[NationId] AS Organisation_Nation_Id, --TS_514441
+		n.name AS Organisation_Nation_Name,
+		org.[NationId] AS Organisation_Nation_Id,
 		isnull(trim(cd.leaver_code),'') as leaver_code,
 		cd.leaver_date,
 		cd.Organisation_change_reason,
 		cd.joiner_date
 	FROM cd_org_combined com
-	LEFT JOIN rpd.CompanyDetails cd
-		ON com.meta_filename = cd.filename
-	--LEFT JOIN dbo.v_subsidiaryorganisations sub
-	--	ON sub.FirstOrganisation_ReferenceNumber = cd.organisation_id
-	--		AND (sub.SubsidiaryId = cd.subsidiary_id
-	--				or sub.SecondOrganisation_ReferenceNumber = cd.subsidiary_id)
-	LEFT JOIN rpd.Organisations o
-		ON o.ReferenceNumber = cd.subsidiary_id
-	LEFT JOIN rpd.Organisations org  -- TS_514441
-		ON org.ReferenceNumber = cd.organisation_id 
-	LEFT JOIN [rpd].[Nations] n  --TS_514441
-		ON n.id = org.Nationid 
-			--where file_submitted_organisation_IsComplianceScheme = 1 
+	LEFT JOIN rpd.CompanyDetails cd ON com.meta_filename = cd.filename
+	LEFT JOIN rpd.Organisations o ON o.ReferenceNumber = cd.subsidiary_id
+	LEFT JOIN rpd.Organisations org ON org.ReferenceNumber = cd.organisation_id
+	LEFT JOIN [rpd].[Nations] n ON n.id = org.Nationid
 	)
 SELECT *
 FROM res;
