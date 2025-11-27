@@ -32,12 +32,17 @@ AS (
 		SELECT *,
 			Row_number() OVER (
 <<<<<<< HEAD
+<<<<<<< HEAD
 				PARTITION BY
                     coalesce(ComplianceSchemeId, meta_OrganisationId),
                     ReportingYear,
                     RegistrationJourney
 =======
 				PARTITION BY coalesce(ComplianceSchemeId, meta_OrganisationId),
+=======
+				PARTITION BY
+                    coalesce(ComplianceSchemeId, meta_OrganisationId),
+>>>>>>> 4b80d4c (small refactoring)
                     ReportingYear,
                     ProducerSize
 >>>>>>> dc92bc5 (update v_latest_pending_or_accepted_orgfile_by_year.sql)
