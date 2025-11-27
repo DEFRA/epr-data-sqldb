@@ -1,4 +1,4 @@
-﻿CREATE VIEW [dbo].[v_latest_accepted_orgfile_by_year] AS WITH 
+﻿CREATE VIEW [dbo].[v_latest_accepted_orgfile_by_year] AS WITH
 base_data
 AS (
 	SELECT m.OrganisationId AS meta_OrganisationId,
@@ -14,6 +14,7 @@ AS (
 		UPPER(TRIM(ISNULL(st.Regulator_Status, 'PENDING'))) AS Regulator_Status,
 		m.[RegistrationSetId],
 		m.[ComplianceSchemeId],
+        m.ProducerSize,
 		cs.Name AS ComplianceSchemeName,
 		cs.Id AS CS_id,
 		n.name as CS_Nation_name
@@ -30,8 +31,11 @@ AS (
 	FROM (
 		SELECT *,
 			Row_number() OVER (
-				PARTITION BY coalesce(ComplianceSchemeId, meta_OrganisationId),
-				ReportingYear ORDER BY Submission_time DESC
+				PARTITION BY
+                    coalesce(ComplianceSchemeId, meta_OrganisationId),
+                    ReportingYear,
+                    ProducerSize
+                ORDER BY Submission_time DESC
 				) AS cd_rn
 		FROM base_data
 		WHERE UPPER(FileType) = 'COMPANYDETAILS'
@@ -52,7 +56,8 @@ AS (
 		cd.meta_filename,
 		cd.Regulator_Status,
 		cd.ComplianceSchemeName,
-		cd.CS_id
+		cd.CS_id,
+        cd.ProducerSize
 	FROM latest_CompanyDetails cd
 	LEFT JOIN rpd.organisations o
 		ON cd.meta_OrganisationId = o.ExternalId
