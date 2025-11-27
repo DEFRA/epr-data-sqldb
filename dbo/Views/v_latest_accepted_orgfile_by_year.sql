@@ -8,7 +8,7 @@ AS (
 			else
 				'20' + Reverse(Substring(Reverse(TRIM(m.SubmissionPeriod)), 1, 2)) 
 			end AS ReportingYear,
-		CONVERT(DATETIME, Substring(m.Created, 1, 23)) AS Submission_time,
+		CONVERT(DATETIME, substring(m.Created, 1, 23)) AS Submission_time,
 		m.FileType,
 		m.filename AS meta_filename,
 		UPPER(TRIM(ISNULL(st.Regulator_Status, 'PENDING'))) AS Regulator_Status,
