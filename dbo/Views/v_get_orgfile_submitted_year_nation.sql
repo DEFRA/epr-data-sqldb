@@ -17,7 +17,8 @@ FROM
         END AS Relevant_Year,
         Organisation_Nation_Name,
         CS_Nation_name,
-        'Link Column' as Link_Column
+        'Link Column' as Link_Column,
+        ProducerSize
 	FROM   [dbo].[v_latest_pending_or_accepted_orgfile_by_year]
 
     -- v_latest_accepted_orgfile_by_year seems to be redundant because it is included in v_latest_pending_or_accepted_orgfile_by_year
@@ -31,6 +32,7 @@ FROM
         END AS Relevant_Year,
         Organisation_Nation_Name,
         CS_Nation_name,
-        'Link Column' as Link_Column
+        'Link Column' as Link_Column,
+        ProducerSize
 	FROM   [dbo].[v_latest_accepted_orgfile_by_year]
 	) A;
