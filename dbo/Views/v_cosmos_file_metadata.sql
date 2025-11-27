@@ -57,7 +57,11 @@ a.[SubmissionId]
 ,p.Email  SubmtterEmail
 ,roles.[ServiceRoles_Name]
 ,a.[ComplianceSchemeId]
+<<<<<<< HEAD
 ,a.[RegistrationJourney]
+=======
+,a.[ProducerSize]
+>>>>>>> b656cde (ProducerSize in t and v cosmos file metadata)
 ,a.LastUpdatedOn_History
 ,a.Service_Name_History
 ,a.[RegistrationSetId]

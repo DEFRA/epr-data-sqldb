@@ -21,7 +21,11 @@
     [SubmtterEmail]         NVARCHAR (4000) NULL,
     [ServiceRoles_Name]     NVARCHAR (100)  NULL,
     [ComplianceSchemeId]    NVARCHAR (4000) NULL,
+<<<<<<< HEAD
     [RegistrationJourney]   NVARCHAR (128)  NULL,
+=======
+    [ProducerSize]          NVARCHAR (128)  NULL,
+>>>>>>> b656cde (ProducerSize in t and v cosmos file metadata)
     [LastUpdatedOn_History] DATETIME        NULL,
     [Service_Name_History]  NVARCHAR (100)  NULL,
     [RegistrationSetId]     NVARCHAR (4000) NULL
