@@ -34,11 +34,7 @@ AS (
 				PARTITION BY
                     coalesce(ComplianceSchemeId, meta_OrganisationId),
                     ReportingYear,
-<<<<<<< HEAD
                     RegistrationJourney
-=======
-                    ProducerSize
->>>>>>> c954298 (update v_latest_accepted_orgfile_by_year.sql)
                 ORDER BY Submission_time DESC
 				) AS cd_rn
 		FROM base_data
@@ -61,11 +57,7 @@ AS (
 		cd.Regulator_Status,
 		cd.ComplianceSchemeName,
 		cd.CS_id,
-<<<<<<< HEAD
         cd.RegistrationJourney
-=======
-        cd.ProducerSize
->>>>>>> c954298 (update v_latest_accepted_orgfile_by_year.sql)
 	FROM latest_CompanyDetails cd
 	LEFT JOIN rpd.organisations o
 		ON cd.meta_OrganisationId = o.ExternalId

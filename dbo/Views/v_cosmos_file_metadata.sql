@@ -58,10 +58,14 @@ a.[SubmissionId]
 ,roles.[ServiceRoles_Name]
 ,a.[ComplianceSchemeId]
 <<<<<<< HEAD
+<<<<<<< HEAD
 ,a.[RegistrationJourney]
 =======
 ,a.[ProducerSize]
 >>>>>>> b656cde (ProducerSize in t and v cosmos file metadata)
+=======
+,a.[RegistrationJourney]
+>>>>>>> ee736a6 (rename ProducerSize -> RegistrationJourney)
 ,a.LastUpdatedOn_History
 ,a.Service_Name_History
 ,a.[RegistrationSetId]
