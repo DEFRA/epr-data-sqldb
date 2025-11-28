@@ -8,7 +8,7 @@
     [leaver_date]                  NVARCHAR (4000) NULL,
     [joiner_date]                  NVARCHAR (4000) NULL,
     [obligation_status]            CHAR    (1)    NOT NULL,
-    [calendar_year_days_obligated] SMALLINT        NULL,
+    [num_days_obligated]           SMALLINT        NULL,
     [error_code]                   NVARCHAR (4000) NULL,
     [submission_period_year]       INT             NULL
 )
