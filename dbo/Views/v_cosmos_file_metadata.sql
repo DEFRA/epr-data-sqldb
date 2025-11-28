@@ -20,7 +20,7 @@
         a.[FileName],
         a.[load_ts],
 		a.[ComplianceSchemeId],
-        a.[ProducerSize],
+        a.[RegistrationJourney],
 		a.[RegistrationSetId],
         ROW_NUMBER() OVER (PARTITION BY a.[FileName] ORDER BY a.[load_ts] desc, roles_POI.LastUpdatedOn DESC) AS RowNum,
 		CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime) as LastUpdatedOn_History,
@@ -57,7 +57,7 @@ a.[SubmissionId]
 ,p.Email  SubmtterEmail
 ,roles.[ServiceRoles_Name]
 ,a.[ComplianceSchemeId]
-,a.[ProducerSize]
+,a.[RegistrationJourney]
 ,a.LastUpdatedOn_History
 ,a.Service_Name_History
 ,a.[RegistrationSetId]

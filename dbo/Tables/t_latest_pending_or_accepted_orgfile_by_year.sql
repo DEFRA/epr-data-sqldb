@@ -11,7 +11,7 @@
     [Regulator_Status]                               NVARCHAR (4000) NULL,
     [ComplianceSchemeName]                           NVARCHAR (4000) NULL,
     [CS_id]                                          INT             NULL,
-    [ProducerSize]                                   NVARCHAR (128)  NULL,
+    [RegistrationJourney]                            NVARCHAR (128)  NULL,
     [organisation_id]                                INT             NULL,
     [subsidiary_id]                                  NVARCHAR (4000) NULL,
     [organisation_name]                              NVARCHAR (4000) NULL,

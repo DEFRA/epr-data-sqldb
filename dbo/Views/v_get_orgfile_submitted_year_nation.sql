@@ -5,7 +5,7 @@ SELECT DISTINCT
     Organisation_Nation_Name,
     CS_Nation_name,
     Link_Column,
-    ProducerSize
+    RegistrationJourney
 
 FROM
 	(
@@ -19,7 +19,7 @@ FROM
         Organisation_Nation_Name,
         CS_Nation_name,
         'Link Column' as Link_Column,
-        ProducerSize
+        RegistrationJourney
 	FROM   [dbo].[v_latest_pending_or_accepted_orgfile_by_year]
 
     -- v_latest_accepted_orgfile_by_year seems redundant - all records are in v_latest_pending_or_accepted_orgfile_by_year?
@@ -34,6 +34,6 @@ FROM
         Organisation_Nation_Name,
         CS_Nation_name,
         'Link Column' as Link_Column,
-        ProducerSize
+        RegistrationJourney
 	FROM   [dbo].[v_latest_accepted_orgfile_by_year]
 	) A;
