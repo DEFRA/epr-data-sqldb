@@ -14,7 +14,7 @@ AS (
 		UPPER(TRIM(ISNULL(st.Regulator_Status, 'PENDING'))) AS Regulator_Status,
 		m.[RegistrationSetId],
 		m.[ComplianceSchemeId],
-        m.ProducerSize,
+        m.RegistrationJourney,
 		cs.Name AS ComplianceSchemeName,
 		cs.Id AS CS_id,
 		n.name as CS_Nation_name
@@ -34,7 +34,7 @@ AS (
 				PARTITION BY
                     coalesce(ComplianceSchemeId, meta_OrganisationId),
                     ReportingYear,
-                    ProducerSize
+                    RegistrationJourney
                 ORDER BY Submission_time DESC
 				) AS cd_rn
 		FROM base_data
@@ -57,7 +57,7 @@ AS (
 		cd.Regulator_Status,
 		cd.ComplianceSchemeName,
 		cd.CS_id,
-        cd.ProducerSize
+        cd.RegistrationJourney
 	FROM latest_CompanyDetails cd
 	LEFT JOIN rpd.organisations o
 		ON cd.meta_OrganisationId = o.ExternalId

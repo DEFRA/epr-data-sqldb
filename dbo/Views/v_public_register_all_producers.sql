@@ -6,7 +6,7 @@ all_org_with_status as
 					, cd.filename
 					, CAST(CONVERT(datetimeoffset, meta.created) as datetime) AS submitted_time
 					, '20'+reverse(substring(reverse(trim(meta.SubmissionPeriod)),1,2)) as SubmissionYear
-					, meta.ProducerSize
+					, meta.RegistrationJourney
 					, upper(trim(isnull(file_status.Regulator_Status,''))) as Regulator_Status
 					, file_status.decision_date
 					,file_status.SubmissionId
@@ -22,7 +22,7 @@ all_latest_org_files as
 	from 
 		(
 		select *
-			, row_number() over(partition by organisationid, SubmissionYear, ProducerSize order by submitted_time desc) as rn
+			, row_number() over(partition by organisationid, SubmissionYear, RegistrationJourney order by submitted_time desc) as rn
 		from all_org_with_status where Regulator_Status in ('ACCEPTED','CANCELLED','GRANTED') 
 		and SubmissionYear>=2025
 		) al

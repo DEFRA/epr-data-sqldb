@@ -14,7 +14,7 @@
     [IsSubmitted]         BIT             NULL,
     [SubmissionType]      NVARCHAR (4000) NULL,
     [ComplianceSchemeId]  NVARCHAR (4000) NULL,
-    [ProducerSize]        NVARCHAR (128)  NULL,
+    [RegistrationJourney] NVARCHAR (128)  NULL,
     [TargetDirectoryName] NVARCHAR (4000) NULL,
     [TargetContainerName] NVARCHAR (4000) NULL,
     [SourceContainerName] NVARCHAR (4000) NULL,
