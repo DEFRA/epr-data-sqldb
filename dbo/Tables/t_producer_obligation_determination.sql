@@ -1,8 +1,8 @@
 ﻿CREATE TABLE [dbo].[t_producer_obligation_determination] (
     [organisation_id]              INT             NOT NULL,
     [subsidiary_id]                NVARCHAR (4000) NULL,
-    [submitter_id]                 NVARCHAR (4000) NOT NULL,
-    [organisation_name]            NVARCHAR (4000) NOT NULL,
+    [submitter_id]                 NVARCHAR (4000) NULL,
+    [organisation_name]            NVARCHAR (4000) NULL,
     [trading_name]                 NVARCHAR (4000) NULL,
     [status_code]                  NVARCHAR (4000) NULL,
     [leaver_date]                  NVARCHAR (4000) NULL,
