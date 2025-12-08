@@ -82,3 +82,8 @@
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
+
+GO
+CREATE NONCLUSTERED INDEX [idx_organisation_id]
+    ON [rpd].[CompanyDetails]([organisation_id] ASC);
+
