@@ -329,5 +329,6 @@
     <Build Include="rpd\Tables\CodeScenarioMapping.sql" />
     <Build Include="dbo\Tables\t_submitted_pom_org_file_status.sql" />
     <Build Include="dbo\Tables\t_PRN_Recycling_Obligation_stat_Count.sql" />
+    <Build Include="dbo\Stored Procedures\sp_gather_stats.sql" />
   </ItemGroup>
 </Project>
