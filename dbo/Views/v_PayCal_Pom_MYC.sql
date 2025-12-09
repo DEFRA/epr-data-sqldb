@@ -1,4 +1,4 @@
-CREATE VIEW [dbo].[v_PayCal_Pom_myc]
+CREATE VIEW [dbo].[v_PayCal_Pom_MYC]
 AS WITH latest_accepted_registration AS(
 /*****************************************************************************************************************
 	History:
