@@ -28,13 +28,3 @@
 )
 WITH (CLUSTERED INDEX([ReferenceNumber]), DISTRIBUTION = REPLICATE);
 
-
-GO
-CREATE NONCLUSTERED INDEX [idx_ReferenceNumber]
-    ON [rpd].[Organisations]([ReferenceNumber] ASC);
-
-
-GO
-CREATE NONCLUSTERED INDEX [idx_organisations]
-    ON [rpd].[Organisations]([Id] ASC);
-

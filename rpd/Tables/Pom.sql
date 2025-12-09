@@ -19,8 +19,3 @@
 )
 WITH (CLUSTERED COLUMNSTORE INDEX, DISTRIBUTION = ROUND_ROBIN);
 
-
-GO
-CREATE NONCLUSTERED INDEX [idx_pom]
-    ON [rpd].[Pom]([organisation_id] ASC);
-
