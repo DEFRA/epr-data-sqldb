@@ -24,6 +24,7 @@ AS WITH latest_accepted_registration AS(
 	Updated 2025-08-12: ST008: 601349: Added in additional criteria on check for to_country IS NULL to cater for pom files that have a blank space instead of null in production
 	Updated 2025-08-19: ST009: 603939: Converting Subsidiary_id's that are 'Blank' to Nulls so that it matches org extraction due to bad front end validation. Blanks causing issues for the calculator application
 	Updated 2025-08-20: ST010: 603381: Removal of filtering for Large organisations from CTE latest_accepted_registration and moving to other CTE Latest_Org_Data_Selection which selects data. Ensuring latest file found regardless of org size
+	Updated 2025-08-20: EPRC93: Creatting a new version of v_PayCal_Pom view to include SubmitterID
  *****************************************************************************************************************/	
   ----Find latest Registration file with data submitted for a given organisation--
   --ST006
