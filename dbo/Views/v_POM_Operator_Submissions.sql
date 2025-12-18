@@ -1,4 +1,11 @@
 ﻿CREATE VIEW [dbo].[v_POM_Operator_Submissions] AS WITH original AS (SELECT distinct
+/****************************************************************************************************************************
+	History:
+ 
+	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
+	Updated: 2025-10-27:	JP001:  Ticket - 608994:	Adding ram_rag_rating column
+
+******************************************************************************************************************************/
 	org_name AS [Producer_Org_Name]
     ,[PCS_Or_Direct_Producer]
 	,Compliance_Scheme
@@ -24,6 +31,7 @@
     ,[quantity_unit]
     ,[Quantity_kg_extrapolated]
     ,[Quantity_units_extrapolated]
+	,[ram_rag_rating] --JP001
     ,[ToOrganisation_NationName]
     ,[Nation]
     ,[FromOrganisation_NationName]
