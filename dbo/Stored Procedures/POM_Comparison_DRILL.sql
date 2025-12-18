@@ -7,7 +7,6 @@ BEGIN
 /****************************************************************************************************************************
 	History:
 	Updated: 2025-07-15:	DK001:	Ticket - 576288: Subsidiary Retrofit column reference removal 
-	Updated: 2025-10-27:	JP001:  Ticket - 608994: added ram_rag_rating column
 ******************************************************************************************************************************/
 	
 	file1 AS (
@@ -15,7 +14,7 @@ BEGIN
 	 organisation_size, submission_period, packaging_activity,
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
-           Quantity_units_extrapolated, ram_rag_rating, relative_move, submission_date, org_sub_type, org_name,
+           Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
            compliance_scheme, registration_type_code
 		   --, so.[SecondOrganisation_CompaniesHouseNumber]
     FROM dbo.t_POM_Submissions_POM_Comparison
@@ -34,7 +33,7 @@ file2 AS (
 	 organisation_size, submission_period, packaging_activity,
            packaging_type, packaging_class, packaging_material, packaging_sub_material, from_nation,
            to_nation, quantity_kg, quantity_unit, FileName, Quantity_kg_extrapolated,
-           Quantity_units_extrapolated, ram_rag_rating, relative_move, submission_date, org_sub_type, org_name,
+           Quantity_units_extrapolated, relative_move, submission_date, org_sub_type, org_name,
            compliance_scheme, registration_type_code
 		   
 		   --, so.[SecondOrganisation_CompaniesHouseNumber]
@@ -73,8 +72,6 @@ file_joined_1 AS (
 	       ISNULL(b.quantity_unit, '0') - ISNULL(a.quantity_unit, 0) AS quantity_unit_diff,
 	       ISNULL(b.Quantity_kg_extrapolated, '0') - ISNULL(a.Quantity_kg_extrapolated, 0) AS Quantity_kg_extrapolated_diff,
 	       ISNULL(b.Quantity_units_extrapolated, '0') - ISNULL(a.Quantity_units_extrapolated, 0) AS Quantity_units_extrapolated_diff,
-		   a.ram_rag_rating  AS file1_ram_rag_rating, --JP001
-		   b.ram_rag_rating AS file2_ram_rag_rating, --JP001
 	       a.FileName AS filename1,
 	       b.FileName AS filename2,
 	       a.submission_date AS file1_submission_date,
@@ -117,8 +114,6 @@ IF @BreakdownType = 'relative_move'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -136,8 +131,6 @@ IF @BreakdownType = 'from_nation'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -156,8 +149,6 @@ IF @BreakdownType = 'from_org'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -176,8 +167,6 @@ IF @BreakdownType = 'relative_move_org'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -198,8 +187,6 @@ IF @BreakdownType = 'hp_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -217,8 +204,6 @@ IF @BreakdownType = 'nhp_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -236,8 +221,6 @@ IF @BreakdownType = 'hdc_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -254,8 +237,6 @@ IF @BreakdownType = 'nhdc_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -272,8 +253,6 @@ IF @BreakdownType = 'drinks_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -290,8 +269,6 @@ IF @BreakdownType = 'rp_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -309,8 +286,6 @@ IF @BreakdownType = 'tp_all'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -327,8 +302,6 @@ IF @BreakdownType = 'hp_all_total'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -345,8 +318,6 @@ IF @BreakdownType = 'nhp_all_total'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -363,8 +334,6 @@ IF @BreakdownType = 'rp_all_total'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -384,8 +353,6 @@ IF @BreakdownType = 'all_pm_hh_pa'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -405,8 +372,6 @@ IF @BreakdownType = 'all_pm_pb_pa'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -426,8 +391,6 @@ IF @BreakdownType = 'all_pm_tnh_pa'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -447,8 +410,6 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -467,8 +428,6 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -487,8 +446,6 @@ IF @BreakdownType = 'all_pm_pa_all_drinks'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -507,8 +464,6 @@ IF @BreakdownType = 'all_pm_pa_reusable'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -528,8 +483,6 @@ IF @BreakdownType = 'all_pm_pa_tp'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -548,8 +501,6 @@ IF @BreakdownType = 'all_pm_pa_total_hh'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -568,8 +519,6 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -588,8 +537,6 @@ IF @BreakdownType = 'all_pm_pa_total_reusable'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -608,8 +555,6 @@ IF @BreakdownType = 'all_pm_hh_pa_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -629,8 +574,6 @@ IF @BreakdownType = 'all_pm_pb_pa_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -650,8 +593,6 @@ IF @BreakdownType = 'all_pm_tnh_pa_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -671,8 +612,6 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -691,8 +630,6 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -711,8 +648,6 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -731,8 +666,6 @@ IF @BreakdownType = 'all_pm_pa_reusable_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -752,8 +685,6 @@ IF @BreakdownType = 'all_pm_pa_tp'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -772,8 +703,6 @@ IF @BreakdownType = 'all_pm_pa_total_hh_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -792,8 +721,6 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -812,8 +739,6 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_pack'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -832,8 +757,6 @@ IF @BreakdownType = 'all_pm_hh_pa_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -853,8 +776,6 @@ IF @BreakdownType = 'all_pm_pb_pa_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -874,8 +795,6 @@ IF @BreakdownType = 'all_pm_tnh_pa_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -895,8 +814,6 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -915,8 +832,6 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -935,8 +850,6 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -955,8 +868,6 @@ IF @BreakdownType = 'all_pm_pa_reusable_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -976,8 +887,6 @@ IF @BreakdownType = 'all_pm_pa_tp_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -996,8 +905,6 @@ IF @BreakdownType = 'all_pm_pa_total_hh_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1016,8 +923,6 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1036,8 +941,6 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1056,8 +959,6 @@ IF @BreakdownType = 'all_pm_hh_pa_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1077,8 +978,6 @@ IF @BreakdownType = 'all_pm_pb_pa_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1098,8 +997,6 @@ IF @BreakdownType = 'all_pm_tnh_pa_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1119,8 +1016,6 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1139,8 +1034,6 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1159,8 +1052,6 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1179,8 +1070,6 @@ IF @BreakdownType = 'all_pm_pa_reusable_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1200,8 +1089,6 @@ IF @BreakdownType = 'all_pm_pa_tp_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1220,8 +1107,6 @@ IF @BreakdownType = 'all_pm_pa_total_hh_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1240,8 +1125,6 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1260,8 +1143,6 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_sold'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1280,8 +1161,6 @@ IF @BreakdownType = 'all_pm_hh_pa_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1301,8 +1180,6 @@ IF @BreakdownType = 'all_pm_pb_pa_Imported'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1322,8 +1199,6 @@ IF @BreakdownType = 'all_pm_tnh_pa_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1343,8 +1218,6 @@ IF @BreakdownType = 'all_pm_pa_HH_drinks_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1363,8 +1236,6 @@ IF @BreakdownType = 'all_pm_pa_nHH_drinks_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1383,8 +1254,6 @@ IF @BreakdownType = 'all_pm_pa_all_drinks_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1403,8 +1272,6 @@ IF @BreakdownType = 'all_pm_pa_reusable_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1424,8 +1291,6 @@ IF @BreakdownType = 'all_pm_pa_tp__hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1444,8 +1309,6 @@ IF @BreakdownType = 'all_pm_pa_total_hh_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1464,8 +1327,6 @@ IF @BreakdownType = 'all_pm_pa_total_nonhh_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1484,8 +1345,6 @@ IF @BreakdownType = 'all_pm_pa_total_reusable_hired'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1504,8 +1363,6 @@ IF @BreakdownType = 'all_pm_online'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1524,8 +1381,6 @@ IF @BreakdownType = 'all_pm_tnh_pa_online'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1545,8 +1400,6 @@ IF @BreakdownType = 'all_public_binned'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff
@@ -1565,8 +1418,6 @@ IF @BreakdownType = 'all_pm_online_non'
 		,file1_Quantity_kg_extrapolated
 		,file2_Quantity_kg_extrapolated
 		,quantity_kg_diff
-		,file1_ram_rag_rating --JP001
-		,file2_ram_rag_rating --JP001
 		,file1_submission_date
 		,file2_submission_date
 		,Quantity_kg_extrapolated_diff

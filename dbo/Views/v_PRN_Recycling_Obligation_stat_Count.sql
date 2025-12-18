@@ -1,77 +1,59 @@
-﻿CREATE VIEW [dbo].[v_PRN_Recycling_Obligation_stat_Count] AS with Direct_prod AS  (
-    Select  id as orgid,
+﻿CREATE VIEW [dbo].[v_PRN_Recycling_Obligation_stat_Count]
+AS with Direct_prod AS  
+(select id as orgid,
         null subsidaryid
-        ,externalId
-    from [rpd].[Organisations] 
-    where IscomplianceScheme =0
-        and id not in ( Select c.FromOrganisationid from rpd.complianceSchemes a 
+  from [rpd].[Organisations] 
+ where IscomplianceScheme =0
+   and id not in ( select c.FromOrganisationid from rpd.complianceSchemes a 
                                            INNER JOIN rpd.selectedschemes b ON a.id =b.ComplianceSchemeid and b.Isdeleted=0 
-                                           INNER JOIN [rpd].[OrganisationsConnections] c ON b.id =c.id  
-   union 
-   SELECT a.fromorganisationId as orgid   FROM [rpd].[OrganisationsConnections] a 
-                    JOIN rpd.organisations b  ON a.ToOrganisationId =b.id and b.Isdeleted=0 
-                 ) /* changed to union rather than 2 not in ****/
-   ),
-
-   obligationCalcs As ( /*** added to removed deleted records **/
-    Select oc.organisationId, oc.submitterid, oc.MaterialObligationValue, oc.[Year]
-    from rpd.ObligationCalculations oc
-    Where IsDeleted = 0
-)
+                                           INNER JOIN [rpd].[OrganisationsConnections] c ON b.id =c.id  ) 
+   and id not in ( SELECT a.fromorganisationId as orgid   FROM [rpd].[OrganisationsConnections] a JOIN rpd.organisations b  ON a.ToOrganisationId =b.id and b.Isdeleted=0 )
+   )
 --
- ,DP_Subsidary as  (
-    SELECT 
-        orgr.firstOrganisationId  as orgid
-       ,orgr.SecondOrganisationId as subsidaryid
-       ,oc.organisationid
-       ,oc.submitterid
-     FROM obligationCalcs oc 
-    INNER JOIN rpd.organisations o ON o.ExternalId = oc.organisationid
-    INNER JOIN rpd.OrganisationRelationships orgr ON orgr.FirstOrganisationId = o.Id AND RelationToDate IS NULL		
-    INNER JOIN rpd.organisations o2 ON o2.id = orgr.SecondOrganisationId
-    INNER JOIN obligationCalcs oc2 ON oc2.OrganisationId = o2.ExternalId 
-    and orgr.firstOrganisationId not in 
-    ( SELECT a.fromorganisationId as orgid
-             FROM [rpd].[OrganisationsConnections] a JOIN rpd.organisations b
-        ON a.ToOrganisationId =b.id 
-	    and b.Isdeleted=0 )
-
-    Group By
-         orgr.firstOrganisationId
-        ,orgr.SecondOrganisationId
-        ,oc.organisationid
-        ,oc.submitterid
-)
+ ,DP_Subsidary AS
+(SELECT DISTINCT orgr.firstOrganisationId  as orgid,
+                 orgr.SecondOrganisationId as subsidaryid
+ FROM rpd.ObligationCalculations oc 
+INNER JOIN rpd.organisations o ON o.ExternalId = oc.organisationid
+INNER JOIN rpd.OrganisationRelationships orgr ON orgr.FirstOrganisationId = o.Id AND RelationToDate IS NULL		
+INNER JOIN rpd.organisations o2 ON o2.id = orgr.SecondOrganisationId
+INNER JOIN rpd.ObligationCalculations oc2 ON oc2.OrganisationId = o2.ExternalId 
+and orgr.firstOrganisationId not in 
+( SELECT a.fromorganisationId as orgid
+         FROM [rpd].[OrganisationsConnections] a JOIN rpd.organisations b
+    ON a.ToOrganisationId =b.id 
+	and b.Isdeleted=0 )
+	)
 --
 ,DP_final_org AS (  
 Select distinct a.orgid as Orgid,
-       b.subsidaryid as Subid,b.organisationid, b.submitterid
-  from DP_Subsidary b full outer join  Direct_prod a On b.orgid =a.orgid
---Union
---select 
---       b.orgid,
---       b.subsidaryid
---  from DP_Subsidary b LEFT JOIN Direct_prod a ON b.orgid =a.orgid
+       b.subsidaryid as Subid
+  from DP_Subsidary b RIGHT JOIN  Direct_prod a On b.orgid =a.orgid
+Union
+select 
+       b.orgid,
+       b.subsidaryid
+  from DP_Subsidary b LEFT JOIN Direct_prod a ON b.orgid =a.orgid
 )
 ---
 ,cal_orgidsum AS
 (
-Select  
-       b.id as orgid, b.externalid, a.submitterid,
-       SUM(a.MaterialObligationValue) as ordsum, 
+Select Distinct 
+       b.id as orgid,
+       SUM(a.MaterialObligationValue) as ordsum ,
       a.year as YR
- from obligationCalcs a JOIN [rpd].[Organisations] b 
+ from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
    ON  a.OrganisationId=b.externalid --JOIN DP_final_org c    ON b.id =c.Orgid
   and b.Isdeleted=0 
   and b.IscomplianceScheme =0
-  group by b.id,b.externalid,a.submitterid,a.year 
+  group by b.id,a.year 
 )
 , cal_subidsum as ( 
-Select  
+Select Distinct 
          c.orgid as orgid,                
 		 SUM(a.MaterialObligationValue) as subsum,
 		 a.year as YR
-    from obligationCalcs a JOIN [rpd].[Organisations] b 
+    from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
       ON a.OrganisationId=b.externalid JOIN DP_final_org c ON b.id =c.subid
      and b.Isdeleted=0 
      and IscomplianceScheme =0
@@ -157,7 +139,7 @@ Compliance_scheme_members_ordid  AS(
  select b.id as Orgid,
  	    ISNULL(SUM(a.MaterialObligationValue),0) as ord_obligation,
         a.year as YR
-    from obligationCalcs a JOIN [rpd].[Organisations] b 
+    from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
 	 ON  a.OrganisationId=b.externalid 
 	 JOIN Compliance_scheme_members_ordid c ON b.id =c.orgid
     and b.Isdeleted=0 
@@ -169,7 +151,7 @@ Compliance_scheme_members_ordid  AS(
  select c.orgid as orgid,
  	   ISNULL(SUM(a.MaterialObligationValue),0) as sub_obligation,
         a.year as YR
-    from obligationCalcs a JOIN [rpd].[Organisations] b 
+    from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
 	 ON  a.OrganisationId=b.externalid JOIN Compliance_scheme_members_Subid c ON b.id =c.Subsidiaryid
     and b.Isdeleted=0 
     and b.IscomplianceScheme =0
@@ -193,8 +175,7 @@ from Compliance_scheme_members_Subid a LEFT JOIN CSMsub_MaterialObligation b ON 
 
 ,CSM_RANK AS ( 
 select 
-       distinct 
-       s.orgid ,
+       distinct s.orgid ,
 	   s.Subsidiaryid,
 	   s.YR,
        s.Recyling_Obligation,
@@ -230,11 +211,11 @@ INNER JOIN ComplianceScheme b ON orgr.FirstOrganisationId =b.Subsidiaryid
 --
 
 ,CS_Subsum AS ( 
-Select -- Distinct --sn remove 
+Select Distinct 
       c.orgid as orgid,
       SUM(a.MaterialObligationValue) as Mobligation_Cssubsum ,
 	  a.year as YR
- from obligationCalcs a JOIN [rpd].[Organisations] b 
+ from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
    ON a.OrganisationId=b.externalid JOIN CS_sub c    ON b.id =c.subsidaryid
   and b.Isdeleted=0 
   and b.IscomplianceScheme =0
@@ -242,22 +223,22 @@ Select -- Distinct --sn remove
 )
 --
 ,CS_Orgid AS ( 
-Select  -- Distinct --sn remove
+Select Distinct 
       b.id as orgid,
       SUM(a.MaterialObligationValue) as ordsum ,
 	  a.year as YR
- from obligationCalcs a JOIN [rpd].[Organisations] b 
+ from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
    ON a.OrganisationId=b.externalid JOIN ComplianceScheme c    ON b.id =c.Orgid
   and b.Isdeleted=0 
   and b.IscomplianceScheme =0
  group by b.id,a.year 
 ) 
 ,CS_subid AS ( 
-Select -- Distinct --sn remove 
+Select Distinct 
        c.Orgid as orgid,
        SUM(a.MaterialObligationValue) as subsum ,
 	    a.year as YR
- from obligationCalcs a JOIN [rpd].[Organisations] b 
+ from rpd.ObligationCalculations a JOIN [rpd].[Organisations] b 
    ON  a.OrganisationId=b.externalid JOIN ComplianceScheme c    ON b.id =c.Subsidiaryid
   and b.Isdeleted=0 
   and b.IscomplianceScheme =0
@@ -348,10 +329,7 @@ select 'Compliance Scheme' as ReportType,
 	     ROW_NUMBER() OVER (PARTITION BY s.orgid ORDER BY s.Subsidiaryid) AS rn
 from  CS_rank s
 )
-
---select * from DP_Subsidary --DP_rank-- RankedRows ---cal_orgidsum  --CSM_RANK  ---cal_subidsum
---order by 3,2
-
+--
 select 
        ReportType,
        orgid ,
@@ -392,14 +370,7 @@ select
 	   CASE when rn =1 then PRNACCEPTED ELSE 0 END as "TOTAL PRN/PERN Accepted",
        CASE when rn =1 then PRNOUTSTANDING ELSE 0 END  as "TOTAl PRN/PERN Outstanding"
 from CS_Final 
-
-
-
-
---order by 2 ,1
-WHERE 
-
- NOT (
+WHERE NOT (
     Subsidiaryid IS NULL AND rn =1 and
     ISNULL(PRNAWAITING, 0) = 0 AND 
     ISNULL(PRNACCEPTED, 0) = 0 AND 
