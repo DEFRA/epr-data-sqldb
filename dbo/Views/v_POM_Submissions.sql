@@ -3,7 +3,6 @@
 	History:
  
 	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
-	Updated: 2025-10-27:	JP001:  Ticket - 608994:	Adding ram_rag_rating column
 
 ******************************************************************************************************************************/
 dsf.FromOrganisation_Name [Org_Name]
@@ -51,7 +50,6 @@ else NULL end [Org_Sub_Type]
 ,p.[quantity_unit]
 ,p.[Quantity_kg_extrapolated]
 ,p.[Quantity_units_extrapolated]
-,p.[ram_rag_rating] --JP001
 
 ,dsf.[ToOrganisation_NationName]
 ,dsf.SecurityQuery Nation

@@ -178,7 +178,7 @@ WHERE nation = @securityquery
 				'' tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d -- JP 608994
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [from_nation] FROM [dbo].[t_POM] GROUP BY [from_nation]) f
 			CROSS JOIN 
@@ -217,7 +217,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d -- JP 608994
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [from_nation] FROM [dbo].[t_POM] GROUP BY [from_nation]) f
 			CROSS JOIN 
@@ -256,7 +256,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in ('Primary packaging',
@@ -298,7 +298,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in('Primary packaging',
@@ -345,7 +345,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM] GROUP BY [packaging_class])f
 			UNION ALL
@@ -382,7 +382,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM] GROUP BY [packaging_class])f
 			
@@ -421,7 +421,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM 
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in('Primary packaging',
@@ -462,7 +462,7 @@ WHERE nation = @securityquery
 				'Total Packaging' tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			
 			
 			UNION ALL
@@ -500,7 +500,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in('Primary packaging',
@@ -544,7 +544,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			 FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in ('Public bin')
@@ -587,7 +587,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-			    (SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+			    (SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class ='Online Marketplace total'
@@ -628,7 +628,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 				(SELECT [packaging_class] FROM [dbo].[t_POM]
 			           where packaging_class in('Primary packaging',
@@ -672,7 +672,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_activity] FROM [dbo].[t_POM]
 			            GROUP BY [packaging_activity]) pa
@@ -710,7 +710,7 @@ WHERE nation = @securityquery
 				''tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 				CROSS JOIN
 			   (SELECT [packaging_activity]  FROM [dbo].[t_POM]
 			            GROUP BY [packaging_activity]) pa
@@ -750,7 +750,7 @@ WHERE nation = @securityquery
 				 ''tp
 				 
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_class] FROM [dbo].[t_POM]
 			            where packaging_class in('Primary packaging',
@@ -791,7 +791,7 @@ WHERE nation = @securityquery
 				'Total Packaging'tp
 				
 			FROM
-				(SELECT [packaging_material_modulation] as packaging_material FROM [dbo].[t_POM] GROUP BY [packaging_material_modulation]) d
+				(SELECT [packaging_material] FROM [dbo].[t_POM] GROUP BY [packaging_material]) d
 			CROSS JOIN
 			   (SELECT [packaging_activity]
 			            FROM [dbo].[t_POM]

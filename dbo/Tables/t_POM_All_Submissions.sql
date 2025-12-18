@@ -26,7 +26,6 @@
     [quantity_unit]                 FLOAT (53)      NULL,
     [Quantity_kg_extrapolated]      FLOAT (53)      NULL,
     [Quantity_units_extrapolated]   FLOAT (53)      NULL,
-    [ram_rag_rating]                NVARCHAR (4000) NULL,
     [ToOrganisation_NationName]     NVARCHAR (54)   NULL,
     [Nation]                        NVARCHAR (54)   NULL,
     [FromOrganisation_NationName]   NVARCHAR (54)   NULL,
