@@ -26,7 +26,6 @@ CREATE VIEW [dbo].[v_PayCal_Pom_MYC] AS
   Updated 2025-12-10: EPRC93: Creating a new version of v_PayCal_Pom view to include SubmitterID
   Updated 2025-12-19: EPRC93: Filter for poms with both H1 and H2 (or P4 and one of P1,P2,P3 for 2024) periods
  *****************************************************************************************************************/
-
 WITH
 P1P4Table as (
   select '2024-P1' as period
@@ -71,7 +70,10 @@ latest_accepted_registration AS (
       cfm.filename
     , cd.organisation_id
       --ST004 Updated logic to determine the latest accepted file submission with data for a given organisation
-    , row_number() over(partition by cd.organisation_id, cfm.SubmissionPeriod order by cfm.created desc) as latest_producer_accepted_record_per_SP
+    , row_number() over(
+        partition by cd.organisation_id, coalesce(cfm.ComplianceSchemeId, o.ExternalId), cfm.SubmissionPeriod
+        order by cfm.created desc
+      ) as latest_producer_accepted_record_per_SP
     , Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) as Submission_Period_Year
     FROM [rpd].[CompanyDetails] cd
     INNER JOIN rpd.Organisations o
@@ -90,9 +92,9 @@ latest_accepted_registration AS (
       AND sofs.Regulator_Status IN ('Granted','Accepted')
   ) a
   WHERE latest_producer_accepted_record_per_SP = 1
-)
+),
  ----Find latest POM file with data submitted for a given organisation--
-, latest_accepted_pom AS (
+latest_accepted_pom AS (
   SELECT * FROM (
     SELECT
       p.organisation_id
@@ -100,7 +102,10 @@ latest_accepted_registration AS (
     , p.submission_period
     , cfm.submissionperiod as submission_period_desc
       --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
-    , row_number() over(partition by p.organisation_id, cfm.SubmissionPeriod order by cfm.created desc) as latest_producer_accepted_record_per_SP
+    , row_number() over(
+        partition by p.organisation_id, coalesce(cfm.ComplianceSchemeId, o.ExternalId), cfm.SubmissionPeriod
+        order by cfm.created desc
+      ) as latest_producer_accepted_record_per_SP
     , Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) as Submission_Period_Year
     , coalesce(cfm.ComplianceSchemeId, o.ExternalId) as submitter_id
     FROM rpd.Pom p
@@ -198,7 +203,7 @@ SELECT
 , lap.submission_period_desc
 , lap.submitter_id
 FROM rpd.POM p
-INNER JOIN latest_accepted_pom lap
+INNER JOIN LatestAcceptedPomsWith2Period lap
   ON trim(p.FileName) = trim(lap.FileName)
   AND lap.organisation_id = p.organisation_id
 -- ST006 Join to latest registration data to ensure a registration is present for the associated pom data
@@ -226,7 +231,7 @@ SELECT
 , lap.submission_period_desc
 , lap.submitter_id
 FROM rpd.POM p
-INNER JOIN latest_accepted_pom lap
+INNER JOIN LatestAcceptedPomsWith2Period lap
   ON trim(p.FileName) = trim(lap.FileName)
   AND lap.organisation_id = p.organisation_id
 -- ST006 Join to latest registration data to ensure a registration is present for the associated pom data
