@@ -1,4 +1,4 @@
-CREATE VIEW [dbo].[v_PayCal_Pom_MYC] AS WITH
+CREATE VIEW [dbo].[v_PayCal_Pom_MYC] AS
 /*****************************************************************************************************************
   History:
   Created 2024-10-04: ST001: 425541: Created initial version of the view based on the logic we had in pyspark notebook
@@ -23,8 +23,46 @@ CREATE VIEW [dbo].[v_PayCal_Pom_MYC] AS WITH
   Updated 2025-08-12: ST008: 601349: Added in additional criteria on check for to_country IS NULL to cater for pom files that have a blank space instead of null in production
   Updated 2025-08-19: ST009: 603939: Converting Subsidiary_id's that are 'Blank' to Nulls so that it matches org extraction due to bad front end validation. Blanks causing issues for the calculator application
   Updated 2025-08-20: ST010: 603381: Removal of filtering for Large organisations from CTE latest_accepted_registration and moving to other CTE Latest_Org_Data_Selection which selects data. Ensuring latest file found regardless of org size
-  Updated 2025-08-20: EPRC93: Creating a new version of v_PayCal_Pom view to include SubmitterID
+  Updated 2025-12-10: EPRC93: Creating a new version of v_PayCal_Pom view to include SubmitterID
+  Updated 2025-12-19: EPRC93: Filter for poms with both H1 and H2 (or P4 and one of P1,P2,P3 for 2024) periods
  *****************************************************************************************************************/
+
+WITH
+P1P4Table as (
+  select '2024-P1' as period
+  union
+  select '2024-P4' as period
+),
+P2P4Table as (
+  select '2024-P2' as period
+  union
+  select '2024-P4' as period
+),
+P3P4Table as (
+  select '2024-P3' as period
+  union
+  select '2024-P4' as period
+),
+-- this will need extending for future years
+H1H2Table as (
+  select '2025-H1' as period
+  union
+  select '2025-H2' as period
+  union
+  select '2026-H1' as period
+  union
+  select '2026-H2' as period
+),
+
+AllPeriodsTable as (
+  select * from P1P4Table
+  union
+  select * from P2P4Table
+  union
+  select * from P3P4Table
+  union
+  select * from H1H2Table
+),
   ----Find latest Registration file with data submitted for a given organisation--
   --ST006
 latest_accepted_registration AS (
@@ -78,10 +116,58 @@ latest_accepted_registration AS (
       AND sofs.Regulator_Status = 'Accepted'
   ) a
   WHERE latest_producer_accepted_record_per_SP = 1
-)
+),
+
+-- The following is to ensure we only consider orgs which have submitted two periods
+OrgsWithBothP1P4 as (
+  select organisation_id, submitter_id, Submission_Period_Year
+  from latest_accepted_pom
+  where submission_period in (select period from P1P4Table)
+  group by organisation_id, submitter_id, Submission_Period_Year
+  having count(distinct submission_period) = (select count(*) from P1P4Table)
+),
+OrgsWithBothP2P4 as (
+  select organisation_id, submitter_id, Submission_Period_Year
+  from latest_accepted_pom
+  where submission_period in (select period from P2P4Table)
+  group by organisation_id, submitter_id, Submission_Period_Year
+  having count(distinct submission_period) = (select count(*) from P2P4Table)
+),
+OrgsWithBothP3P4 as (
+  select organisation_id, submitter_id, Submission_Period_Year
+  from latest_accepted_pom
+  where submission_period in (select period from P3P4Table)
+  group by organisation_id, submitter_id, Submission_Period_Year
+  having count(distinct submission_period) = (select count(*) from P3P4Table)
+),
+OrgsWithBothH1H2 as (
+  select organisation_id, submitter_id, Submission_Period_Year
+  from latest_accepted_pom
+  where submission_period in (select period from H1H2Table)
+  group by organisation_id, submitter_id, Submission_Period_Year
+  having count(distinct submission_period) = (select count(*) from H1H2Table)
+),
+OrgsWith2Periods as (
+  select organisation_id, submitter_id, Submission_Period_Year from OrgsWithBothP1P4
+  union
+  select organisation_id, submitter_id, Submission_Period_Year from OrgsWithBothP2P4
+  union
+  select organisation_id, submitter_id, Submission_Period_Year from OrgsWithBothP3P4
+  union
+  select organisation_id, submitter_id, Submission_Period_Year from OrgsWithBothH1H2
+),
+
+LatestAcceptedPomsWith2Period as (
+  select pom.*
+  from latest_accepted_pom pom
+  inner join OrgsWith2Periods as periods
+    on  pom.organisation_id = periods.organisation_id
+    and pom.submitter_id = periods.submitter_id
+    and pom.Submission_Period_Year = periods.Submission_Period_Year
+),
 
 --ST006
-, Latest_Org_Data_Selection AS (
+Latest_Org_Data_Selection AS (
   SELECT DISTINCT
     cd.organisation_id
   , lar.Submission_Period_Year -1 as Submission_Period_Year_minus_1
