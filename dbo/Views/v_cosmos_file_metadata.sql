@@ -4,7 +4,6 @@
         a.[SubmissionId],
         a.[FileId],
         a.[UserId],
-        --b.Submitter_Name [SubmittedBy],
         a.[BlobName],
         a.[BlobContainerName],
         a.[FileType],
@@ -21,6 +20,7 @@
         a.[FileName],
         a.[load_ts],
 		a.[ComplianceSchemeId],
+        a.[RegistrationJourney],
 		a.[RegistrationSetId],
         ROW_NUMBER() OVER (PARTITION BY a.[FileName] ORDER BY a.[load_ts] desc, roles_POI.LastUpdatedOn DESC) AS RowNum,
 		CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime) as LastUpdatedOn_History,
@@ -35,35 +35,32 @@
 )
 
 select 
-a.[SubmissionId]
-,a.[FileId]
-,a.[UserId]
---,b.Submitter_Name [SubmittedBy]
-, concat(p.FirstName, ' ', p.LastName) SubmittedBy
-,a.[BlobName]
-,a.[BlobContainerName]
-,a.[FileType]
---,a.[Created]
-,CAST(CONVERT(datetimeoffset, created) as datetime) AS created
-,a.[OriginalFileName]
-,a.[OrganisationId]
-,a.[DataSourceType]
-,a.[SubmissionPeriod]
-,a.[IsSubmitted]
-,a.[SubmissionType]
-,a.[TargetDirectoryName]
-,a.[TargetContainerName]
-,a.[SourceContainerName]
-,a.[FileName]
-,a.[load_ts]
-,p.Email  SubmtterEmail
-,roles.[ServiceRoles_Name]
---,b.[Submitter_Email] SubmtterEmail
---,b.[ServiceRoles_Name]
-,a.[ComplianceSchemeId]
-,a.LastUpdatedOn_History
-,a.Service_Name_History
-,a.[RegistrationSetId]
+    a.[SubmissionId]
+    ,a.[FileId]
+    ,a.[UserId]
+    , concat(p.FirstName, ' ', p.LastName) SubmittedBy
+    ,a.[BlobName]
+    ,a.[BlobContainerName]
+    ,a.[FileType]
+    ,CAST(CONVERT(datetimeoffset, created) as datetime) AS created
+    ,a.[OriginalFileName]
+    ,a.[OrganisationId]
+    ,a.[DataSourceType]
+    ,a.[SubmissionPeriod]
+    ,a.[IsSubmitted]
+    ,a.[SubmissionType]
+    ,a.[TargetDirectoryName]
+    ,a.[TargetContainerName]
+    ,a.[SourceContainerName]
+    ,a.[FileName]
+    ,a.[load_ts]
+    ,p.Email  SubmtterEmail
+    ,roles.[ServiceRoles_Name]
+    ,a.[ComplianceSchemeId]
+    ,a.[RegistrationJourney]
+    ,a.LastUpdatedOn_History
+    ,a.Service_Name_History
+    ,a.[RegistrationSetId]
 from RankedData a
 
 left  join  dbo.v_rpd_Organisations_Active o on a.organisationId = o.externalid and o.isdeleted = 0
@@ -85,5 +82,4 @@ left join  (select enrolments.Id as Enrolments_Id
     left join rpd.ServiceRoles serviceroles
     on enrolments.ServiceRoleId = serviceroles.Id) roles on roles.Enrolments_ConnectionId = poc.id and roles.RowNum = 1
 
---left join dbo.v_submitter_name b on a.UserId = b.UserId
 where a.RowNum =1;
