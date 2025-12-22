@@ -29,8 +29,7 @@ CREATE VIEW [dbo].[v_cosmos_file_metadata] AS WITH RankedData AS (
 	left join [dbo].[v_enrolment_history] roles_POI
 	on (
 		roles_POI.UserId = a.userid
-		and CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime)
-			<= CAST(CONVERT(datetimeoffset, a.[Created]) AS datetime)
+		and CAST(CONVERT(datetimeoffset, roles_POI.LastUpdatedOn) AS datetime) <= CAST(CONVERT(datetimeoffset, a.[Created]) AS datetime)
 		)
 )
 
