@@ -312,6 +312,7 @@
     <Build Include="dbo\Stored Procedures\sp_LoopStatisticsUpdate.sql" />
     <Build Include="dbo\Stored Procedures\sp_backup_table.sql" />
     <Build Include="dbo\Views\v_PayCal_Pom.sql" />
+    <Build Include="dbo\Views\v_PayCal_Pom_MYC.sql" />
     <Build Include="dbo\Views\v_PayCal_Org.sql" />
     <Build Include="dbo\Views\v_POM_Ram_Rag_Order.sql" />
     <Build Include="dbo\Views\v_Compliance_Report.sql" />
