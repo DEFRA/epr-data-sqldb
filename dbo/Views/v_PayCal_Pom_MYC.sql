@@ -193,7 +193,7 @@ Latest_Org_Data_Selection AS (
 -----------------------------
 SELECT
   p.organisation_id
-, NULLIF(LTRIM(RTRIM(p.subsidiary_id)), '') as subsidiary_id
+, NULLIF(trim(p.subsidiary_id), '') as subsidiary_id
 , p.submission_period
 , p.packaging_activity
 , p.packaging_type
@@ -211,36 +211,10 @@ INNER JOIN Latest_Org_Data_Selection lods
   ON lods.organisation_id = p.organisation_id
   -- Additional criteria on the join to ensure the match is at a submission period year level
   AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
-WHERE p.packaging_type IN ('HH','CW','PB')
-  and Organisation_size = 'L'
-  AND (to_country IS NULL OR  LTRIM(RTRIM(to_country)) = '')
+WHERE (p.packaging_type IN ('HH','CW','PB')
+       -- HDC packaging_type - specifically restricted to just GL (Glass) materials--
+       or (p.packaging_type = 'HDC' and p.packaging_material = 'GL')
+      )
+  and p.organisation_size = 'L'
+  AND (p.to_country IS NULL OR trim(p.to_country) = '')
   AND p.organisation_id IS NOT NULL
-
-UNION ALL
-
---HDC packaging_type - specifically restricted to just GL (Glass) materials--
-SELECT
-  p.organisation_id
-, NULLIF(LTRIM(RTRIM(p.subsidiary_id)), '') as subsidiary_id
-, p.submission_period
-, p.packaging_activity
-, p.packaging_type
-, p.packaging_class
-, p.packaging_material
-, p.packaging_material_weight
-, lap.submission_period_desc
-, lap.submitter_id
-FROM rpd.POM p
-INNER JOIN LatestAcceptedPomsWith2Period lap
-  ON trim(p.FileName) = trim(lap.FileName)
-  AND lap.organisation_id = p.organisation_id
--- ST006 Join to latest registration data to ensure a registration is present for the associated pom data
-INNER JOIN Latest_Org_Data_Selection lods
-  ON lods.organisation_id = p.organisation_id
-  --Additional criteria on the join to ensure the match is at a submission period year level
-  AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
-WHERE p.packaging_type = 'HDC'
-  and p.packaging_material = 'GL'
-  and Organisation_size = 'L'
-  AND (to_country IS NULL OR  LTRIM(RTRIM(to_country)) = '')
-  AND p.organisation_id IS NOT NULL;
