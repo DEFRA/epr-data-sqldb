@@ -1,4 +1,4 @@
-﻿CREATE VIEW [dbo].[v_cosmos_file_metadata] AS WITH RankedData AS (
+CREATE VIEW [dbo].[v_cosmos_file_metadata] AS WITH RankedData AS (
     SELECT
         distinct 
         a.[SubmissionId],
