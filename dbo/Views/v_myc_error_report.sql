@@ -36,10 +36,12 @@ LatestAcceptedRegistrationFiles as (
           else 'ComplianceScheme'
         end as submitter_type
       , coalesce(cs.Name, '') as compliance_scheme_name
-      , row_number() over(partition by
-          cd.organisation_id,
-          right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4)
-         order by cfm.created desc) as rn
+      , row_number() over(
+          partition by
+            cd.organisation_id,
+            right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4)
+          order by cfm.created desc
+        ) as rn
       , try_cast(sofs.Decision_Date as date) as accepted_date
       from rpd.CompanyDetails as cd
       inner join rpd.Organisations as o
@@ -57,7 +59,6 @@ LatestAcceptedRegistrationFiles as (
   ) a
   where rn = 1
 ),
-
 LatestAcceptedRegistrations as (
   select
     larf.filename
@@ -79,32 +80,27 @@ LatestAcceptedRegistrations as (
     and cd.filename          = larf.filename
     and cd.organisation_size = 'L'
 ),
-Obligations as (
-  select
-    organisation_id
-  , subsidiary_id
-  , organisation_name
-  , trading_name
-  , status_code  as leaver_code
-  , leaver_date
-  , joiner_date
-  , submitter_id
-  , submission_period_year
-  , obligation_status
-  , error_code
-  from dbo.t_producer_obligation_determination
-),
 RegistrationsWithObligations as (
   select
-    obl.*
+    reg.organisation_id
+  , reg.subsidiary_id
+  , reg.organisation_name
+  , reg.trading_name
+  , reg.leaver_code
+  , reg.leaver_date
+  , reg.joiner_date
+  , reg.submitter_id
+  , reg.submission_period_year
+  , obl.obligation_status
+  , obl.error_code
   , reg.compliance_scheme_name
   , reg.submitter_type
   , reg.accepted_date
-  from Obligations obl
+  from dbo.t_producer_obligation_determination obl
   inner join LatestAcceptedRegistrations as reg
     on  reg.organisation_id        = obl.organisation_id
-    and reg.subsidiary_id          = obl.subsidiary_id
-    and reg.submitter_id           = obl.submitter_id
+    and reg.subsidiary_id          = coalesce(nullif(trim(obl.subsidiary_id), ''), '')
+    and reg.submitter_id           = cast(obl.submitter_id as uniqueidentifier)
     and reg.submission_period_year = obl.submission_period_year
 ),
 
@@ -296,6 +292,39 @@ RegistrationErrors as (
   , reg.leaver_code
   , reg.error_code
   , reg.accepted_date
+),
+
+ObligationMismatch as (
+  select
+    reg.submission_period_year         as relevant_year
+  , reg.organisation_id
+  , reg.subsidiary_id
+  , reg.submitter_id
+  , reg.organisation_name
+  , reg.compliance_scheme_name
+  , reg.submitter_type
+  , reg.leaver_code
+  , 'Reporting obligations mismatch'   as error_code
+  , max(pom.accepted_date)             as PomAcceptedDate -- max, since we have multiple pom periods
+  , reg.accepted_date                  as RegAcceptedDate
+  from RegistrationsWithObligations as reg
+  left join LatestAcceptedPoms as pom
+    on  pom.organisation_id        = reg.organisation_id
+    and pom.subsidiary_id          = reg.subsidiary_id
+    and pom.submitter_id           = reg.submitter_id
+    and pom.submission_period_year = reg.submission_period_year - 1
+  where reg.obligation_status = 'N'
+  group by
+    reg.submission_period_year
+  , reg.organisation_id
+  , reg.subsidiary_id
+  , reg.submitter_id
+  , reg.organisation_name
+  , reg.compliance_scheme_name
+  , reg.submitter_type
+  , reg.leaver_code
+  , reg.error_code
+  , reg.accepted_date
 )
 
 select * from MissingRegistrations
@@ -305,3 +334,5 @@ union
 select * from MissingPoms2024P1P2P3
 union
 select * from RegistrationErrors
+union
+select * from ObligationMismatch
