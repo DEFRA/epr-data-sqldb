@@ -1,4 +1,4 @@
-create or alter view [dbo].[v_myc_error_report] as with
+create view [dbo].[v_myc_error_report] as with
 
 Periods as (
   -- P1/P2/P3 (one of) for 2024 is handled separately
