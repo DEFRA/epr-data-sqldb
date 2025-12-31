@@ -205,6 +205,7 @@
     <Build Include="dbo\Tables\t_rpd_data_SECURITY_FIX.sql" />
     <Build Include="dbo\Tables\t_registration_latest.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup.sql" />
+    <Build Include="dbo\Tables\t_producer_obligation_determination.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
     <Build Include="dbo\Tables\t_POM_Filters.sql" />
     <Build Include="dbo\Tables\t_POM_Com_Landing_Filter.sql" />
@@ -309,7 +310,9 @@
     <Build Include="config\Tables\data_load_audit.sql" />
     <Build Include="Security\config.sql" />
     <Build Include="dbo\Stored Procedures\sp_LoopStatisticsUpdate.sql" />
+    <Build Include="dbo\Stored Procedures\sp_backup_table.sql" />
     <Build Include="dbo\Views\v_PayCal_Pom.sql" />
+    <Build Include="dbo\Views\v_PayCal_Pom_MYC.sql" />
     <Build Include="dbo\Views\v_PayCal_Org.sql" />
     <Build Include="dbo\Views\v_POM_Ram_Rag_Order.sql" />
     <Build Include="dbo\Views\v_Compliance_Report.sql" />
