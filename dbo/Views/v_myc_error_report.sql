@@ -1,10 +1,3 @@
-/****** Object:  View [dbo].[v_myc_error_report]    Script Date: 06/01/2026 15:43:59 ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
 CREATE VIEW [dbo].[v_myc_error_report]
 AS with
 
@@ -344,4 +337,3 @@ union
 select * from RegistrationErrors
 union
 select * from ObligationMismatch;
-GO
