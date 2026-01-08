@@ -1,10 +1,3 @@
-/****** Object:  Table [dbo].[t_myc_error_report]    Script Date: 06/01/2026 15:45:36 ******/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
 CREATE TABLE [dbo].[t_myc_error_report]
 (
 	[relevant_year] [int] NULL,
@@ -23,5 +16,4 @@ WITH
 (
 	DISTRIBUTION = ROUND_ROBIN,
 	CLUSTERED COLUMNSTORE INDEX
-)
-GO
+);
