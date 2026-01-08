@@ -206,6 +206,8 @@
     <Build Include="dbo\Tables\t_registration_latest.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup.sql" />
     <Build Include="dbo\Tables\t_producer_obligation_determination.sql" />
+    <Build Include="dbo\Tables\t_myc_error_report.sql" />
+    <Build Include="dbo\Views\v_myc_error_report.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
     <Build Include="dbo\Tables\t_POM_Filters.sql" />
     <Build Include="dbo\Tables\t_POM_Com_Landing_Filter.sql" />
