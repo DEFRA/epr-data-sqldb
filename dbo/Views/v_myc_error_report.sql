@@ -282,6 +282,9 @@ RegistrationErrors as (
     and pom.submitter_id           = reg.submitter_id
     and pom.submission_period_year = reg.submission_period_year - 1
   where reg.obligation_status = 'E'
+     -- also show any warning when there is pom data, or there is an obligation (otherwise it will just say Missing POM)
+     or (reg.error_code is not null and reg.obligation_status = 'O')
+     or (reg.error_code is not null and pom.organisation_id is not null)
   group by
     reg.submission_period_year
   , reg.organisation_id
