@@ -312,7 +312,7 @@ ObligationMismatch as (
   , max(pom.accepted_date)             as PomAcceptedDate -- max, since we have multiple pom periods
   , reg.accepted_date                  as RegAcceptedDate
   from RegistrationsWithObligations as reg
-  left join LatestAcceptedPoms as pom
+  inner join LatestAcceptedPoms as pom
     on  pom.organisation_id        = reg.organisation_id
     and pom.subsidiary_id          = reg.subsidiary_id
     and pom.submitter_id           = reg.submitter_id
