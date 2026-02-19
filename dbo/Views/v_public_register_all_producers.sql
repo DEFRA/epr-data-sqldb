@@ -1,4 +1,5 @@
-﻿CREATE VIEW [dbo].[v_public_register_all_producers] AS with
+﻿CREATE VIEW [dbo].[v_public_register_all_producers]
+AS with
 all_org_with_status as
 (
 	select distinct meta.organisationid
@@ -6,6 +7,7 @@ all_org_with_status as
 					, cd.filename
 					, CAST(CONVERT(datetimeoffset, meta.created) as datetime) AS submitted_time
 					, '20'+reverse(substring(reverse(trim(meta.SubmissionPeriod)),1,2)) as SubmissionYear
+					, meta.RegistrationJourney
 					, upper(trim(isnull(file_status.Regulator_Status,''))) as Regulator_Status
 					, file_status.decision_date
 					,file_status.SubmissionId
@@ -21,7 +23,7 @@ all_latest_org_files as
 	from 
 		(
 		select *
-			, row_number() over(partition by organisationid, SubmissionYear order by submitted_time desc) as rn
+			, row_number() over(partition by organisationid, SubmissionYear, RegistrationJourney order by submitted_time desc) as rn
 		from all_org_with_status where Regulator_Status in ('ACCEPTED','CANCELLED','GRANTED') 
 		and SubmissionYear>=2025
 		) al
@@ -120,9 +122,6 @@ org_result as
 				,case when cd.regulator_status in('GRANTED', 'ACCEPTED') then cd.decision_date end as registration_date
 				,case when cd.regulator_status = 'CANCELLED' then cd.decision_date end as cancellation_date
 
-				--,case when meta.ComplianceSchemeId is not null then concat(cd.registrationreferencenumber,cd.organisation_id,cds.subsidiary_id) else 
-			--	concat(cd.registrationreferencenumber,cds.subsidiary_id) END as ProducerRegistrationNumber_old
-				
 	             ,case when meta.ComplianceSchemeId is not null and cd.regulator_status in ('GRANTED', 'ACCEPTED') 
 	             			                then concat(cd.registrationreferencenumber,cds.organisation_id,cds.subsidiary_id)
 	              when meta.ComplianceSchemeId is not null and cd.regulator_status = 'CANCELLED'
@@ -134,13 +133,9 @@ org_result as
 	             else ''
 	             			
                  END as Producer_Registration_Number
-				 --,cds.leaver_date
-				--,case when cd.regulator_status in ('GRANTED', 'ACCEPTED') then aac.acc_registrationreferencenumber else aac.can_registrationreferencenumber end as test
-				--,aac.SubmissionId,cd.SubmissionId
 			FROM all_latest_org_files cd
 			inner join [rpd].[CompanyDetails] cds 
 				on cds.Filename = cd.Filename  
-				--	and cds.organisation_id = cd.organisation_id 
 				and cds.leaver_date is null
  			left join [dbo].[v_cosmos_file_metadata] meta
 				on meta.FileName = cd.FileName
