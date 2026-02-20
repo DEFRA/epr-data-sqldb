@@ -37,6 +37,7 @@ LatestAcceptedRegistrationFiles as (
           else 'ComplianceScheme'
         end as submitter_type
       , coalesce(cs.Name, '') as compliance_scheme_name
+      , sofs.Regulator_Status
       , row_number() over(
           partition by
             cd.organisation_id,
@@ -54,11 +55,13 @@ LatestAcceptedRegistrationFiles as (
       inner join dbo.v_submitted_pom_org_file_status sofs
         on  sofs.cfm_fileid   = cfm.fileid
         and sofs.filetype     = 'CompanyDetails'
-        and sofs.Regulator_Status in ('Granted','Accepted')
+        -- include Cancelled and remove later to ensure we don't pick up previous Accepted registrations
+        and sofs.Regulator_Status in ('Granted','Accepted','Cancelled')
     left join rpd.ComplianceSchemes cs
       on cs.ExternalId        = cfm.ComplianceSchemeId
   ) a
-  where rn = 1
+  where rn               =  1
+  and   Regulator_Status <> 'Cancelled'
 ),
 LatestAcceptedRegistrations as (
   select

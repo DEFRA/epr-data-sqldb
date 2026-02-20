@@ -75,6 +75,7 @@ latest_accepted_registration AS (
         order by cfm.created desc
       ) as latest_producer_accepted_record_per_SP
     , Right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod),4) as Submission_Period_Year
+    , sofs.Regulator_Status
     FROM [rpd].[CompanyDetails] cd
     INNER JOIN rpd.Organisations o
       on o.ReferenceNumber = cd.organisation_id
@@ -89,9 +90,10 @@ latest_accepted_registration AS (
       ON sofs.cfm_fileid = cfm.fileid
       AND sofs.filetype = 'CompanyDetails'
       --ST007 Added Accepted Status to cater for resubmission registration files
-      AND sofs.Regulator_Status IN ('Granted','Accepted')
+      AND sofs.Regulator_Status IN ('Granted','Accepted','Cancelled')
   ) a
   WHERE latest_producer_accepted_record_per_SP = 1
+    AND Regulator_Status <> 'Cancelled'
 ),
  ----Find latest POM file with data submitted for a given organisation--
 latest_accepted_pom AS (
