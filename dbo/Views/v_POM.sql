@@ -5,10 +5,8 @@
 	Updated: 2024-11-15:	YM001:	Ticket - 460891:	Adding the new column [transitional_packaging_units]
 	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn
 	Updated: 2025-05-28:	TS003:	Ticket - 549751:	Added to fix system generated subsidiary results
-	Updated: 2025-07-03:	SV001:	Ticket - 576285:	Subsidiary Retrofit column removal 
-
-	Updated: 2024-12-02:	SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn 		
-
+	Updated: 2025-07-03:	SV001:	Ticket - 576285:	Subsidiary Retrofit column removal
+	Updated: 2025-10-27:	JP001:  Ticket - 608994:	Added packaging_material_modulation column to add plastic subtypes to packaging material column
 	
 ******************************************************************************************************************************/
 	p.organisation_id,
@@ -23,6 +21,10 @@
 	pc.Text packaging_class,
 	pm.Text packaging_material,
 	p.packaging_material_subtype as packaging_sub_material, --alias added
+	CASE WHEN pm.Text = 'Plastic' and p.packaging_material_subtype = 'Flexible' THEN 'Plastic - Flexible'
+		WHEN pm.Text = 'Plastic' and p.packaging_material_subtype = 'Rigid' THEN 'Plastic - Rigid'
+		ELSE pm.Text
+	END AS packaging_material_modulation, -- JP001
 	fn.Text from_nation,
 	tn.Text to_nation,
 	p.packaging_material_weight as quantity_kg, --alias added,
@@ -52,11 +54,7 @@
 
 ,case when dense_rank() over(partition by sp.Text, p.organisation_id order by CONVERT(DATETIME,substring(meta.created,1,23)) desc) = 1 then 1 else 0 end as IsLatest
 ,PkgOrgJoinColumn = Concat(p.packaging_type,'-',organisation_size)	/**SN002:	Ticket - 460891:	Adding the new column PkgOrgJoinColumn**/
-
 ,p.ram_rag_rating
-
-
-
 FROm rpd.POM p
 JOIN [dbo].[v_rpd_Organisations_Active_Pom] oap ON oap.referencenumber = p.organisation_id
 LEFT JOIN dbo.t_PoM_Codes sp ON sp.Code = p.submission_period 
