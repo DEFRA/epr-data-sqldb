@@ -34,7 +34,7 @@ select
     Enrolment_date_time,
     Enrolment_status,
     Nation_of_Compliance_Scheme_regulator,
-    case when so.Reporting_Year = 2024 then 'Jan to Dec 2024' when so.Reporting_Year = 2025 then 'Jan to Dec 2025' end as Packaging_data_submission_period,
+    'Jan to Dec ' + reporting_year_str as Packaging_data_submission_period,
     Packaging_data_first_submission_datetime,
     Packaging_data_first_submitted_CS_or_Direct,
     Packaging_data_first_submitted_CS_Nation,
@@ -45,7 +45,7 @@ select
     Packaging_data_latest_submitted_CS_Nation,
     Packaging_data_latest_submission_status,
     Packaging_data_latest_submission_organisation_size,
-    case when so.Reporting_Year = 2024 then 'Jan to Dec 2025' when so.Reporting_Year = 2025 then 'Jan to Dec 2026' end as Organisation_data_submission_period,
+    'Jan to Dec ' + cast(reporting_year + 1 as nvarchar(4)) as Organisation_data_submission_period,
     Organisation_data_first_submission_datetime,
     Organisation_data_first_submitted_CS_or_Direct,
     Organisation_data_first_submitted_CS_Nation,
@@ -89,5 +89,6 @@ select
     [Small organisation packaging - all-Steel],
     [Small organisation packaging - all-Wood],
     so.Reporting_Year
-from Small_producer_recent_pom_org so
-left join dbo.v_reported_mandated_data_sets ds on  ds.[Org_ID] = so.[Org_ID] and ds.ReportingYear = so.Reporting_Year;
+from small_producer_recent_pom_org so
+left join dbo.v_reported_mandated_data_sets ds on  ds.[Org_ID] = so.[Org_ID]
+    and ds.ReportingYear = so.Reporting_Year;
