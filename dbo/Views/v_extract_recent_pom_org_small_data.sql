@@ -1,23 +1,29 @@
 ﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_small_data] AS
-With Small_producer_recent_pom_org as
-(
-	Select * from dbo.t_extract_recent_pom_org_data
-	where Organisation_data_first_submission_datetime is null and Organisation_data_latest_submission_datetime is null and Packaging_data_latest_submission_organisation_size ='S'
-	and (
-			(Reporting_Year=2024 and Packaging_data_latest_submission_period_code ='2024-P0')
-			or
-			(Reporting_Year=2025 and Packaging_data_latest_submission_period_code ='2025-P0')
-		)
+with base as (
+    select *,
+        cast(Reporting_Year as varchar(4)) reporting_year_str
+    from dbo.t_extract_recent_pom_org_data
+    where 'S' in (Packaging_data_latest_submission_organisation_size, Organisation_data_latest_submission_organisation_size)
+    and Reporting_Year >= 2024
+),
+legacy as (
+    select * from base
+	where reporting_year in (2024, 2025)
+        and organisation_data_latest_submission_organisation_size = 'S'
+        and organisation_data_latest_submission_status not in ('Refused', 'Rejected', 'Cancelled')
+        and Organisation_data_submission_period = 'July to Dec ' + reporting_year_str + ' - H2'
+),
+
+small_producer_recent_pom_org as (
+	select * from base
+	where packaging_data_latest_submission_organisation_size = 'S'
+        and Organisation_data_first_submission_datetime is null
+        and Organisation_data_latest_submission_datetime is null
+        and Packaging_data_latest_submission_period_code = reporting_year_str + '-P0'
 
 	union all
 
-	Select * from dbo.t_extract_recent_pom_org_data
-	where Organisation_data_latest_submission_organisation_size='S'	and Organisation_data_latest_submission_status not in ('Refused','Rejected','Cancelled')
-	and (
-			(Reporting_Year=2024	and Organisation_data_submission_period='July to Dec 2024 - H2')
-			or
-			(Reporting_Year=2025	and Organisation_data_submission_period='July to Dec 2025 - H2')
-		)
+	select * from legacy
 )
 
 select
