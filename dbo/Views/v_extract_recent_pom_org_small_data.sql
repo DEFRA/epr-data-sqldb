@@ -1,9 +1,5 @@
-﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_small_data] AS With 
-/****************************************************************************************************************************
-	History:
-	Updated: 2025-09-01:	PM002:  Ticket - 607670:    Master script - Split file as small or Large for the year 2025
-******************************************************************************************************************************/
-Small_producer_recent_pom_org as
+﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_small_data] AS
+With Small_producer_recent_pom_org as
 (
 	Select * from dbo.t_extract_recent_pom_org_data
 	where Organisation_data_first_submission_datetime is null and Organisation_data_latest_submission_datetime is null and Packaging_data_latest_submission_organisation_size ='S'
@@ -21,7 +17,7 @@ Small_producer_recent_pom_org as
 			(Reporting_Year=2024	and Organisation_data_submission_period='July to Dec 2024 - H2')
 			or
 			(Reporting_Year=2025	and Organisation_data_submission_period='July to Dec 2025 - H2')
-		) 
+		)
 )
 select so.Org_ID
 ,Org_name
