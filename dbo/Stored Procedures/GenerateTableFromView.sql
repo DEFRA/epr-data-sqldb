@@ -1,12 +1,11 @@
 ﻿CREATE PROC [dbo].[GenerateTableFromView] AS
 BEGIN
 /**********************************************************************************
-      Table 15 (t_registration_with_brandandpartner) - Disabled Replaced by : 22 and 23
+Table 15 (t_registration_with_brandandpartner) - Disabled Replaced by : 22 and 23
+Table 17 (t_enrolled_not_registered) - Disabled Replaced by : 24 and 25
 
-
-      Table 17 (t_enrolled_not_registered) - Disabled Replaced by : 24 and 25
-
-
+Updated 2025-10-29: ST001: 623983: Added Table 25 t_PRN_Recycling_Obligation_stat_Count to improve performance of ComplianceReport
+									Note t_registration_enrolled_not_registered no Longer Table 25 and now Table 26
  **********************************************************************************/
     -- Disable row count for performance
     SET NOCOUNT ON;
@@ -752,8 +751,38 @@ begin
 end
 
 
---Table 25
+
+--Table 25 t_PRN_Recycling_Obligation_stat_Count
 if (@recovery_checkpoint < 25)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_PRN_Recycling_Obligation_stat_Count', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_PRN_Recycling_Obligation_stat_Count;
+		END;	
+
+		SELECT *
+		INTO dbo.t_PRN_Recycling_Obligation_stat_Count
+		FROM dbo.v_PRN_Recycling_Obligation_stat_Count;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_PRN_Recycling_Obligation_stat_Count', NULL, @start_dt, getdate(), 'Tab 25 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 25, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 25, getdate()
+	end
+end
+
+
+--Table 26
+if (@recovery_checkpoint < 26)
 begin
 	set @start_dt = getdate()
 
@@ -767,7 +796,7 @@ begin
 		FROM dbo.v_registration_enrolled_not_registered;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 25 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 26 - Completed',@batch_id
 
 	delete from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView'
 
@@ -776,7 +805,7 @@ begin
 end
 
 --Removing check point
-if (@recovery_checkpoint >= 25)
+if (@recovery_checkpoint >= 27)
 begin
 
 	set @start_dt = getdate()
@@ -873,7 +902,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-/**** New table counts for 22,23,24, and 25 ******/
+/**** New table counts for 22,23,24, and 27 ******/
 	select @cnt =count(1) from dbo.t_registration_enrolled_not_registered;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -889,5 +918,11 @@ end
 	select @cnt =count(1) from dbo.t_organisation_details_not_submitted;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', @cnt, NULL, getdate(), 'Completed',@batch_id
+	
+/**** New Table counts for 25 *****/
+	
+	select @cnt =count(1) from dbo.t_PRN_Recycling_Obligation_stat_Count;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_PRN_Recycling_Obligation_stat_Count', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 END;

@@ -12,6 +12,7 @@ History:
 	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
 	Updated 2025-08-12: TS001: ticket 601453; adding [Is_resubmitted_POM_identifier] column for the POM reports
 	Updated 2025-08-19: TS002: ticket 603393; Changing the handling Application_submitted_ts logic
+	Updated 2025-10-27: JP003: ticket 608994; Adding ram_rag_rating column
 
 *****************************************************************************************************/
 	
@@ -47,6 +48,7 @@ As
 			,A.quantity_unit
 			,A.Quantity_kg_extrapolated
 			,A.Quantity_units_extrapolated
+			,A.ram_rag_rating --JP003
 			,A.ToOrganisation_NationName
 			,A.Nation
 			,A.FromOrganisation_NationName
@@ -102,6 +104,7 @@ As
 				  ,[quantity_unit]
 				  ,[Quantity_kg_extrapolated]
 				  ,[Quantity_units_extrapolated]
+				  ,[ram_rag_rating] --JP003
 				  ,[ToOrganisation_NationName]
 				  ,[Nation]
 				  ,[FromOrganisation_NationName]
@@ -153,6 +156,7 @@ As
 				  ,[quantity_unit]
 				  ,[Quantity_kg_extrapolated]
 				  ,[Quantity_units_extrapolated]
+				  ,[ram_rag_rating] --JP003
 				  ,[ToOrganisation_NationName]
 				  ,[Nation]
 				  ,[FromOrganisation_NationName]
@@ -203,6 +207,7 @@ As
 				  ,[quantity_unit]
 				  ,[Quantity_kg_extrapolated]
 				  ,[Quantity_units_extrapolated]
+				  ,[ram_rag_rating] --JP003
 				  ,[ToOrganisation_NationName]
 				  ,[Nation]
 				  ,[FromOrganisation_NationName]

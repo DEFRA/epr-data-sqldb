@@ -1,19 +1,27 @@
-﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_small_data] AS With Small_producer_recent_pom_org as
+﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_small_data] AS With 
+/****************************************************************************************************************************
+	History:
+	Updated: 2025-09-01:	PM002:  Ticket - 607670:    Master script - Split file as small or Large for the year 2025
+******************************************************************************************************************************/
+Small_producer_recent_pom_org as
 (
 	Select * from dbo.t_extract_recent_pom_org_data
-	where Reporting_Year=2024
-	and Organisation_data_first_submission_datetime is null 
-	and Organisation_data_latest_submission_datetime is null 
-	and Packaging_data_latest_submission_period_code ='2024-P0'
-	and Packaging_data_latest_submission_organisation_size ='S'
+	where Organisation_data_first_submission_datetime is null and Organisation_data_latest_submission_datetime is null and Packaging_data_latest_submission_organisation_size ='S'
+	and (
+			(Reporting_Year=2024 and Packaging_data_latest_submission_period_code ='2024-P0')
+			or
+			(Reporting_Year=2025 and Packaging_data_latest_submission_period_code ='2025-P0')
+		)
 
 	union all
 
 	Select * from dbo.t_extract_recent_pom_org_data
-	where Reporting_Year=2024
-	and Organisation_data_submission_period='July to Dec 2024 - H2'
-	and Organisation_data_latest_submission_organisation_size='S'
-	and Organisation_data_latest_submission_status not in ('Refused','Rejected','Cancelled')
+	where Organisation_data_latest_submission_organisation_size='S'	and Organisation_data_latest_submission_status not in ('Refused','Rejected','Cancelled')
+	and (
+			(Reporting_Year=2024	and Organisation_data_submission_period='July to Dec 2024 - H2')
+			or
+			(Reporting_Year=2025	and Organisation_data_submission_period='July to Dec 2025 - H2')
+		) 
 )
 select so.Org_ID
 ,Org_name
@@ -22,7 +30,7 @@ select so.Org_ID
 ,Enrolment_date_time
 ,Enrolment_status
 ,Nation_of_Compliance_Scheme_regulator
-,'Jan to Dec 2024' as Packaging_data_submission_period
+,case when so.Reporting_Year = 2024 then 'Jan to Dec 2024' when so.Reporting_Year = 2025 then 'Jan to Dec 2025' end as Packaging_data_submission_period
 ,Packaging_data_first_submission_datetime
 ,Packaging_data_first_submitted_CS_or_Direct
 ,Packaging_data_first_submitted_CS_Nation
@@ -33,7 +41,7 @@ select so.Org_ID
 ,Packaging_data_latest_submitted_CS_Nation
 ,Packaging_data_latest_submission_status
 ,Packaging_data_latest_submission_organisation_size
-,'Jan to Dec 2025' as Organisation_data_submission_period
+,case when so.Reporting_Year = 2024 then 'Jan to Dec 2025' when so.Reporting_Year = 2025 then 'Jan to Dec 2026' end as Organisation_data_submission_period
 ,Organisation_data_first_submission_datetime
 ,Organisation_data_first_submitted_CS_or_Direct
 ,Organisation_data_first_submitted_CS_Nation

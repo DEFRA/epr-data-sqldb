@@ -1,4 +1,10 @@
 ﻿CREATE VIEW [dbo].[v_Compliance_Report] AS WITH reg_submissions AS (
+/*
+History:
+Updated 2025-10-29: ST001: 623983: Added this history log. Now utilising t_submitted_pom_org_file_status rather than view for performance increase,
+likewise utilising t_PRN_Recycling_Obligation_stat_Count rather than view as view with changes required was causing this to hang indefinitely.
+*/
+---------------------------------------------------
 /*Returns information about registration files*/
     SELECT
 		cfm.organisationid,
@@ -13,7 +19,7 @@
 		ELSE CAST('20' + RIGHT(RTRIM(cfm.SubmissionPeriod), 2) AS INT) 
 		END AS [Relevant_Year]
 	FROM [rpd].[cosmos_file_metadata] cfm inner join rpd.CompanyDetails cd on cd.FileName=cfm.FileName
-	join [dbo].[v_submitted_pom_org_file_status] sub on sub.FileName = cfm.FileName 
+	join [dbo].[t_submitted_pom_org_file_status] sub on sub.FileName = cfm.FileName 
 	WHERE UPPER(cfm.FileType) ='COMPANYDETAILS'
 	
 ),
@@ -41,7 +47,7 @@ SELECT *,
         ROW_NUMBER() OVER (PARTITION BY pom.organisation_id,cfm.SubmissionPeriod ORDER BY CAST(cfm.Created AS DATETIME2)) AS rn_asc,
         ROW_NUMBER() OVER (PARTITION BY pom.organisation_id,cfm.SubmissionPeriod ORDER BY CAST(cfm.Created AS DATETIME2) DESC) AS rn_desc
 	FROM [rpd].[cosmos_file_metadata] cfm inner join rpd.POM pom on pom.FileName=cfm.FileName
-	join [dbo].[v_submitted_pom_org_file_status] sub on sub.FileName = cfm.FileName 
+	join [dbo].[t_submitted_pom_org_file_status] sub on sub.FileName = cfm.FileName 
 	WHERE UPPER(cfm.FileType) ='POM'
 
 )
@@ -208,7 +214,7 @@ LEFT JOIN reg_pom lpom
     ON lpom.organisation_id=Org.referenceNumber AND lpom.rn_desc = 1 and lpom.Relevant_Year=rel.Relevant_year and lpom.SubmissionPeriod=LDateP.submission_period--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) 592034 add submission period to join cond
 LEFT JOIN lookup_dates LDateR 
 	ON LDateR.Producer_Type=cd.organisation_size and LDateR.Submission_Type='Registration' and LdateR.relevant_year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) --meta.created>= LDateR.start_date and meta.created<=LDateR.end_date
-LEFT JOIN v_PRN_Recycling_Obligation_stat_Count prn
+LEFT JOIN t_PRN_Recycling_Obligation_stat_Count prn
 	ON Org.id=prn.orgid and prn.YR=rel.Relevant_year and prn.subsidiaryid is null and cd.subsidiary_id is null
 lEFT JOIN org_selected_schemes ss
 	ON ss.producerId = Org.ReferenceNumber and latestScheme = 'latest scheme' --ensures only the latest scheme is shown
