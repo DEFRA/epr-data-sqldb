@@ -205,7 +205,11 @@ Select p.id,
 	,p.AwaitingAcceptanceDate
 	,p.AwaitingAcceptanceTime
 	,p.TonnageValue
-	,MaterialName				= Case When p.MaterialName ='Paperandboard' Then 'Paper or board'  When p.MaterialName ='Paper' Then 'Paper or board' When p.MaterialName ='Fibre' Then 'Fibre-based composite material' Else p.MaterialName End
+	,MaterialName = Case 
+		When p.MaterialName in ('Paper', 'Paperandboard') Then 'Paper or board'  
+		When p.MaterialName = 'Fibre' Then 'Fibre-based composite material' 
+		Else p.MaterialName 
+	End
 	,p.IssuerNotes
 	,p.IssuerReference
 	,p.PrnSignatory
