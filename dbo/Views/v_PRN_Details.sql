@@ -14,6 +14,7 @@
 	Updated: 2025-06-06		SN010:	Ticket	- 517612	Use prn.StatusUpdatedOn intially for Accepted/Rejected/Cancelled/Rejected 
 														datetime.  If null uses PrnStatusHistory.CreatedOn
 	Updated: 2025-06-09		SN011:						Join commented out as no longer in use in PowerBI. Left as placeholder
+	Updated: 2026-03-26	    MO-102:                     Updated material casting for paper and fibre
 *****************************************************************************************************************************/
 	Select 
 		 PrnStatusHistoryId		= sth.Id
@@ -204,7 +205,11 @@ Select p.id,
 	,p.AwaitingAcceptanceDate
 	,p.AwaitingAcceptanceTime
 	,p.TonnageValue
-	,MaterialName				= Case When p.MaterialName ='Paperandboard' Then 'Paper' Else p.MaterialName End
+	,MaterialName = Case 
+		When p.MaterialName in ('Paper', 'Paperandboard') Then 'Paper or board'  
+		When p.MaterialName = 'Fibre' Then 'Fibre-based composite material' 
+		Else p.MaterialName 
+	End
 	,p.IssuerNotes
 	,p.IssuerReference
 	,p.PrnSignatory
