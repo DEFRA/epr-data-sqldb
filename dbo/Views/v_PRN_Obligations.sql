@@ -15,6 +15,7 @@ org As (
 	Updated: 2025-06-30		SN010:						Regrouping Material to match front end PRN
 	Updated: 2025-08-05		SN011:	Ticket - 513680     Added NationId to check the RLS (Row level security) for PRN Details and Obligations Power BI report
 	Updated: 2025-09-04		SN012:  Replace o.Name with cs.Name in CTEs csa and cs_ch
+    UpdatedL 2026-04-01    MO-102:                      Using ObligationsMaterialName from v_prn_details instead of MaterialName
 ******************************************************************************************************************************/
 
 /*** SN:003 ***/
@@ -168,7 +169,7 @@ prnLtst As (
 				dbo.v_PRN_Details					p
 	Left Join
 		dbo.v_PRN_MaterialGroups pmm 
-			on p.MaterialName = pmm.PRNMaterialName
+			on p.ObligationsMaterialName = pmm.PRNMaterialName
 	
 ),
 
@@ -231,18 +232,18 @@ prnTt As (
 	Select
 		 p.OrganisationId		
 		,p.ExternalOrgId
-		,MaterialName		= p.MaterialName
+		,MaterialName		= p.ObligationsMaterialName
 		,p.ObligationYear
 		,AcceptedTonnage	= sum(Case When PrnStatus='Prn Accepted' Then p.TonnageValue Else 0 End)
 		,AwaitingTonnage	= sum(Case When PrnStatus='Prn Awaiting Acceptance' Then p.TonnageValue Else 0 End)
-		,PrnObliJoin		= Concat(Ltrim(Rtrim(p.ExternalOrgId)),'-',p.MaterialName  ,'-',Ltrim(Rtrim(p.ObligationYear)))
+		,PrnObliJoin		= Concat(Ltrim(Rtrim(p.ExternalOrgId)),'-',p.ObligationsMaterialName  ,'-',Ltrim(Rtrim(p.ObligationYear)))
 	From 
 			dbo.v_PRN_Details					p	
 	Group By
 		 p.ExternalOrgId
 		,p.OrganisationId
 		,p.ObligationYear
-		,p.MaterialName
+		,p.ObligationsMaterialName
 ),
 
 obgnsGrp As (
