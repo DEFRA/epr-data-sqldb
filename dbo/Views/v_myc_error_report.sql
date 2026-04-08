@@ -81,6 +81,54 @@ LatestAcceptedRegistrations as (
     and cd.filename          = larf.filename
     and cd.organisation_size = 'L'
 ),
+CancelledRegistrationFiles as (
+  select distinct
+      cfm.filename
+    , cd.organisation_id
+    , right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4) as submission_period_year
+    , cast(coalesce(cfm.ComplianceSchemeId, o.ExternalId) as uniqueidentifier) as submitter_id -- cast added for consistent case
+    , case
+        when nullif(trim(cfm.ComplianceSchemeId), '') is null
+        then 'DirectRegistrant'
+        else 'ComplianceScheme'
+      end as submitter_type
+    , coalesce(cs.Name, '') as compliance_scheme_name
+    , try_cast(sofs.Decision_Date as date) as accepted_date
+    from rpd.CompanyDetails as cd
+    inner join rpd.Organisations as o
+      on  o.ReferenceNumber = cd.organisation_id
+      and o.IsDeleted       = 0
+    inner join rpd.cosmos_file_metadata as cfm
+      on  cfm.FileName      = cd.FileName
+      and cfm.FileType      = 'CompanyDetails'
+    inner join dbo.v_submitted_pom_org_file_status sofs
+      on  sofs.cfm_fileid   = cfm.fileid
+      and sofs.filetype     = 'CompanyDetails'
+      and sofs.Regulator_Status = 'Cancelled'
+  left join rpd.ComplianceSchemes cs
+    on cs.ExternalId        = cfm.ComplianceSchemeId
+),
+CancelledRegistrations as (
+  select
+    crf.filename
+  , cd.organisation_id
+  , cd.organisation_name
+  , cd.trading_name
+  , cd.leaver_code
+  , cd.leaver_date
+  , cd.joiner_date
+  , coalesce(nullif(trim(cd.subsidiary_id), ''), '') as subsidiary_id
+  , crf.submission_period_year
+  , crf.submitter_id
+  , crf.submitter_type
+  , crf.compliance_scheme_name
+  , crf.accepted_date
+  from CancelledRegistrationFiles crf
+  inner join rpd.CompanyDetails cd
+    on  cd.organisation_id   = crf.organisation_id
+    and cd.filename          = crf.filename
+    and cd.organisation_size = 'L'
+),
 RegistrationsWithObligations as (
   select
     reg.organisation_id
@@ -104,7 +152,29 @@ RegistrationsWithObligations as (
     and reg.submitter_id           = cast(obl.submitter_id as uniqueidentifier)
     and reg.submission_period_year = obl.submission_period_year
 ),
-
+CancelledRegistrationsWithObligations as (
+  select
+    reg.organisation_id
+  , reg.subsidiary_id
+  , reg.organisation_name
+  , reg.trading_name
+  , reg.leaver_code
+  , reg.leaver_date
+  , reg.joiner_date
+  , reg.submitter_id
+  , reg.submission_period_year
+  , obl.obligation_status
+  , obl.error_code
+  , reg.compliance_scheme_name
+  , reg.submitter_type
+  , reg.accepted_date
+  from dbo.t_producer_obligation_determination obl
+  inner join CancelledRegistrations as reg
+    on  reg.organisation_id        = obl.organisation_id
+    and reg.subsidiary_id          = coalesce(nullif(trim(obl.subsidiary_id), ''), '')
+    and reg.submitter_id           = cast(obl.submitter_id as uniqueidentifier)
+    and reg.submission_period_year = obl.submission_period_year
+),
 -- PART 2
 -- Get the latest accepted poms
 LatestAcceptedPomFiles as (
@@ -196,6 +266,13 @@ MissingRegistrations as (
         and pom.subsidiary_id          = reg.subsidiary_id
         and pom.submitter_id           = reg.submitter_id
         and pom.submission_period_year = reg.submission_period_year - 1
+  ) and not exists (
+    select 1
+      from CancelledRegistrationsWithObligations as creg
+      where pom.organisation_id        = creg.organisation_id
+        and pom.subsidiary_id          = creg.subsidiary_id
+        and pom.submitter_id           = creg.submitter_id
+        and pom.submission_period_year = creg.submission_period_year - 1
   )
   group by
     pom.submission_period_year
@@ -340,3 +417,4 @@ union
 select * from RegistrationErrors
 union
 select * from ObligationMismatch;
+GO
