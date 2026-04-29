@@ -461,10 +461,16 @@ RegistrationErrors as (
     and pom.subsidiary_id          = reg.subsidiary_id
     and pom.submitter_id           = reg.submitter_id
     and pom.submission_period_year = reg.submission_period_year - 1
-  where reg.obligation_status = 'E'
-     -- also show any warning when there is pom data, or there is an obligation (otherwise it will just say Missing POM)
-     or (reg.error_code is not null and reg.obligation_status = 'O')
-     or (reg.error_code is not null and pom.organisation_id is not null)
+  where (
+      reg.obligation_status = 'E'
+      -- also show any warning when there is pom data, or there is an obligation (otherwise it will just say Missing POM)
+      or (reg.error_code is not null and reg.obligation_status = 'O')
+      or (reg.error_code is not null and pom.organisation_id is not null)
+    ) and not exists (
+      select 1 from NotObligated no where no.organisation_id = reg.organisation_id
+      and no.subsidiary_id = reg.subsidiary_id
+      and no.relevant_year = reg.submission_period_year
+    )
   group by
     reg.submission_period_year
   , reg.organisation_id
