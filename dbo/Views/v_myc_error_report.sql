@@ -374,7 +374,7 @@ NotObligated as (
         from AcceptedRegistrationsWithObligations as reg
         where pom.organisation_id        = reg.organisation_id
           and pom.subsidiary_id          = reg.subsidiary_id
-          -- and pom.submitter_id           = reg.submitter_id
+          -- and pom.submitter_id           != reg.submitter_id
           and pom.submission_period_year = reg.submission_period_year - 1           
     )
   ) 
