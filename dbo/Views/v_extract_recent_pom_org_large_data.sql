@@ -1,12 +1,4 @@
 ﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_large_data] AS select 
-/****************************************************************************************************************************
-	History:
-	Created: 2025-05-16:	YM001:	Ticket - 515337:	Masterscript - MasterScript - Master script to be split into Large producer master script and small producer master script
-	Created: 2025-05-21:	YM002:	Ticket - 515336:	Masterscript - Addition of Transitional packaging Data in Large producer master script for 2024
-	Updated: 2025-08-27:	PM003:  Ticket - 605220:    Master script - New column with RAM and RAM-M as new set of columns
-	Updated: 2025-08-28:	PM011:  Ticket - 605220:    Master script - New columns with RAM and RAM-M For rigid, flexible columns added as part 605105
-	Updated: 2025-11-06:	PM012:  Ticket - RAM M:     Master script - Adding R G A split for each RAM and RAM-M column
-******************************************************************************************************************************/
 a.Org_ID
 ,Org_name
 ,CH_number
@@ -122,8 +114,8 @@ a.Org_ID
 ,[Total Household packaging-Paper / Card RAM-M G-M]
 ,[Total Household packaging-Paper / Card RAM-M A-M]
 ,[Total Household packaging-Plastic]
-,[Total Household packaging-Plastic-Rigid]    --added newly for US 605105
-,[Total Household packaging-Plastic-Flexible] --added newly for US 605105
+,[Total Household packaging-Plastic-Rigid]
+,[Total Household packaging-Plastic-Flexible]
 ,[Total Household packaging-Plastic RAM]
 ,[Total Household packaging-Plastic RAM R]
 ,[Total Household packaging-Plastic RAM G]
@@ -244,8 +236,8 @@ a.Org_ID
 ,[Public binned-Paper / Card RAM-M G-M]
 ,[Public binned-Paper / Card RAM-M A-M]
 ,[Public binned-Plastic]
-,[Public binned-Plastic-Rigid]      --added newly for US 605105
-,[Public binned-Plastic-Flexible]   --added newly for US 605105
+,[Public binned-Plastic-Rigid]
+,[Public binned-Plastic-Flexible]
 ,[Public binned-Plastic RAM]
 ,[Public binned-Plastic RAM R]
 ,[Public binned-Plastic RAM G]
@@ -296,7 +288,6 @@ a.Org_ID
 ,[Reusable packaging-Plastic]
 ,[Reusable packaging-Steel]
 ,[Reusable packaging-Wood]
-/** YM001 515336 Transitional_packaging_unit addition **/
 ,[Transitional organisation packaging - all-Aluminium]
 ,[Transitional organisation packaging - all-Fibre Composite]
 ,[Transitional organisation packaging - all-Glass]
