@@ -1,308 +1,310 @@
-﻿CREATE VIEW [dbo].[v_extract_recent_pom_org_large_data] AS select 
-a.Org_ID
-,Org_name
-,CH_number
-,Nation_of_enrolment
-,Enrolment_date_time
-,Enrolment_status
-,Nation_of_Compliance_Scheme_regulator
-,Packaging_data_submission_period
-,Packaging_data_first_submission_datetime
-,Packaging_data_first_submitted_CS_or_Direct
-,Packaging_data_first_submitted_CS_Nation
-,Packaging_data_first_submission_status
-,Packaging_data_first_submission_organisation_size
-,Packaging_data_latest_submission_datetime
-,Packaging_data_latest_submitted_CS_or_Direct
-,Packaging_data_latest_submitted_CS_Nation
-,Packaging_data_latest_submission_status
-,Packaging_data_latest_submission_organisation_size
-,Organisation_data_submission_period
-,Organisation_data_first_submission_datetime
-,Organisation_data_first_submitted_CS_or_Direct
-,Organisation_data_first_submitted_CS_Nation
-,Organisation_data_first_submission_status
-,Organisation_data_first_submission_organisation_size
-,Organisation_data_latest_submission_datetime
-,Organisation_data_latest_submitted_CS_or_Direct
-,Organisation_data_latest_submitted_CS_Nation
-,Organisation_data_latest_submission_status
-,Organisation_data_latest_submission_organisation_size
-,Organisation_exists_in_most_recent_packaging_data_submission
-,Organisation_exists_in_most_recent_organisation_data_submission
-,Organisation_visible_in_PowerBI_Packaging_reports
-,Organisation_visible_in_PowerBI_Orgdata_reports
-,Single_File_Submission_Packaging
-,Single_File_Submission_Orgdata
-,ds.Reported_mandated_data_sets
-,Organisation_soft_deleted
-,[Self-managed consumer waste-Aluminium]
-,[Self-managed consumer waste-Fibre Composite]
-,[Self-managed consumer waste-Glass]
-,[Self-managed consumer waste-Other]
-,[Self-managed consumer waste-Paper / Card]
-,[Self-managed consumer waste-Plastic]
-,[Self-managed consumer waste-Steel]
-,[Self-managed consumer waste-Wood]
-,[Household drinks containers-Aluminium (Kg)]
-,[Household drinks containers-Aluminium (No.Units)]
-,[Household drinks containers-Fibre Composite (Kg)]
-,[Household drinks containers-Fibre Composite (No.Units)]
-,[Household drinks containers-Glass (Kg)]
-,[Household drinks containers-Glass RAM (Kg)]
-,[Household drinks containers-Glass RAM R (Kg)]
-,[Household drinks containers-Glass RAM G (Kg)]
-,[Household drinks containers-Glass RAM A (Kg)]
-,[Household drinks containers-Glass RAM-M (Kg)]
-,[Household drinks containers-Glass RAM-M R-M (Kg)]
-,[Household drinks containers-Glass RAM-M G-M (Kg)]
-,[Household drinks containers-Glass RAM-M A-M (Kg)]
-,[Household drinks containers-Glass (No.Units)]
-,[Household drinks containers-Other (Kg)]
-,[Household drinks containers-Other (No.Units)]
-,[Household drinks containers-Paper / Card (Kg)]
-,[Household drinks containers-Paper / Card (No.Units)]
-,[Household drinks containers-Plastic (Kg)]
-,[Household drinks containers-Plastic (No.Units)]
-,[Household drinks containers-Steel (Kg)]
-,[Household drinks containers-Steel (No.Units)]
-,[Household drinks containers-Wood (Kg)]
-,[Household drinks containers-Wood (No.Units)]
-,[Total Household packaging-Aluminium]
-,[Total Household packaging-Aluminium RAM]
-,[Total Household packaging-Aluminium RAM R]
-,[Total Household packaging-Aluminium RAM G]
-,[Total Household packaging-Aluminium RAM A]
-,[Total Household packaging-Aluminium RAM-M]
-,[Total Household packaging-Aluminium RAM-M R-M]
-,[Total Household packaging-Aluminium RAM-M G-M]
-,[Total Household packaging-Aluminium RAM-M A-M]
-,[Total Household packaging-Fibre Composite]
-,[Total Household packaging-Fibre Composite RAM]
-,[Total Household packaging-Fibre Composite RAM R]
-,[Total Household packaging-Fibre Composite RAM G]
-,[Total Household packaging-Fibre Composite RAM A]
-,[Total Household packaging-Fibre Composite RAM-M]
-,[Total Household packaging-Fibre Composite RAM-M R-M]
-,[Total Household packaging-Fibre Composite RAM-M G-M]
-,[Total Household packaging-Fibre Composite RAM-M A-M]
-,[Total Household packaging-Glass]
-,[Total Household packaging-Glass RAM]
-,[Total Household packaging-Glass RAM R]
-,[Total Household packaging-Glass RAM G]
-,[Total Household packaging-Glass RAM A]
-,[Total Household packaging-Glass RAM-M]
-,[Total Household packaging-Glass RAM-M R-M]
-,[Total Household packaging-Glass RAM-M G-M]
-,[Total Household packaging-Glass RAM-M A-M]
-,[Total Household packaging-Other]
-,[Total Household packaging-Other RAM]
-,[Total Household packaging-Other RAM R]
-,[Total Household packaging-Other RAM G]
-,[Total Household packaging-Other RAM A]
-,[Total Household packaging-Other RAM-M]
-,[Total Household packaging-Other RAM-M R-M]
-,[Total Household packaging-Other RAM-M G-M]
-,[Total Household packaging-Other RAM-M A-M]
-,[Total Household packaging-Paper / Card]
-,[Total Household packaging-Paper / Card RAM]
-,[Total Household packaging-Paper / Card RAM R]
-,[Total Household packaging-Paper / Card RAM G]
-,[Total Household packaging-Paper / Card RAM A]
-,[Total Household packaging-Paper / Card RAM-M]
-,[Total Household packaging-Paper / Card RAM-M R-M]
-,[Total Household packaging-Paper / Card RAM-M G-M]
-,[Total Household packaging-Paper / Card RAM-M A-M]
-,[Total Household packaging-Plastic]
-,[Total Household packaging-Plastic-Rigid]
-,[Total Household packaging-Plastic-Flexible]
-,[Total Household packaging-Plastic RAM]
-,[Total Household packaging-Plastic RAM R]
-,[Total Household packaging-Plastic RAM G]
-,[Total Household packaging-Plastic RAM A]
-,[Total Household packaging-Plastic RAM-M]
-,[Total Household packaging-Plastic RAM-M R-M]
-,[Total Household packaging-Plastic RAM-M G-M]
-,[Total Household packaging-Plastic RAM-M A-M]
-,[Total Household packaging-Plastic-Rigid RAM]
-,[Total Household packaging-Plastic-Rigid RAM R]
-,[Total Household packaging-Plastic-Rigid RAM G]
-,[Total Household packaging-Plastic-Rigid RAM A]
-,[Total Household packaging-Plastic-Rigid RAM-M]
-,[Total Household packaging-Plastic-Rigid RAM-M R-M]
-,[Total Household packaging-Plastic-Rigid RAM-M G-M]
-,[Total Household packaging-Plastic-Rigid RAM-M A-M]
-,[Total Household packaging-Plastic-Flexible RAM]
-,[Total Household packaging-Plastic-Flexible RAM R]
-,[Total Household packaging-Plastic-Flexible RAM G]
-,[Total Household packaging-Plastic-Flexible RAM A]
-,[Total Household packaging-Plastic-Flexible RAM-M]
-,[Total Household packaging-Plastic-Flexible RAM-M R-M]
-,[Total Household packaging-Plastic-Flexible RAM-M G-M]
-,[Total Household packaging-Plastic-Flexible RAM-M A-M]
-,[Total Household packaging-Steel]
-,[Total Household packaging-Steel RAM]
-,[Total Household packaging-Steel RAM R]
-,[Total Household packaging-Steel RAM G]
-,[Total Household packaging-Steel RAM A]
-,[Total Household packaging-Steel RAM-M]
-,[Total Household packaging-Steel RAM-M R-M]
-,[Total Household packaging-Steel RAM-M G-M]
-,[Total Household packaging-Steel RAM-M A-M]
-,[Total Household packaging-Wood]
-,[Total Household packaging-Wood RAM]
-,[Total Household packaging-Wood RAM R]
-,[Total Household packaging-Wood RAM G]
-,[Total Household packaging-Wood RAM A]
-,[Total Household packaging-Wood RAM-M]
-,[Total Household packaging-Wood RAM-M R-M]
-,[Total Household packaging-Wood RAM-M G-M]
-,[Total Household packaging-Wood RAM-M A-M]
-,[Non-household drinks containers-Aluminium (Kg)]
-,[Non-household drinks containers-Aluminium (No.Units)]
-,[Non-household drinks containers-Fibre Composite (Kg)]
-,[Non-household drinks containers-Fibre Composite (No.Units)]
-,[Non-household drinks containers-Glass (Kg)]
-,[Non-household drinks containers-Glass (No.Units)]
-,[Non-household drinks containers-Other (Kg)]
-,[Non-household drinks containers-Other (No.Units)]
-,[Non-household drinks containers-Paper / Card (Kg)]
-,[Non-household drinks containers-Paper / Card (No.Units)]
-,[Non-household drinks containers-Plastic (Kg)]
-,[Non-household drinks containers-Plastic (No.Units)]
-,[Non-household drinks containers-Steel (Kg)]
-,[Non-household drinks containers-Steel (No.Units)]
-,[Non-household drinks containers-Wood (Kg)]
-,[Non-household drinks containers-Wood (No.Units)]
-,[Total Non-Household packaging-Aluminium]
-,[Total Non-Household packaging-Fibre Composite]
-,[Total Non-Household packaging-Glass]
-,[Total Non-Household packaging-Other]
-,[Total Non-Household packaging-Paper / Card]
-,[Total Non-Household packaging-Plastic]
-,[Total Non-Household packaging-Steel]
-,[Total Non-Household packaging-Wood]
-,[Self-managed organisation waste-Aluminium]
-,[Self-managed organisation waste-Fibre Composite]
-,[Self-managed organisation waste-Glass]
-,[Self-managed organisation waste-Other]
-,[Self-managed organisation waste-Paper / Card]
-,[Self-managed organisation waste-Plastic]
-,[Self-managed organisation waste-Steel]
-,[Self-managed organisation waste-Wood]
-,[Public binned-Aluminium]
-,[Public binned-Aluminium RAM]
-,[Public binned-Aluminium RAM R]
-,[Public binned-Aluminium RAM G]
-,[Public binned-Aluminium RAM A]
-,[Public binned-Aluminium RAM-M]
-,[Public binned-Aluminium RAM-M R-M]
-,[Public binned-Aluminium RAM-M G-M]
-,[Public binned-Aluminium RAM-M A-M]
-,[Public binned-Fibre Composite]
-,[Public binned-Fibre Composite RAM]
-,[Public binned-Fibre Composite RAM R]
-,[Public binned-Fibre Composite RAM G]
-,[Public binned-Fibre Composite RAM A]
-,[Public binned-Fibre Composite RAM-M]
-,[Public binned-Fibre Composite RAM-M R-M]
-,[Public binned-Fibre Composite RAM-M G-M]
-,[Public binned-Fibre Composite RAM-M A-M]
-,[Public binned-Glass]
-,[Public binned-Glass RAM]
-,[Public binned-Glass RAM R]
-,[Public binned-Glass RAM G]
-,[Public binned-Glass RAM A]
-,[Public binned-Glass RAM-M]
-,[Public binned-Glass RAM-M R-M]
-,[Public binned-Glass RAM-M G-M]
-,[Public binned-Glass RAM-M A-M]
-,[Public binned-Other]
-,[Public binned-Other RAM]
-,[Public binned-Other RAM R]
-,[Public binned-Other RAM G]
-,[Public binned-Other RAM A]
-,[Public binned-Other RAM-M]
-,[Public binned-Other RAM-M R-M]
-,[Public binned-Other RAM-M G-M]
-,[Public binned-Other RAM-M A-M]
-,[Public binned-Paper / Card]
-,[Public binned-Paper / Card RAM]
-,[Public binned-Paper / Card RAM R]
-,[Public binned-Paper / Card RAM G]
-,[Public binned-Paper / Card RAM A]
-,[Public binned-Paper / Card RAM-M]
-,[Public binned-Paper / Card RAM-M R-M]
-,[Public binned-Paper / Card RAM-M G-M]
-,[Public binned-Paper / Card RAM-M A-M]
-,[Public binned-Plastic]
-,[Public binned-Plastic-Rigid]
-,[Public binned-Plastic-Flexible]
-,[Public binned-Plastic RAM]
-,[Public binned-Plastic RAM R]
-,[Public binned-Plastic RAM G]
-,[Public binned-Plastic RAM A]
-,[Public binned-Plastic RAM-M]
-,[Public binned-Plastic RAM-M R-M]
-,[Public binned-Plastic RAM-M G-M]
-,[Public binned-Plastic RAM-M A-M]
-,[Public binned-Plastic-Rigid RAM]
-,[Public binned-Plastic-Rigid RAM R]
-,[Public binned-Plastic-Rigid RAM G]
-,[Public binned-Plastic-Rigid RAM A]
-,[Public binned-Plastic-Rigid RAM-M]
-,[Public binned-Plastic-Rigid RAM-M R-M]
-,[Public binned-Plastic-Rigid RAM-M G-M]
-,[Public binned-Plastic-Rigid RAM-M A-M]
-,[Public binned-Plastic-Flexible RAM]
-,[Public binned-Plastic-Flexible RAM R]
-,[Public binned-Plastic-Flexible RAM G]
-,[Public binned-Plastic-Flexible RAM A]
-,[Public binned-Plastic-Flexible RAM-M]
-,[Public binned-Plastic-Flexible RAM-M R-M]
-,[Public binned-Plastic-Flexible RAM-M G-M]
-,[Public binned-Plastic-Flexible RAM-M A-M]
-,[Public binned-Steel]
-,[Public binned-Steel RAM]
-,[Public binned-Steel RAM R]
-,[Public binned-Steel RAM G]
-,[Public binned-Steel RAM A]
-,[Public binned-Steel RAM-M]
-,[Public binned-Steel RAM-M R-M]
-,[Public binned-Steel RAM-M G-M]
-,[Public binned-Steel RAM-M A-M]
-,[Public binned-Wood]
-,[Public binned-Wood RAM]
-,[Public binned-Wood RAM R]
-,[Public binned-Wood RAM G]
-,[Public binned-Wood RAM A]
-,[Public binned-Wood RAM-M]
-,[Public binned-Wood RAM-M R-M]
-,[Public binned-Wood RAM-M G-M]
-,[Public binned-Wood RAM-M A-M]
-,[Reusable packaging-Aluminium]
-,[Reusable packaging-Fibre Composite]
-,[Reusable packaging-Glass]
-,[Reusable packaging-Other]
-,[Reusable packaging-Paper / Card]
-,[Reusable packaging-Plastic]
-,[Reusable packaging-Steel]
-,[Reusable packaging-Wood]
-,[Transitional organisation packaging - all-Aluminium]
-,[Transitional organisation packaging - all-Fibre Composite]
-,[Transitional organisation packaging - all-Glass]
-,[Transitional organisation packaging - all-Other]
-,[Transitional organisation packaging - all-Paper / Card]
-,[Transitional organisation packaging - all-Plastic]
-,[Transitional organisation packaging - all-Steel]
-,[Transitional organisation packaging - all-Wood]
-,a.Reporting_Year
-from dbo.t_extract_recent_pom_org_data a
-left join dbo.v_reported_mandated_data_sets ds on  ds.[Org_ID] = a.[Org_ID] and ds.ReportingYear = a.Reporting_Year
-where not exists 
-(
-	select 1
-	from dbo.v_extract_recent_pom_org_small_data b
-	where a.org_id = b.org_id
-	and a.Reporting_Year=b.Reporting_Year
+CREATE VIEW [dbo].[v_extract_recent_pom_org_large_data]
+AS
+SELECT
+    a.Org_ID,
+    Org_name,
+    CH_number,
+    Nation_of_enrolment,
+    Enrolment_date_time,
+    Enrolment_status,
+    Nation_of_Compliance_Scheme_regulator,
+    Packaging_data_submission_period,
+    Packaging_data_first_submission_datetime,
+    Packaging_data_first_submitted_CS_or_Direct,
+    Packaging_data_first_submitted_CS_Nation,
+    Packaging_data_first_submission_status,
+    Packaging_data_first_submission_organisation_size,
+    Packaging_data_latest_submission_datetime,
+    Packaging_data_latest_submitted_CS_or_Direct,
+    Packaging_data_latest_submitted_CS_Nation,
+    Packaging_data_latest_submission_status,
+    Packaging_data_latest_submission_organisation_size,
+    Organisation_data_submission_period,
+    Organisation_data_first_submission_datetime,
+    Organisation_data_first_submitted_CS_or_Direct,
+    Organisation_data_first_submitted_CS_Nation,
+    Organisation_data_first_submission_status,
+    Organisation_data_first_submission_organisation_size,
+    Organisation_data_latest_submission_datetime,
+    Organisation_data_latest_submitted_CS_or_Direct,
+    Organisation_data_latest_submitted_CS_Nation,
+    Organisation_data_latest_submission_status,
+    Organisation_data_latest_submission_organisation_size,
+    Organisation_exists_in_most_recent_packaging_data_submission,
+    Organisation_exists_in_most_recent_organisation_data_submission,
+    Organisation_visible_in_PowerBI_Packaging_reports,
+    Organisation_visible_in_PowerBI_Orgdata_reports,
+    Single_File_Submission_Packaging,
+    Single_File_Submission_Orgdata,
+    ds.Reported_mandated_data_sets,
+    Organisation_soft_deleted,
+    [Self-managed consumer waste-Aluminium],
+    [Self-managed consumer waste-Fibre Composite],
+    [Self-managed consumer waste-Glass],
+    [Self-managed consumer waste-Other],
+    [Self-managed consumer waste-Paper / Card],
+    [Self-managed consumer waste-Plastic],
+    [Self-managed consumer waste-Steel],
+    [Self-managed consumer waste-Wood],
+    [Household drinks containers-Aluminium (Kg)],
+    [Household drinks containers-Aluminium (No.Units)],
+    [Household drinks containers-Fibre Composite (Kg)],
+    [Household drinks containers-Fibre Composite (No.Units)],
+    [Household drinks containers-Glass (Kg)],
+    [Household drinks containers-Glass RAM (Kg)],
+    [Household drinks containers-Glass RAM R (Kg)],
+    [Household drinks containers-Glass RAM G (Kg)],
+    [Household drinks containers-Glass RAM A (Kg)],
+    [Household drinks containers-Glass RAM-M (Kg)],
+    [Household drinks containers-Glass RAM-M R-M (Kg)],
+    [Household drinks containers-Glass RAM-M G-M (Kg)],
+    [Household drinks containers-Glass RAM-M A-M (Kg)],
+    [Household drinks containers-Glass (No.Units)],
+    [Household drinks containers-Other (Kg)],
+    [Household drinks containers-Other (No.Units)],
+    [Household drinks containers-Paper / Card (Kg)],
+    [Household drinks containers-Paper / Card (No.Units)],
+    [Household drinks containers-Plastic (Kg)],
+    [Household drinks containers-Plastic (No.Units)],
+    [Household drinks containers-Steel (Kg)],
+    [Household drinks containers-Steel (No.Units)],
+    [Household drinks containers-Wood (Kg)],
+    [Household drinks containers-Wood (No.Units)],
+    [Total Household packaging-Aluminium],
+    [Total Household packaging-Aluminium RAM],
+    [Total Household packaging-Aluminium RAM R],
+    [Total Household packaging-Aluminium RAM G],
+    [Total Household packaging-Aluminium RAM A],
+    [Total Household packaging-Aluminium RAM-M],
+    [Total Household packaging-Aluminium RAM-M R-M],
+    [Total Household packaging-Aluminium RAM-M G-M],
+    [Total Household packaging-Aluminium RAM-M A-M],
+    [Total Household packaging-Fibre Composite],
+    [Total Household packaging-Fibre Composite RAM],
+    [Total Household packaging-Fibre Composite RAM R],
+    [Total Household packaging-Fibre Composite RAM G],
+    [Total Household packaging-Fibre Composite RAM A],
+    [Total Household packaging-Fibre Composite RAM-M],
+    [Total Household packaging-Fibre Composite RAM-M R-M],
+    [Total Household packaging-Fibre Composite RAM-M G-M],
+    [Total Household packaging-Fibre Composite RAM-M A-M],
+    [Total Household packaging-Glass],
+    [Total Household packaging-Glass RAM],
+    [Total Household packaging-Glass RAM R],
+    [Total Household packaging-Glass RAM G],
+    [Total Household packaging-Glass RAM A],
+    [Total Household packaging-Glass RAM-M],
+    [Total Household packaging-Glass RAM-M R-M],
+    [Total Household packaging-Glass RAM-M G-M],
+    [Total Household packaging-Glass RAM-M A-M],
+    [Total Household packaging-Other],
+    [Total Household packaging-Other RAM],
+    [Total Household packaging-Other RAM R],
+    [Total Household packaging-Other RAM G],
+    [Total Household packaging-Other RAM A],
+    [Total Household packaging-Other RAM-M],
+    [Total Household packaging-Other RAM-M R-M],
+    [Total Household packaging-Other RAM-M G-M],
+    [Total Household packaging-Other RAM-M A-M],
+    [Total Household packaging-Paper / Card],
+    [Total Household packaging-Paper / Card RAM],
+    [Total Household packaging-Paper / Card RAM R],
+    [Total Household packaging-Paper / Card RAM G],
+    [Total Household packaging-Paper / Card RAM A],
+    [Total Household packaging-Paper / Card RAM-M],
+    [Total Household packaging-Paper / Card RAM-M R-M],
+    [Total Household packaging-Paper / Card RAM-M G-M],
+    [Total Household packaging-Paper / Card RAM-M A-M],
+    [Total Household packaging-Plastic],
+    [Total Household packaging-Plastic-Rigid],
+    [Total Household packaging-Plastic-Flexible],
+    [Total Household packaging-Plastic RAM],
+    [Total Household packaging-Plastic RAM R],
+    [Total Household packaging-Plastic RAM G],
+    [Total Household packaging-Plastic RAM A],
+    [Total Household packaging-Plastic RAM-M],
+    [Total Household packaging-Plastic RAM-M R-M],
+    [Total Household packaging-Plastic RAM-M G-M],
+    [Total Household packaging-Plastic RAM-M A-M],
+    [Total Household packaging-Plastic-Rigid RAM],
+    [Total Household packaging-Plastic-Rigid RAM R],
+    [Total Household packaging-Plastic-Rigid RAM G],
+    [Total Household packaging-Plastic-Rigid RAM A],
+    [Total Household packaging-Plastic-Rigid RAM-M],
+    [Total Household packaging-Plastic-Rigid RAM-M R-M],
+    [Total Household packaging-Plastic-Rigid RAM-M G-M],
+    [Total Household packaging-Plastic-Rigid RAM-M A-M],
+    [Total Household packaging-Plastic-Flexible RAM],
+    [Total Household packaging-Plastic-Flexible RAM R],
+    [Total Household packaging-Plastic-Flexible RAM G],
+    [Total Household packaging-Plastic-Flexible RAM A],
+    [Total Household packaging-Plastic-Flexible RAM-M],
+    [Total Household packaging-Plastic-Flexible RAM-M R-M],
+    [Total Household packaging-Plastic-Flexible RAM-M G-M],
+    [Total Household packaging-Plastic-Flexible RAM-M A-M],
+    [Total Household packaging-Steel],
+    [Total Household packaging-Steel RAM],
+    [Total Household packaging-Steel RAM R],
+    [Total Household packaging-Steel RAM G],
+    [Total Household packaging-Steel RAM A],
+    [Total Household packaging-Steel RAM-M],
+    [Total Household packaging-Steel RAM-M R-M],
+    [Total Household packaging-Steel RAM-M G-M],
+    [Total Household packaging-Steel RAM-M A-M],
+    [Total Household packaging-Wood],
+    [Total Household packaging-Wood RAM],
+    [Total Household packaging-Wood RAM R],
+    [Total Household packaging-Wood RAM G],
+    [Total Household packaging-Wood RAM A],
+    [Total Household packaging-Wood RAM-M],
+    [Total Household packaging-Wood RAM-M R-M],
+    [Total Household packaging-Wood RAM-M G-M],
+    [Total Household packaging-Wood RAM-M A-M],
+    [Non-household drinks containers-Aluminium (Kg)],
+    [Non-household drinks containers-Aluminium (No.Units)],
+    [Non-household drinks containers-Fibre Composite (Kg)],
+    [Non-household drinks containers-Fibre Composite (No.Units)],
+    [Non-household drinks containers-Glass (Kg)],
+    [Non-household drinks containers-Glass (No.Units)],
+    [Non-household drinks containers-Other (Kg)],
+    [Non-household drinks containers-Other (No.Units)],
+    [Non-household drinks containers-Paper / Card (Kg)],
+    [Non-household drinks containers-Paper / Card (No.Units)],
+    [Non-household drinks containers-Plastic (Kg)],
+    [Non-household drinks containers-Plastic (No.Units)],
+    [Non-household drinks containers-Steel (Kg)],
+    [Non-household drinks containers-Steel (No.Units)],
+    [Non-household drinks containers-Wood (Kg)],
+    [Non-household drinks containers-Wood (No.Units)],
+    [Total Non-Household packaging-Aluminium],
+    [Total Non-Household packaging-Fibre Composite],
+    [Total Non-Household packaging-Glass],
+    [Total Non-Household packaging-Other],
+    [Total Non-Household packaging-Paper / Card],
+    [Total Non-Household packaging-Plastic],
+    [Total Non-Household packaging-Steel],
+    [Total Non-Household packaging-Wood],
+    [Self-managed organisation waste-Aluminium],
+    [Self-managed organisation waste-Fibre Composite],
+    [Self-managed organisation waste-Glass],
+    [Self-managed organisation waste-Other],
+    [Self-managed organisation waste-Paper / Card],
+    [Self-managed organisation waste-Plastic],
+    [Self-managed organisation waste-Steel],
+    [Self-managed organisation waste-Wood],
+    [Public binned-Aluminium],
+    [Public binned-Aluminium RAM],
+    [Public binned-Aluminium RAM R],
+    [Public binned-Aluminium RAM G],
+    [Public binned-Aluminium RAM A],
+    [Public binned-Aluminium RAM-M],
+    [Public binned-Aluminium RAM-M R-M],
+    [Public binned-Aluminium RAM-M G-M],
+    [Public binned-Aluminium RAM-M A-M],
+    [Public binned-Fibre Composite],
+    [Public binned-Fibre Composite RAM],
+    [Public binned-Fibre Composite RAM R],
+    [Public binned-Fibre Composite RAM G],
+    [Public binned-Fibre Composite RAM A],
+    [Public binned-Fibre Composite RAM-M],
+    [Public binned-Fibre Composite RAM-M R-M],
+    [Public binned-Fibre Composite RAM-M G-M],
+    [Public binned-Fibre Composite RAM-M A-M],
+    [Public binned-Glass],
+    [Public binned-Glass RAM],
+    [Public binned-Glass RAM R],
+    [Public binned-Glass RAM G],
+    [Public binned-Glass RAM A],
+    [Public binned-Glass RAM-M],
+    [Public binned-Glass RAM-M R-M],
+    [Public binned-Glass RAM-M G-M],
+    [Public binned-Glass RAM-M A-M],
+    [Public binned-Other],
+    [Public binned-Other RAM],
+    [Public binned-Other RAM R],
+    [Public binned-Other RAM G],
+    [Public binned-Other RAM A],
+    [Public binned-Other RAM-M],
+    [Public binned-Other RAM-M R-M],
+    [Public binned-Other RAM-M G-M],
+    [Public binned-Other RAM-M A-M],
+    [Public binned-Paper / Card],
+    [Public binned-Paper / Card RAM],
+    [Public binned-Paper / Card RAM R],
+    [Public binned-Paper / Card RAM G],
+    [Public binned-Paper / Card RAM A],
+    [Public binned-Paper / Card RAM-M],
+    [Public binned-Paper / Card RAM-M R-M],
+    [Public binned-Paper / Card RAM-M G-M],
+    [Public binned-Paper / Card RAM-M A-M],
+    [Public binned-Plastic],
+    [Public binned-Plastic-Rigid],
+    [Public binned-Plastic-Flexible],
+    [Public binned-Plastic RAM],
+    [Public binned-Plastic RAM R],
+    [Public binned-Plastic RAM G],
+    [Public binned-Plastic RAM A],
+    [Public binned-Plastic RAM-M],
+    [Public binned-Plastic RAM-M R-M],
+    [Public binned-Plastic RAM-M G-M],
+    [Public binned-Plastic RAM-M A-M],
+    [Public binned-Plastic-Rigid RAM],
+    [Public binned-Plastic-Rigid RAM R],
+    [Public binned-Plastic-Rigid RAM G],
+    [Public binned-Plastic-Rigid RAM A],
+    [Public binned-Plastic-Rigid RAM-M],
+    [Public binned-Plastic-Rigid RAM-M R-M],
+    [Public binned-Plastic-Rigid RAM-M G-M],
+    [Public binned-Plastic-Rigid RAM-M A-M],
+    [Public binned-Plastic-Flexible RAM],
+    [Public binned-Plastic-Flexible RAM R],
+    [Public binned-Plastic-Flexible RAM G],
+    [Public binned-Plastic-Flexible RAM A],
+    [Public binned-Plastic-Flexible RAM-M],
+    [Public binned-Plastic-Flexible RAM-M R-M],
+    [Public binned-Plastic-Flexible RAM-M G-M],
+    [Public binned-Plastic-Flexible RAM-M A-M],
+    [Public binned-Steel],
+    [Public binned-Steel RAM],
+    [Public binned-Steel RAM R],
+    [Public binned-Steel RAM G],
+    [Public binned-Steel RAM A],
+    [Public binned-Steel RAM-M],
+    [Public binned-Steel RAM-M R-M],
+    [Public binned-Steel RAM-M G-M],
+    [Public binned-Steel RAM-M A-M],
+    [Public binned-Wood],
+    [Public binned-Wood RAM],
+    [Public binned-Wood RAM R],
+    [Public binned-Wood RAM G],
+    [Public binned-Wood RAM A],
+    [Public binned-Wood RAM-M],
+    [Public binned-Wood RAM-M R-M],
+    [Public binned-Wood RAM-M G-M],
+    [Public binned-Wood RAM-M A-M],
+    [Reusable packaging-Aluminium],
+    [Reusable packaging-Fibre Composite],
+    [Reusable packaging-Glass],
+    [Reusable packaging-Other],
+    [Reusable packaging-Paper / Card],
+    [Reusable packaging-Plastic],
+    [Reusable packaging-Steel],
+    [Reusable packaging-Wood],
+    [Transitional organisation packaging - all-Aluminium],
+    [Transitional organisation packaging - all-Fibre Composite],
+    [Transitional organisation packaging - all-Glass],
+    [Transitional organisation packaging - all-Other],
+    [Transitional organisation packaging - all-Paper / Card],
+    [Transitional organisation packaging - all-Plastic],
+    [Transitional organisation packaging - all-Steel],
+    [Transitional organisation packaging - all-Wood],
+    a.Reporting_Year
+FROM dbo.t_extract_recent_pom_org_data a
+LEFT JOIN dbo.v_reported_mandated_data_sets ds ON ds.Org_ID = a.Org_ID
+    AND ds.ReportingYear = a.Reporting_Year
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM dbo.v_extract_recent_pom_org_small_data b
+    WHERE a.org_id = b.org_id
+      AND a.Reporting_Year = b.Reporting_Year
 );
