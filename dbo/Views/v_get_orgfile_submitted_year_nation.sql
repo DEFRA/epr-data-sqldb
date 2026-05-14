@@ -1,10 +1,4 @@
-﻿CREATE VIEW [dbo].[v_get_orgfile_submitted_year_nation]
-AS
-SELECT DISTINCT
-    Relevant_Year,
-    Organisation_Nation_Name,
-    CS_Nation_name,
-    Link_Column
+﻿CREATE VIEW [dbo].[v_get_orgfile_submitted_year_nation] AS SELECT DISTINCT Relevant_Year, Organisation_Nation_Name, CS_Nation_name, Link_Column
 FROM
 (
     SELECT
