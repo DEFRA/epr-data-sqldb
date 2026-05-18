@@ -1,19 +1,27 @@
-﻿CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS WITH 
-/****************************************************************************************************************************
-	History:
- 
-	Updated: 2025-07-15:	DK001:	Ticket - 576287:	Subsidiary Retrofit column removal 
-	
-******************************************************************************************************************************/
+/****** Object:  View [dbo].[v_latest_pending_or_accepted_orgfile_by_year]    Script Date: 15/05/2026 10:26:45 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[v_latest_pending_or_accepted_orgfile_by_year] AS 
+WITH 
 base_data
 AS (
 	SELECT m.OrganisationId AS meta_OrganisationId,
 		m.SubmissionPeriod,
-		case when m.SubmissionPeriod = 'January to December 2025'
-				then 2024
-			else
-				'20' + Reverse(Substring(Reverse(TRIM(m.SubmissionPeriod)), 1, 2)) 
-			end AS ReportingYear,
+
+		-- Replaced year reliance
+		--case when m.SubmissionPeriod = 'January to December 2025'
+		--		then 2024
+		--	else
+		--		'20' + Reverse(Substring(Reverse(TRIM(m.SubmissionPeriod)), 1, 2)) 
+		--	end AS ReportingYear,
+		
+	
+		TRY_CAST(RIGHT(TRIM(m.SubmissionPeriod), 4) AS INT) - 1 AS ReportingYear,
+
 		CONVERT(DATETIME, substring(m.Created, 1, 23)) AS Submission_time,
 		m.FileType,
 		m.filename AS meta_filename,
@@ -120,3 +128,6 @@ AS (
 	)
 SELECT *
 FROM res;
+GO
+
+
