@@ -1,8 +1,6 @@
 ﻿CREATE PROC [dbo].[GenerateTableFromView] AS
 BEGIN
 /**********************************************************************************
-Table 15 (t_registration_with_brandandpartner) - Disabled Replaced by : 22 and 23
-
 Updated 2025-10-29: ST001: 623983: Added Table 25 t_PRN_Recycling_Obligation_stat_Count to improve performance of ComplianceReport
 									Note t_registration_enrolled_not_registered no Longer Table 25 and now Table 26
  **********************************************************************************/
