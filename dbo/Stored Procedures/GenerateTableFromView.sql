@@ -653,38 +653,6 @@ begin
 	end
 end
 
-/****** New Tables to replace 17 - t_enrolled_not_registered partner ****/
---Table 24
-
-if (@recovery_checkpoint < 24)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_organisation_details_not_submitted', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_organisation_details_not_submitted;
-		END;	
-
-		SELECT *
-		INTO dbo.t_organisation_details_not_submitted
-		FROM dbo.v_organisation_details_not_submitted;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', NULL, @start_dt, getdate(), 'Tab 24 - Completed',@batch_id
-
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 24, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 24, getdate()
-	end
-end
-
-
-
 --Table 25 t_PRN_Recycling_Obligation_stat_Count
 if (@recovery_checkpoint < 25)
 begin
@@ -810,7 +778,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	
+
 	select @cnt =count(1) from dbo.t_CompanyBrandPartnerFileUploadSet;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -841,10 +809,6 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Org_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	select @cnt =count(1) from dbo.t_organisation_details_not_submitted;
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', @cnt, NULL, getdate(), 'Completed',@batch_id
-	
 /**** New Table counts for 25 *****/
 	
 	select @cnt =count(1) from dbo.t_PRN_Recycling_Obligation_stat_Count;
