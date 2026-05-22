@@ -24,102 +24,42 @@ Periods as (
 
 -- PART 1
 -- Get the org obligation:
-RegistrationFiles as (
-  select
-      cfm.filename
-    , cd.organisation_id
-    , right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4) as submission_period_year
-    , cast(coalesce(cfm.ComplianceSchemeId, o.ExternalId) as uniqueidentifier) as submitter_id -- cast added for consistent case
-    , case
-        when nullif(trim(cfm.ComplianceSchemeId), '') is null
-        then 'DirectRegistrant'
-        else 'ComplianceScheme'
-      end as submitter_type
-    , coalesce(cs.Name, '') as compliance_scheme_name
-    -- , row_number() over(
-    --     partition by
-    --       cd.organisation_id,
-    --       right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4)
-    --     order by cfm.created desc
-    --   ) as rn
-    , try_cast(sofs.Decision_Date as date) as accepted_date
-    , cfm.Created
-    , sofs.Regulator_Status as regulator_status
-    from rpd.CompanyDetails as cd
-    inner join rpd.Organisations as o
-      on  o.ReferenceNumber = cd.organisation_id
-      and o.IsDeleted       = 0
-    inner join rpd.cosmos_file_metadata as cfm
-      on  cfm.FileName      = cd.FileName
-      and cfm.FileType      = 'CompanyDetails'
-    inner join dbo.v_submitted_pom_org_file_status sofs
-      on  sofs.cfm_fileid   = cfm.fileid
-      and sofs.filetype     = 'CompanyDetails'
-      and sofs.Regulator_Status in ('Granted','Accepted', 'Cancelled')
-  left join rpd.ComplianceSchemes cs
-    on cs.ExternalId        = cfm.ComplianceSchemeId
-),
-LatestRegistrationFiles as (
-  select * from (
-    select distinct
-        rf.filename
-      , rf.organisation_id
-      , rf.submission_period_year
-      , rf.submitter_id
-      , rf.submitter_type
-      , rf.compliance_scheme_name
-      , rf.accepted_date
-      ,row_number() over(
-          partition by
-            rf.organisation_id,
-            rf.submission_period_year
-          order by rf.created desc
-        ) as rn
-      from RegistrationFiles as rf
-  ) a
-  where rn = 1
-),
 LatestAcceptedRegistrationFiles as (
   select * from (
-    select
-        rf.filename
-      , rf.organisation_id
-      , rf.submission_period_year
-      , rf.submitter_id
-      , rf.submitter_type
-      , rf.compliance_scheme_name
-      , rf.accepted_date
-      ,row_number() over(
+    select distinct
+        cfm.filename
+      , cd.organisation_id
+      , sofs.Regulator_Status
+      , right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4) as submission_period_year
+      , cast(coalesce(cfm.ComplianceSchemeId, o.ExternalId) as uniqueidentifier) as submitter_id -- cast added for consistent case
+      , case
+          when nullif(trim(cfm.ComplianceSchemeId), '') is null
+          then 'DirectRegistrant'
+          else 'ComplianceScheme'
+        end as submitter_type
+      , coalesce(cs.Name, '') as compliance_scheme_name
+      , row_number() over(
           partition by
-            rf.organisation_id,
-            rf.submission_period_year
-          order by rf.created desc
+            cd.organisation_id,
+            right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4)
+          order by cfm.created desc
         ) as rn
-      from RegistrationFiles as rf
-      where rf.regulator_status in ('Granted','Accepted')
+      , try_cast(sofs.Decision_Date as date) as accepted_date
+      from rpd.CompanyDetails as cd
+      inner join rpd.Organisations as o
+        on  o.ReferenceNumber = cd.organisation_id
+        and o.IsDeleted       = 0
+      inner join rpd.cosmos_file_metadata as cfm
+        on  cfm.FileName      = cd.FileName
+        and cfm.FileType      = 'CompanyDetails'
+      inner join dbo.v_submitted_pom_org_file_status sofs
+        on  sofs.cfm_fileid   = cfm.fileid
+        and sofs.filetype     = 'CompanyDetails'
+        and sofs.Regulator_Status in ('Granted','Accepted', 'Cancelled')
+    left join rpd.ComplianceSchemes cs
+      on cs.ExternalId        = cfm.ComplianceSchemeId
   ) a
-  where rn = 1
-),
-LatestCancelledRegistrationFiles as (
-  select * from (
-    select
-        rf.filename
-      , rf.organisation_id
-      , rf.submission_period_year
-      , rf.submitter_id
-      , rf.submitter_type
-      , rf.compliance_scheme_name
-      , rf.accepted_date
-      ,row_number() over(
-          partition by
-            rf.organisation_id,
-            rf.submission_period_year
-          order by rf.created desc
-        ) as rn
-      from RegistrationFiles as rf
-      where rf.regulator_status = 'Cancelled'
-  ) a
-  where rn = 1
+  where rn = 1 and Regulator_Status <> 'Cancelled'
 ),
 LatestAcceptedRegistrations as (
   select
@@ -142,28 +82,7 @@ LatestAcceptedRegistrations as (
     and cd.filename          = larf.filename
     and cd.organisation_size = 'L'
 ),
-LatestCancelledRegistrations as (
-  select
-    larf.filename
-  , cd.organisation_id
-  , cd.organisation_name
-  , cd.trading_name
-  , cd.leaver_code
-  , cd.leaver_date
-  , cd.joiner_date
-  , coalesce(nullif(trim(cd.subsidiary_id), ''), '') as subsidiary_id
-  , larf.submission_period_year
-  , larf.submitter_id
-  , larf.submitter_type
-  , larf.compliance_scheme_name
-  , larf.accepted_date
-  from LatestCancelledRegistrationFiles larf
-  inner join rpd.CompanyDetails cd
-    on  cd.organisation_id   = larf.organisation_id
-    and cd.filename          = larf.filename
-    and cd.organisation_size = 'L'
-),
-AcceptedRegistrationsWithObligations as (
+RegistrationsWithObligations as (
   select
     reg.organisation_id
   , reg.subsidiary_id
@@ -186,29 +105,7 @@ AcceptedRegistrationsWithObligations as (
     and reg.submitter_id           = cast(obl.submitter_id as uniqueidentifier)
     and reg.submission_period_year = obl.submission_period_year
 ),
-CancelledRegistrationsWithObligations as (
-  select
-    reg.organisation_id
-  , reg.subsidiary_id
-  , reg.organisation_name
-  , reg.trading_name
-  , reg.leaver_code
-  , reg.leaver_date
-  , reg.joiner_date
-  , reg.submitter_id
-  , reg.submission_period_year
-  , obl.obligation_status
-  , obl.error_code
-  , reg.compliance_scheme_name
-  , reg.submitter_type
-  , reg.accepted_date
-  from dbo.t_producer_obligation_determination obl
-  inner join LatestCancelledRegistrations as reg
-    on  reg.organisation_id        = obl.organisation_id
-    and reg.subsidiary_id          = coalesce(nullif(trim(obl.subsidiary_id), ''), '')
-    and reg.submitter_id           = cast(obl.submitter_id as uniqueidentifier)
-    and reg.submission_period_year = obl.submission_period_year
-),
+
 -- PART 2
 -- Get the latest accepted poms
 LatestAcceptedPomFiles as (
@@ -293,91 +190,14 @@ MissingRegistrations as (
   from LatestAcceptedPoms as pom
   inner join rpd.Organisations as producer
     on producer.ReferenceNumber = pom.producer_id
-  where 
-  (
-    (
-      not exists 
-      (
-        select 1
-        from AcceptedRegistrationsWithObligations as reg
-        where pom.organisation_id        = reg.organisation_id
-          and pom.subsidiary_id          = reg.subsidiary_id
-          and pom.submitter_id           = reg.submitter_id
-          and pom.submission_period_year = reg.submission_period_year - 1
-      )
-      and not exists (
-          select 1
-          from CancelledRegistrationsWithObligations as reg
-          where pom.organisation_id        = reg.organisation_id
-            and pom.subsidiary_id          = reg.subsidiary_id
-            and pom.submitter_id           = reg.submitter_id
-            and pom.submission_period_year = reg.submission_period_year - 1           
-      )
-    )
-    or (
-      exists (
-        select 1
-        from CancelledRegistrationsWithObligations as reg
-        where pom.organisation_id        = reg.organisation_id
-          and pom.subsidiary_id          = reg.subsidiary_id
-          and pom.submitter_id           = reg.submitter_id
-          and pom.submission_period_year = reg.submission_period_year - 1
-      )
-      and not exists (
-          select 1
-          from AcceptedRegistrationsWithObligations as reg
-          where pom.organisation_id        = reg.organisation_id
-            and pom.subsidiary_id          = reg.subsidiary_id
-            -- and pom.submitter_id           = reg.submitter_id
-            and pom.submission_period_year = reg.submission_period_year - 1           
-      )
-    )
-  ) 
-  group by
-    pom.submission_period_year
-  , pom.organisation_id
-  , pom.subsidiary_id
-  , pom.submitter_id
-  , producer.Name
-  , pom.compliance_scheme_name
-  , pom.submitter_type
-),
-NotObligated as (
-  select distinct
-    pom.submission_period_year + 1     as relevant_year
-  , pom.organisation_id
-  , pom.subsidiary_id
-  , pom.submitter_id
-  , producer.Name                        as organisation_name
-  , pom.compliance_scheme_name
-  , pom.submitter_type                   as submitter_type
-  , ''                                   as leaver_code
-  , 'Not Obligated'               as error_code
-  , max(pom.accepted_date)               as PomAcceptedDate -- max, since we have multiple pom periods
-  , cast(null as date)                   as RegAcceptedDate
-  from LatestAcceptedPoms as pom
-  inner join rpd.Organisations as producer
-    on producer.ReferenceNumber = pom.producer_id
-  where 
-  (
-    exists 
-    (
-      select 1
-      from CancelledRegistrationsWithObligations as reg
+  where not exists (
+    select 1
+      from RegistrationsWithObligations as reg
       where pom.organisation_id        = reg.organisation_id
         and pom.subsidiary_id          = reg.subsidiary_id
         and pom.submitter_id           = reg.submitter_id
         and pom.submission_period_year = reg.submission_period_year - 1
-    )
-    and exists (
-        select 1
-        from AcceptedRegistrationsWithObligations as reg
-        where pom.organisation_id        = reg.organisation_id
-          and pom.subsidiary_id          = reg.subsidiary_id
-          -- and pom.submitter_id           != reg.submitter_id
-          and pom.submission_period_year = reg.submission_period_year - 1           
-    )
-  ) 
+  )
   group by
     pom.submission_period_year
   , pom.organisation_id
@@ -387,6 +207,7 @@ NotObligated as (
   , pom.compliance_scheme_name
   , pom.submitter_type
 ),
+
 MissingPoms as (
   select distinct
     reg.submission_period_year             as relevant_year
@@ -400,7 +221,7 @@ MissingPoms as (
   , concat('Missing POM ', period.period)  as error_code
   , cast(null              as date)        as PomAcceptedDate
   , reg.accepted_date                      as RegAcceptedDate
-  from AcceptedRegistrationsWithObligations as reg
+  from RegistrationsWithObligations as reg
   inner join Periods period
     on period.year = reg.submission_period_year - 1
   where reg.obligation_status = 'O'
@@ -428,7 +249,7 @@ MissingPoms2024P1P2P3 as (
   , 'Missing POM P1/P2/P3'                 as error_code
   , cast(null as date)                     as PomAcceptedDate
   , reg.accepted_date                      as RegAcceptedDate
-  from AcceptedRegistrationsWithObligations as reg
+  from RegistrationsWithObligations as reg
   where reg.obligation_status = 'O'
     and reg.submission_period_year = '2025'
     and not exists (
@@ -455,22 +276,16 @@ RegistrationErrors as (
   , reg.error_code
   , max(pom.accepted_date)             as PomAcceptedDate -- max, since we have multiple pom periods
   , reg.accepted_date                  as RegAcceptedDate
-  from AcceptedRegistrationsWithObligations as reg
+  from RegistrationsWithObligations as reg
   left join LatestAcceptedPoms as pom
     on  pom.organisation_id        = reg.organisation_id
     and pom.subsidiary_id          = reg.subsidiary_id
     and pom.submitter_id           = reg.submitter_id
     and pom.submission_period_year = reg.submission_period_year - 1
-  where (
-      reg.obligation_status = 'E'
-      -- also show any warning when there is pom data, or there is an obligation (otherwise it will just say Missing POM)
-      or (reg.error_code is not null and reg.obligation_status = 'O')
-      or (reg.error_code is not null and pom.organisation_id is not null)
-    ) and not exists (
-      select 1 from NotObligated no where no.organisation_id = reg.organisation_id
-      and no.subsidiary_id = reg.subsidiary_id
-      and no.relevant_year = reg.submission_period_year
-    )
+  where reg.obligation_status = 'E'
+     -- also show any warning when there is pom data, or there is an obligation (otherwise it will just say Missing POM)
+     or (reg.error_code is not null and reg.obligation_status = 'O')
+     or (reg.error_code is not null and pom.organisation_id is not null)
   group by
     reg.submission_period_year
   , reg.organisation_id
@@ -497,7 +312,7 @@ ObligationMismatch as (
   , 'Reporting obligations mismatch'   as error_code
   , max(pom.accepted_date)             as PomAcceptedDate -- max, since we have multiple pom periods
   , reg.accepted_date                  as RegAcceptedDate
-  from AcceptedRegistrationsWithObligations as reg
+  from RegistrationsWithObligations as reg
   inner join LatestAcceptedPoms as pom
     on  pom.organisation_id        = reg.organisation_id
     and pom.subsidiary_id          = reg.subsidiary_id
@@ -519,8 +334,6 @@ ObligationMismatch as (
 
 select * from MissingRegistrations
 union
-select * from NotObligated
-union
 select * from MissingPoms
 union
 select * from MissingPoms2024P1P2P3
@@ -528,4 +341,3 @@ union
 select * from RegistrationErrors
 union
 select * from ObligationMismatch;
-GO
