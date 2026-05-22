@@ -2,7 +2,6 @@
 BEGIN
 /**********************************************************************************
 Table 15 (t_registration_with_brandandpartner) - Disabled Replaced by : 22 and 23
-Table 17 (t_enrolled_not_registered) - Disabled Replaced by : 24 and 25
 
 Updated 2025-10-29: ST001: 623983: Added Table 25 t_PRN_Recycling_Obligation_stat_Count to improve performance of ComplianceReport
 									Note t_registration_enrolled_not_registered no Longer Table 25 and now Table 26
@@ -796,7 +795,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-/**** New table counts for 22,23,24, and 27 ******/
+/**** New table counts for 22,23 and 27 ******/
 	select @cnt =count(1) from dbo.t_registration_enrolled_not_registered;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
