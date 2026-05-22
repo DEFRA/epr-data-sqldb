@@ -452,40 +452,6 @@ begin
 	end
 end
 
-/**** Disabled replaced by Tables 22 and 23
---Table 15
-if (@recovery_checkpoint < 15)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_registration_with_brandandpartner', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_registration_with_brandandpartner;
-		END;	
-
-		SELECT *
-		INTO dbo.t_registration_with_brandandpartner
-		FROM dbo.v_registration_with_brandandpartner;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', NULL, @start_dt, getdate(), 'Tab 15 - Completed',@batch_id
-
-
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 15, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 15, getdate()
-	end
-end
-*/
-
-
-
-
 --Table 16
 if (@recovery_checkpoint < 16)
 begin
@@ -514,39 +480,6 @@ begin
 		select 'GenerateTableFromView', 16, getdate()
 	end
 end
-
-/**** Disabled replaced by Tables 24 and 25
---Table 17
-if (@recovery_checkpoint < 17)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_enrolled_not_registered', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_enrolled_not_registered;
-		END;	
-
-		SELECT *
-		INTO dbo.t_enrolled_not_registered
-		FROM dbo.enrolled_not_registered;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 17 - Completed',@batch_id
-
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 17, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 17, getdate()
-	end
-end
-*/
-
-
-
 
 --Table 18
 if (@recovery_checkpoint < 18)
@@ -869,10 +802,6 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	--select @cnt =count(1) from dbo.t_registration_with_brandandpartner;
-	--INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	--select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_with_brandandpartner', @cnt, NULL, getdate(), 'Completed',@batch_id
-
 	select @cnt =count(1) from dbo.t_POM_All_Submissions;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_All_Submissions', @cnt, NULL, getdate(), 'Completed',@batch_id
@@ -881,10 +810,7 @@ end
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', @cnt, NULL, getdate(), 'Completed',@batch_id
 
-	--select @cnt =count(1) from dbo.t_enrolled_not_registered;
-	--INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	--select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_enrolled_not_registered', @cnt, NULL, getdate(), 'Completed',@batch_id
-
+	
 	select @cnt =count(1) from dbo.t_CompanyBrandPartnerFileUploadSet;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', @cnt, NULL, getdate(), 'Completed',@batch_id
