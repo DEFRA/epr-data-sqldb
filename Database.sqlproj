@@ -296,6 +296,7 @@
     <Build Include="dbo\Tables\t_BrndPrtnr_Registrations.sql" />
     <Build Include="dbo\Tables\t_BrndPrtnr_Org_Submissions.sql" />
     <Build Include="dbo\Views\v_registration_enrolled_not_registered.sql" />
+    <Build Include="dbo\Views\v_organisation_details_not_submitted.sql" />
     <Build Include="dbo\Views\v_BrndPrtnr_Registrations.sql" />
     <Build Include="dbo\Views\v_BrndPrtnr_Org_Submissions.sql" />
     <Build Include="rpd\Tables\PRNMaterialMapping.sql" />

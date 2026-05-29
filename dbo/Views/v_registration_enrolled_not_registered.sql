@@ -42,7 +42,8 @@ count(applicationreferenceno) over (partition by organisation_id, submissionperi
 --We do not want to include these in this report
 -- until they submit a file we do not know if it might be org or registration file
 -- This submission will determine if reg or org report
-OLD_Enrol_No_File as (select
+-- These records should end up in the v_organisation_details_not_submitted instead
+OLD_Enrol_No_File as (select 
 DISTINCT FromOrganisation_ReferenceNumber as organisation_id
 from EnrolmentData ed
 where year(ed.[Enrolment_CreatedOn]) = 2024  
