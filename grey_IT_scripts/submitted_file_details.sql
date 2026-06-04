@@ -1,6 +1,6 @@
 /*
-    This script is used by Matthew Cooper <Matthew.Cooper2@environment-agency.gov.uk>
     CCoE extract the data as per the EPR Standard Change Runbook -> https://eaflood.atlassian.net/wiki/spaces/EDIA/pages/6283198465/EPR+Standard+Change+Runbook+-+Data+Files+Move+V5
+    Main consumer -> Matthew Cooper <Matthew.Cooper2@environment-agency.gov.uk>
 */
 WITH setid_fileid AS
 (
