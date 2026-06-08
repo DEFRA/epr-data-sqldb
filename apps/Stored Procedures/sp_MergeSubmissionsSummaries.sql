@@ -19,82 +19,6 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 --New changes for the table = t_FetchOrganisationRegistrationSubmissionDetails_resub  from view = V_FetchOrganisationRegistrationSubmissionDetails_resub
 
 		set @start_dt = getdate()
-		IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[t_FetchOrganisationRegistrationSubmissionDetails_resub]') AND type in (N'U'))
-		BEGIN
-			CREATE TABLE [dbo].[t_FetchOrganisationRegistrationSubmissionDetails_resub]
-			(
-			[SubmissionId] [nvarchar](4000) NULL,
-			[OrganisationId] [nvarchar](4000) NULL,
-			[OrganisationName] [nvarchar](4000) NULL,
-			[OrganisationReference] [nvarchar](20) NULL,
-			[ApplicationReferenceNumber] [nvarchar](4000) NULL,
-			[RegistrationReferenceNumber] [nvarchar](4000) NULL,
-			[SubmissionStatus] [nvarchar](4000) NULL,
-			[StatusPendingDate] [nvarchar](4000) NULL,
-			[SubmittedDateTime] [nvarchar](4000) NULL,
-			[IsLateSubmission] [bit] NULL,
-			[IsResubmission] [bit] NULL,
-			[ResubmissionStatus] [nvarchar](4000) NULL,
-			[RegistrationDate] [nvarchar](4000) NULL,
-			[ResubmissionDate] [nvarchar](4000) NULL,
-			[ResubmissionFileId] [nvarchar](4000) NULL,
-			[SubmissionPeriod] [nvarchar](4000) NULL,
-			[RelevantYear] [int] NULL,
-			[IsComplianceScheme] [bit] NULL,
-			[OrganisationSize] [varchar](5) NULL,
-			[OrganisationType] [varchar](10) NULL,
-			[NationId] [int] NULL,
-			[NationCode] [varchar](6) NULL,
-			[RegulatorComment] [nvarchar](4000) NULL,
-			[ProducerComment] [nvarchar](4000) NULL,
-			[RegulatorDecisionDate] [nvarchar](4000) NULL,
-			[RegulatorResubmissionDecisionDate] [nvarchar](4000) NULL,
-			[RegulatorUserId] [nvarchar](4000) NULL,
-			[CompaniesHouseNumber] [nvarchar](4000) NULL,
-			[BuildingName] [nvarchar](4000) NULL,
-			[SubBuildingName] [nvarchar](4000) NULL,
-			[BuildingNumber] [nvarchar](4000) NULL,
-			[Street] [nvarchar](4000) NULL,
-			[Locality] [nvarchar](4000) NULL,
-			[DependentLocality] [nvarchar](4000) NULL,
-			[Town] [nvarchar](4000) NULL,
-			[County] [nvarchar](4000) NULL,
-			[Country] [nvarchar](4000) NULL,
-			[Postcode] [nvarchar](4000) NULL,
-			[SubmittedUserId] [nvarchar](4000) NULL,
-			[FirstName] [nvarchar](4000) NULL,
-			[LastName] [nvarchar](4000) NULL,
-			[Email] [nvarchar](4000) NULL,
-			[Telephone] [nvarchar](4000) NULL,
-			[ServiceRole] [nvarchar](100) NULL,
-			[ServiceRoleId] [int] NULL,
-			[IsOnlineMarketplace] [bit] NULL,
-			[NumberOfSubsidiaries] [int] NOT NULL,
-			[NumberOfOnlineSubsidiaries] [int] NOT NULL,
-			[CompanyDetailsFileId] [nvarchar](4000) NULL,
-			[CompanyDetailsFileName] [nvarchar](4000) NULL,
-			[CompanyDetailsBlobName] [nvarchar](4000) NULL,
-			[PartnershipFileId] [nvarchar](4000) NULL,
-			[PartnershipFileName] [nvarchar](4000) NULL,
-			[PartnershipBlobName] [nvarchar](4000) NULL,
-			[BrandsFileId] [nvarchar](4000) NULL,
-			[BrandsFileName] [nvarchar](4000) NULL,
-			[BrandsBlobName] [nvarchar](4000) NULL,
-			[ComplianceSchemeId] [nvarchar](4000) NULL,
-			[CSId] [nvarchar](4000) NULL,
-			[CSOJson] [nvarchar](max) NULL
-			)
-			WITH
-			(
-			DISTRIBUTION = HASH ( [SubmissionId] ),
-			HEAP
-			);
-			insert into dbo.t_FetchOrganisationRegistrationSubmissionDetails_resub 
-			select * from dbo.V_FetchOrganisationRegistrationSubmissionDetails_resub;
-			INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-			select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_MergeSubmissionsSummaries','create t_FetchOrganisationRegistrationSubmissionDetails_resub', NULL, @start_dt, getdate(), 'Completed',@batch_id
-		END;	
-		ELSE
 		BEGIN
 
 			set @start_dt = getdate()
@@ -124,67 +48,68 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 
 			 WHEN MATCHED THEN
 			UPDATE SET
-			 Target.[SubmissionId]						= Source.[SubmissionId]
-			,Target.[OrganisationId]					= Source.[OrganisationId]
-			,Target.[OrganisationName]					= Source.[OrganisationName]	
-			,Target.[OrganisationReference]				= Source.[OrganisationReference]	
-			,Target.[ApplicationReferenceNumber]		= Source.[ApplicationReferenceNumber]
-			,Target.[RegistrationReferenceNumber]		= Source.[RegistrationReferenceNumber]
-			,Target.[SubmissionStatus]					= Source.[SubmissionStatus]	
-			,Target.[StatusPendingDate]					= Source.[StatusPendingDate]
-			,Target.[SubmittedDateTime]					= Source.[SubmittedDateTime]	
-			,Target.[IsLateSubmission]					= Source.[IsLateSubmission]	
-			,Target.[IsResubmission]					= Source.[IsResubmission]
-			,Target.[ResubmissionStatus]				= Source.[ResubmissionStatus]
-			,Target.[RegistrationDate]					= Source.[RegistrationDate]
-			,Target.[ResubmissionDate]					= Source.[ResubmissionDate]
-			,Target.[ResubmissionFileId]				= Source.[ResubmissionFileId]
-			,Target.[SubmissionPeriod]					= Source.[SubmissionPeriod]
-			,Target.[RelevantYear]						= Source.[RelevantYear]
-			,Target.[IsComplianceScheme]				= Source.[IsComplianceScheme]
-			,Target.[OrganisationSize]					= Source.[OrganisationSize]
-			,Target.[OrganisationType]					= Source.[OrganisationType]
-			,Target.[NationId]							= Source.[NationId]
-			,Target.[NationCode]						= Source.[NationCode]
-			,Target.[RegulatorComment]					= Source.[RegulatorComment]
-			,Target.[ProducerComment]					= Source.[ProducerComment]
-			,Target.[RegulatorDecisionDate]				= Source.[RegulatorDecisionDate]
-			,Target.[RegulatorResubmissionDecisionDate]	= Source.[RegulatorResubmissionDecisionDate]
-			,Target.[RegulatorUserId]					= Source.[RegulatorUserId]
-			,Target.[CompaniesHouseNumber]				= Source.[CompaniesHouseNumber]
-			,Target.[BuildingName]						= Source.[BuildingName]
-			,Target.[SubBuildingName]					= Source.[SubBuildingName]
-			,Target.[BuildingNumber]					= Source.[BuildingNumber]
-			,Target.[Street]							= Source.[Street]
-			,Target.[Locality]							= Source.[Locality]
-			,Target.[DependentLocality]					= Source.[DependentLocality]
-			,Target.[Town]								= Source.[Town]
-			,Target.[County]							= Source.[County]
-			,Target.[Country]							= Source.[Country]
-			,Target.[Postcode]							= Source.[Postcode]
-			,Target.[SubmittedUserId]					= Source.[SubmittedUserId]
-			,Target.[FirstName]							= Source.[FirstName]
-			,Target.[LastName]							= Source.[LastName]
-			,Target.[Email]								= Source.[Email]
-			,Target.[Telephone]							= Source.[Telephone]
-			,Target.[ServiceRole]						= Source.[ServiceRole]
-			,Target.[ServiceRoleId]						= Source.[ServiceRoleId]
-			,Target.[IsOnlineMarketplace]				= Source.[IsOnlineMarketplace]
-			,Target.[NumberOfSubsidiaries]				= Source.[NumberOfSubsidiaries]
-			,Target.[NumberOfOnlineSubsidiaries]		= Source.[NumberOfOnlineSubsidiaries]
-			,Target.[CompanyDetailsFileId]				= Source.[CompanyDetailsFileId]
-			,Target.[CompanyDetailsFileName]			= Source.[CompanyDetailsFileName]
-			,Target.[CompanyDetailsBlobName]			= Source.[CompanyDetailsBlobName]
-			,Target.[PartnershipFileId]					= Source.[PartnershipFileId]
-			,Target.[PartnershipFileName]				= Source.[PartnershipFileName]
-			,Target.[PartnershipBlobName]				= Source.[PartnershipBlobName]
-			,Target.[BrandsFileId]						= Source.[BrandsFileId]
-			,Target.[BrandsFileName]					= Source.[BrandsFileName]
-			,Target.[BrandsBlobName]					= Source.[BrandsBlobName]
-			,Target.[ComplianceSchemeId]				= Source.[ComplianceSchemeId]
-			,Target.[CSId]								= Source.[CSId]
-			,Target.[CSOJson]							= Source.[CSOJson]
-
+			 Target.[SubmissionId]						            = Source.[SubmissionId]
+			,Target.[OrganisationId]					            = Source.[OrganisationId]
+			,Target.[OrganisationName]					            = Source.[OrganisationName]
+			,Target.[OrganisationReference]				            = Source.[OrganisationReference]
+			,Target.[ApplicationReferenceNumber]		            = Source.[ApplicationReferenceNumber]
+			,Target.[RegistrationReferenceNumber]		            = Source.[RegistrationReferenceNumber]
+			,Target.[SubmissionStatus]					            = Source.[SubmissionStatus]
+			,Target.[StatusPendingDate]					            = Source.[StatusPendingDate]
+			,Target.[SubmittedDateTime]					            = Source.[SubmittedDateTime]
+			,Target.[IsLateSubmission]					            = Source.[IsLateSubmission]
+			,Target.[IsResubmission]					            = Source.[IsResubmission]
+			,Target.[ResubmissionStatus]				            = Source.[ResubmissionStatus]
+			,Target.[RegistrationDate]					            = Source.[RegistrationDate]
+			,Target.[ResubmissionDate]					            = Source.[ResubmissionDate]
+			,Target.[ResubmissionFileId]				            = Source.[ResubmissionFileId]
+			,Target.[SubmissionPeriod]					            = Source.[SubmissionPeriod]
+			,Target.[RelevantYear]						            = Source.[RelevantYear]
+			,Target.[IsComplianceScheme]				            = Source.[IsComplianceScheme]
+			,Target.[OrganisationSize]					            = Source.[OrganisationSize]
+			,Target.[OrganisationType]					            = Source.[OrganisationType]
+			,Target.[NationId]							            = Source.[NationId]
+			,Target.[NationCode]						            = Source.[NationCode]
+			,Target.[RegulatorComment]					            = Source.[RegulatorComment]
+			,Target.[ProducerComment]					            = Source.[ProducerComment]
+			,Target.[RegulatorDecisionDate]				            = Source.[RegulatorDecisionDate]
+			,Target.[RegulatorResubmissionDecisionDate]	            = Source.[RegulatorResubmissionDecisionDate]
+			,Target.[RegulatorUserId]					            = Source.[RegulatorUserId]
+			,Target.[CompaniesHouseNumber]				            = Source.[CompaniesHouseNumber]
+			,Target.[BuildingName]						            = Source.[BuildingName]
+			,Target.[SubBuildingName]					            = Source.[SubBuildingName]
+			,Target.[BuildingNumber]					            = Source.[BuildingNumber]
+			,Target.[Street]							            = Source.[Street]
+			,Target.[Locality]							            = Source.[Locality]
+			,Target.[DependentLocality]					            = Source.[DependentLocality]
+			,Target.[Town]								            = Source.[Town]
+			,Target.[County]							            = Source.[County]
+			,Target.[Country]							            = Source.[Country]
+			,Target.[Postcode]							            = Source.[Postcode]
+			,Target.[SubmittedUserId]					            = Source.[SubmittedUserId]
+			,Target.[FirstName]							            = Source.[FirstName]
+			,Target.[LastName]							            = Source.[LastName]
+			,Target.[Email]								            = Source.[Email]
+			,Target.[Telephone]							            = Source.[Telephone]
+			,Target.[ServiceRole]						            = Source.[ServiceRole]
+			,Target.[ServiceRoleId]						            = Source.[ServiceRoleId]
+			,Target.[IsOnlineMarketplace]				            = Source.[IsOnlineMarketplace]
+			,Target.[NumberOfSubsidiaries]				            = Source.[NumberOfSubsidiaries]
+			,Target.[NumberOfOnlineSubsidiaries]		            = Source.[NumberOfOnlineSubsidiaries]
+			,Target.[CompanyDetailsFileId]				            = Source.[CompanyDetailsFileId]
+			,Target.[CompanyDetailsFileName]			            = Source.[CompanyDetailsFileName]
+			,Target.[CompanyDetailsBlobName]			            = Source.[CompanyDetailsBlobName]
+			,Target.[PartnershipFileId]					            = Source.[PartnershipFileId]
+			,Target.[PartnershipFileName]				            = Source.[PartnershipFileName]
+			,Target.[PartnershipBlobName]				            = Source.[PartnershipBlobName]
+			,Target.[BrandsFileId]						            = Source.[BrandsFileId]
+			,Target.[BrandsFileName]					            = Source.[BrandsFileName]
+			,Target.[BrandsBlobName]					            = Source.[BrandsBlobName]
+			,Target.[ComplianceSchemeId]				            = Source.[ComplianceSchemeId]
+			,Target.[CSId]								            = Source.[CSId]
+			,Target.[CSOJson]							            = Source.[CSOJson]
+			,Target.[NumberOfHoldingCompaniesClosedLoopRecycling]	= Source.[NumberOfHoldingCompaniesClosedLoopRecycling]
+			,Target.[NumberOfSubsidiariesClosedLoopRecycling]       = Source.[NumberOfSubsidiariesClosedLoopRecycling]
 			WHEN NOT MATCHED BY TARGET THEN
 		INSERT (
 		[SubmissionId]
@@ -247,6 +172,8 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
       ,[ComplianceSchemeId]
       ,[CSId]
       ,[CSOJson]
+      ,[NumberOfHoldingCompaniesClosedLoopRecycling]
+      ,[NumberOfSubsidiariesClosedLoopRecycling]
 	)
 	VALUES (
 		Source.[SubmissionId]
@@ -309,6 +236,8 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 		,Source.[ComplianceSchemeId]
 		,Source.[CSId]
 		,Source.[CSOJson]
+		,Source.[NumberOfHoldingCompaniesClosedLoopRecycling]
+		,Source.[NumberOfSubsidiariesClosedLoopRecycling]
 		)
 	    WHEN NOT MATCHED BY SOURCE THEN
         DELETE; -- delete from table when no longer in source
@@ -334,7 +263,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 			select * into dbo.t_CSO_Pom_Resubmitted_ByCSID from dbo.v_CSO_Pom_Resubmitted_ByCSID;
 			INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 			select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_MergeSubmissionsSummaries','create t_CSO_Pom_Resubmitted_ByCSID', NULL, @start_dt, getdate(), 'Completed',@batch_id
-		END;	
+		END	
 		ELSE
 		BEGIN
 			set @start_dt = getdate()
@@ -431,7 +360,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 
 			INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 			select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_MergeSubmissionsSummaries','create apps.OrgRegistrationsSummaries', NULL, @start_dt, getdate(), 'Completed',@batch_id
-		END;	
+		END	
 		ELSE
 		BEGIN
 			set @start_dt = getdate()
@@ -585,7 +514,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 			select * into dbo.t_ProducerPayCalParameters_resub from dbo.v_ProducerPayCalParameters_resub;
 			INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 			select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_MergeSubmissionsSummaries','create t_ProducerPayCalParameters_resub', NULL, @start_dt, getdate(), 'Completed',@batch_id
-		END;	
+		END	
 		ELSE
 		BEGIN
 			set @start_dt = getdate()
@@ -906,7 +835,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 
 			INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 			select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'sp_MergeSubmissionsSummaries','create dbo.t_PomResubmissionPaycalEvents', NULL, @start_dt, getdate(), 'Completed',@batch_id
-		END;	
+		END	
 		ELSE
 		BEGIN
 			set @start_dt = getdate()

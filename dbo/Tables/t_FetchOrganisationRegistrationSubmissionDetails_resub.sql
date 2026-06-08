@@ -59,7 +59,9 @@ CREATE TABLE [dbo].[t_FetchOrganisationRegistrationSubmissionDetails_resub]
     [BrandsBlobName] [nvarchar](4000) NULL,
     [ComplianceSchemeId] [nvarchar](4000) NULL,
     [CSId] [nvarchar](4000) NULL,
-    [CSOJson] [nvarchar](max) NULL
+    [CSOJson] [nvarchar](max) NULL,
+    [NumberOfHoldingCompaniesClosedLoopRecycling] [int] NULL,
+    [NumberOfSubsidiariesClosedLoopRecycling] [int] NULL
 )
 WITH
 (
