@@ -333,5 +333,7 @@
     <Build Include="rpd\Tables\CodeScenarioMapping.sql" />
     <Build Include="dbo\Tables\t_submitted_pom_org_file_status.sql" />
     <Build Include="dbo\Tables\t_PRN_Recycling_Obligation_stat_Count.sql" />
+    <Build Include="dbo\Tables\t_organisation_details_not_submitted.sql" />
+    <Build Include="dbo\Tables\t_registration_enrolled_not_registered.sql" />
   </ItemGroup>
 </Project>
