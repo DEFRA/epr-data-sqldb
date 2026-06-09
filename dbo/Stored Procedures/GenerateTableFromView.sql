@@ -388,18 +388,17 @@ if (@recovery_checkpoint < 13)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_POM_Filters', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_POM_Submissions_POM_Comparison', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_POM_Filters;
+			DROP TABLE dbo.t_POM_Submissions_POM_Comparison;
 		END;	
 
 		SELECT *
-		INTO dbo.t_POM_Filters
-		FROM dbo.v_POM_Filters;
-
+		INTO dbo.t_POM_Submissions_POM_Comparison
+		FROM dbo.v_POM_Submissions_POM_Comparison;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Filters', NULL, @start_dt, getdate(), 'Tab 13 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', NULL, @start_dt, getdate(), 'Tab 13 - Completed',@batch_id
 
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
@@ -418,17 +417,17 @@ if (@recovery_checkpoint < 14)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_POM_Submissions_POM_Comparison', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_POM_Com_Landing_Filter', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_POM_Submissions_POM_Comparison;
+			DROP TABLE dbo.t_POM_Com_Landing_Filter;
 		END;	
 
 		SELECT *
-		INTO dbo.t_POM_Submissions_POM_Comparison
-		FROM dbo.v_POM_Submissions_POM_Comparison;
+		INTO dbo.t_POM_Com_Landing_Filter
+		FROM dbo.v_POM_Com_Landing_Filter;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Submissions_POM_Comparison', NULL, @start_dt, getdate(), 'Tab 14 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', NULL, @start_dt, getdate(), 'Tab 14 - Completed',@batch_id
 
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
@@ -447,17 +446,17 @@ if (@recovery_checkpoint < 15)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_POM_Com_Landing_Filter', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_new_enrolment_report', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_POM_Com_Landing_Filter;
+			DROP TABLE dbo.t_new_enrolment_report;
 		END;	
 
 		SELECT *
-		INTO dbo.t_POM_Com_Landing_Filter
-		FROM dbo.v_POM_Com_Landing_Filter;
+		INTO dbo.t_new_enrolment_report
+		FROM dbo.v_new_enrolment_report;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Com_Landing_Filter', NULL, @start_dt, getdate(), 'Tab 15 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', NULL, @start_dt, getdate(), 'Tab 15 - Completed',@batch_id
 
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
@@ -476,18 +475,17 @@ if (@recovery_checkpoint < 16)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_new_enrolment_report', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_CompanyBrandPartnerFileUploadSet', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_new_enrolment_report;
-		END;	
+			DROP TABLE dbo.t_CompanyBrandPartnerFileUploadSet;
+		END;
 
 		SELECT *
-		INTO dbo.t_new_enrolment_report
-		FROM dbo.v_new_enrolment_report;
+		INTO dbo.t_CompanyBrandPartnerFileUploadSet
+		FROM dbo.v_CompanyBrandPartnerFileUploadSet;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_new_enrolment_report', NULL, @start_dt, getdate(), 'Tab 16 - Completed',@batch_id
-
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', NULL, @start_dt, getdate(), 'Tab 16 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -500,37 +498,9 @@ begin
 	end
 end
 
+
 --Table 17
 if (@recovery_checkpoint < 17)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_CompanyBrandPartnerFileUploadSet', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_CompanyBrandPartnerFileUploadSet;
-		END;
-
-		SELECT *
-		INTO dbo.t_CompanyBrandPartnerFileUploadSet
-		FROM dbo.v_CompanyBrandPartnerFileUploadSet;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CompanyBrandPartnerFileUploadSet', NULL, @start_dt, getdate(), 'Tab 17 - Completed',@batch_id
-
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 17, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 17, getdate()
-	end
-end
-
-
---Table 18
-if (@recovery_checkpoint < 18)
 begin
 	set @start_dt = getdate()
 
@@ -544,7 +514,35 @@ begin
 		FROM dbo.v_Registration_Comparison_Landing_Page;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', NULL, @start_dt, getdate(), 'Tab 18 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_Registration_Comparison_Landing_Page', NULL, @start_dt, getdate(), 'Tab 17 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 17, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 17, getdate()
+	end
+end
+
+--Table 18
+if (@recovery_checkpoint < 18)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_latest_accepted_orgfile_by_year', 'U') IS NOT NULL
+		BEGIN
+			DROP TABLE dbo.t_latest_accepted_orgfile_by_year;
+		END;	
+
+		SELECT *
+		INTO dbo.t_latest_accepted_orgfile_by_year
+		FROM dbo.v_latest_accepted_orgfile_by_year;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Tab 18 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -562,17 +560,17 @@ if (@recovery_checkpoint < 19)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_latest_accepted_orgfile_by_year', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_latest_pending_or_accepted_orgfile_by_year', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_latest_accepted_orgfile_by_year;
+			DROP TABLE dbo.t_latest_pending_or_accepted_orgfile_by_year;
 		END;	
 
 		SELECT *
-		INTO dbo.t_latest_accepted_orgfile_by_year
-		FROM dbo.v_latest_accepted_orgfile_by_year;
+		INTO dbo.t_latest_pending_or_accepted_orgfile_by_year
+		FROM dbo.v_latest_pending_or_accepted_orgfile_by_year;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Tab 19 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Tab 19 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -586,21 +584,22 @@ begin
 end
 
 --Table 20
+
 if (@recovery_checkpoint < 20)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_latest_pending_or_accepted_orgfile_by_year', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_BrndPrtnr_Registrations', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_latest_pending_or_accepted_orgfile_by_year;
+			DROP TABLE dbo.t_BrndPrtnr_Registrations;
 		END;	
 
 		SELECT *
-		INTO dbo.t_latest_pending_or_accepted_orgfile_by_year
-		FROM dbo.v_latest_pending_or_accepted_orgfile_by_year;
+		INTO dbo.t_BrndPrtnr_Registrations
+		FROM dbo.v_BrndPrtnr_Registrations;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_latest_pending_or_accepted_orgfile_by_year', NULL, @start_dt, getdate(), 'Tab 20 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Registrations', NULL, @start_dt, getdate(), 'Tab 20 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -619,17 +618,17 @@ if (@recovery_checkpoint < 21)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_BrndPrtnr_Registrations', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_BrndPrtnr_Org_Submissions', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_BrndPrtnr_Registrations;
+			DROP TABLE dbo.t_BrndPrtnr_Org_Submissions;
 		END;	
 
 		SELECT *
-		INTO dbo.t_BrndPrtnr_Registrations
-		FROM dbo.v_BrndPrtnr_Registrations;
+		INTO dbo.t_BrndPrtnr_Org_Submissions
+		FROM dbo.v_BrndPrtnr_Org_Submissions;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Registrations', NULL, @start_dt, getdate(), 'Tab 21 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Org_Submissions', NULL, @start_dt, getdate(), 'Tab 21 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -648,17 +647,17 @@ if (@recovery_checkpoint < 22)
 begin
 	set @start_dt = getdate()
 
-		IF OBJECT_ID('dbo.t_BrndPrtnr_Org_Submissions', 'U') IS NOT NULL
+		IF OBJECT_ID('dbo.t_organisation_details_not_submitted', 'U') IS NOT NULL
 		BEGIN
-			DROP TABLE dbo.t_BrndPrtnr_Org_Submissions;
+			DROP TABLE dbo.t_organisation_details_not_submitted;
 		END;	
 
 		SELECT *
-		INTO dbo.t_BrndPrtnr_Org_Submissions
-		FROM dbo.v_BrndPrtnr_Org_Submissions;
+		INTO dbo.t_organisation_details_not_submitted
+		FROM dbo.v_organisation_details_not_submitted;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_BrndPrtnr_Org_Submissions', NULL, @start_dt, getdate(), 'Tab 22 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', NULL, @start_dt, getdate(), 'Tab 22 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
@@ -671,39 +670,10 @@ begin
 	end
 end
 
---Table 23
 
+
+--Table 23 t_PRN_Recycling_Obligation_stat_Count
 if (@recovery_checkpoint < 23)
-begin
-	set @start_dt = getdate()
-
-		IF OBJECT_ID('dbo.t_organisation_details_not_submitted', 'U') IS NOT NULL
-		BEGIN
-			DROP TABLE dbo.t_organisation_details_not_submitted;
-		END;	
-
-		SELECT *
-		INTO dbo.t_organisation_details_not_submitted
-		FROM dbo.v_organisation_details_not_submitted;
-
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_organisation_details_not_submitted', NULL, @start_dt, getdate(), 'Tab 23 - Completed',@batch_id
-
-	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
-	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 23, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
-	end
-	else
-	begin
-		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 23, getdate()
-	end
-end
-
-
-
---Table 24 t_PRN_Recycling_Obligation_stat_Count
-if (@recovery_checkpoint < 24)
 begin
 	set @start_dt = getdate()
 
@@ -717,22 +687,22 @@ begin
 		FROM dbo.v_PRN_Recycling_Obligation_stat_Count;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_PRN_Recycling_Obligation_stat_Count', NULL, @start_dt, getdate(), 'Tab 24 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_PRN_Recycling_Obligation_stat_Count', NULL, @start_dt, getdate(), 'Tab 23 - Completed',@batch_id
 
 	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
 	begin
-		update [dbo].[tblCheckpoint] set [CheckPoint] = 24, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 23, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
 	end
 	else
 	begin
 		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
-		select 'GenerateTableFromView', 24, getdate()
+		select 'GenerateTableFromView', 23, getdate()
 	end
 end
 
 
---Table 25
-if (@recovery_checkpoint < 25)
+--Table 24
+if (@recovery_checkpoint < 24)
 begin
 	set @start_dt = getdate()
 
@@ -746,7 +716,7 @@ begin
 		FROM dbo.v_registration_enrolled_not_registered;
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 25 - Completed',@batch_id
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 24 - Completed',@batch_id
 
 	delete from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView'
 
@@ -755,7 +725,7 @@ begin
 end
 
 --Removing check point
-if (@recovery_checkpoint >= 26)
+if (@recovery_checkpoint >= 25)
 begin
 
 	set @start_dt = getdate()
@@ -810,10 +780,6 @@ end
 	select @cnt =count(1) from dbo.t_registration_latest;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_latest', @cnt, NULL, getdate(), 'Completed',@batch_id
-
-	select @cnt =count(1) from dbo.t_POM_Filters;
-	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
-	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_POM_Filters', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 	select @cnt =count(1) from dbo.t_POM_Com_Landing_Filter;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
