@@ -48,8 +48,6 @@ AS WITH
         WHERE submitted.Type='Submitted'
         )
 		
--------596704-----------
-
  -- This is the first fee resubmission record
     ,FirstResubmissionReferenceNumberCreated AS (
      SELECT se.SubmissionId, MIN(CONVERT(DATETIME,substring(Created,1,23))) AS FirstReferenceNumberCreated
@@ -83,43 +81,60 @@ AS WITH
      SELECT FileId, SubmissionId FROM SubmittedOrResubmissionWithoutNewEvents
     )
 	
--------596704-----------
-
-
     -- Get LATEST submitted event by load_ts per SubmissionEventId (to remove cosmos sync duplicates)
         ,LatestSubmittedEventsCTE AS (
-        SELECT
-        SubmissionEventId,
-        SubmissionId,
-        Type,
-        FileId,
-        SubmittedDate,
-		SubmittedUserId
-        FROM AllSubmittedEventsCTE
-        WHERE RowNum = 1
+            SELECT
+                SubmissionEventId,
+                SubmissionId,
+                Type,
+                FileId,
+                SubmittedDate,
+                SubmittedUserId
+            FROM AllSubmittedEventsCTE
+            WHERE RowNum = 1
+        )
+
+        , ResubmissionApplicationSubmittedDate AS (
+            SELECT
+                se.FileId,
+                se.SubmissionId,
+                se.Created AS ResubmissionSubmittedDate,
+                se.UserId AS ResubmissionSubmittedUserId,
+                ROW_NUMBER() OVER (
+                    PARTITION BY se.FileId
+                    ORDER BY se.load_ts DESC  -- deduplicate cosmos sync duplicates
+                ) AS RowNum
+            FROM apps.SubmissionEvents se
+            INNER JOIN ResubmissionApplicationSubmittedData rad
+                ON rad.FileId = se.FileId
+            WHERE se.[Type] = 'PackagingResubmissionApplicationSubmitted'
+        )
+
+        , LatestResubmissionApplicationSubmittedDate AS (
+            SELECT FileId, SubmissionId, ResubmissionSubmittedDate, ResubmissionSubmittedUserId
+            FROM ResubmissionApplicationSubmittedDate
+            WHERE RowNum = 1
         )
 		
     -- Get Decision events for submitted (match by fileId)
         ,AllRelatedDecisionEventsCTE AS (
-        SELECT
-        decision.FileId,
-        decision.SubmissionEventId,
-        decision.SubmissionId,
-        decision.Decision,
-        decision.Comments,
-        CASE
-            WHEN UPPER( ISNULL(decision.IsResubmissionRequired,'FALSE')) = 'TRUE' THEN 1
-            ELSE 0
-        END AS IsResubmissionRequired ,
-        decision.Created AS DecisionDate,
-        ROW_NUMBER() OVER(
-        PARTITION BY decision.FileId  -- mark latest submissionEvent synced from cosmos
-        ORDER BY decision.load_ts DESC
-        ) as RowNum
-        FROM [apps].[SubmissionEvents] decision
-        INNER JOIN LatestSubmittedEventsCTE submitted ON submitted.FileId = decision.FileId
-        WHERE
-        decision.Type='RegulatorPomDecision'
+            SELECT
+                decision.FileId,
+                decision.SubmissionEventId,
+                decision.SubmissionId,
+                decision.Decision,
+                decision.Comments,
+                CASE
+                    WHEN decision.IsResubmissionRequired = '1' THEN 1
+                    ELSE 0
+                END AS IsResubmissionRequired,
+                decision.Created AS DecisionDate,
+                ROW_NUMBER() OVER(
+                    PARTITION BY decision.FileId  -- mark latest submissionEvent synced from cosmos
+                    ORDER BY decision.load_ts DESC) as RowNum
+            FROM apps.SubmissionEvents decision
+            JOIN LatestSubmittedEventsCTE submitted ON submitted.FileId = decision.FileId
+            WHERE decision.Type = 'RegulatorPomDecision'
         )
 
         ,LatestRelatedDecisionEventsCTE AS (
@@ -132,21 +147,24 @@ AS WITH
         IsResubmissionRequired,
         DecisionDate
         FROM AllRelatedDecisionEventsCTE
-        WHERE RowNum = 1 --  get only latest
+        WHERE RowNum = 1
         )
 
-        ,JoinedSubmittedAndDecisionsCTE AS (
-        SELECT
-        submitted.SubmissionId,
-        submitted.SubmittedDate,
-        submitted.FileId,
-		submitted.SubmittedUserId,
-        decision.DecisionDate,
-        decision.Decision,
-        decision.Comments,
-        decision.IsResubmissionRequired
-        FROM LatestSubmittedEventsCTE submitted
-        LEFT JOIN LatestRelatedDecisionEventsCTE decision ON decision.FileId = submitted.FileId
+        , JoinedSubmittedAndDecisionsCTE AS (
+            SELECT
+                submitted.SubmissionId,
+                -- If a resubmission application was submitted, use that date; otherwise original submitted date
+                ISNULL(resub.ResubmissionSubmittedDate, submitted.SubmittedDate) AS SubmittedDate,
+                submitted.FileId,
+                ISNULL(resub.ResubmissionSubmittedUserId, submitted.SubmittedUserId) AS SubmittedUserId,
+                decision.DecisionDate,
+                decision.Decision,
+                decision.Comments,
+                decision.IsResubmissionRequired
+            FROM LatestSubmittedEventsCTE submitted
+            LEFT JOIN LatestResubmissionApplicationSubmittedDate resub
+                ON resub.FileId = submitted.FileId AND resub.SubmissionId = submitted.SubmissionId
+            LEFT JOIN LatestRelatedDecisionEventsCTE decision ON decision.FileId = submitted.FileId
         )
 
         ,AllRelatedSubmissionsCTE AS (
@@ -189,7 +207,7 @@ AS WITH
         jsd.DecisionDate,
 		jsd.SubmittedUserId,
         ROW_NUMBER() OVER(
-        PARTITION BY s.SubmissionId --, jsd.FileId (commented out to fix incorrect ressubmission details issue) -- to match the count with power bi
+        PARTITION BY s.SubmissionId
         ORDER BY jsd.SubmittedDate DESC
         ) as RowNum -- original row number based on submitted date
         FROM JoinedSubmittedAndDecisionsCTE jsd
@@ -298,10 +316,8 @@ LatestUserSubmissions AS(
 				PARTITION BY r.SubmittedUserId, r.SubmissionPeriod, r.FileId
 				ORDER BY p.IsDeleted ASC, CONVERT(DATETIME,SUBSTRING(p.LastUpdatedOn,1,23)) DESC
 			) AS UserRowNumber,
-		----ST-----
 		CASE WHEN sa.FileId IS NULL THEN 0 ELSE 1 END AS NEW_FLAG
-		-----------
-		
+
 	FROM JoinedSubmissionsAndEventsWithResubmissionCTE r
 			 INNER JOIN [rpd].[Organisations] o ON o.ExternalId = r.OrganisationId
 		LEFT JOIN [rpd].[ProducerTypes] pt ON pt.Id = o.ProducerTypeId
@@ -310,14 +326,12 @@ LatestUserSubmissions AS(
 		INNER JOIN [rpd].[PersonOrganisationConnections] poc ON poc.PersonId = p.Id
 		LEFT JOIN LatestEnrolment le ON le.ConnectionId = poc.Id AND le.rn = 1 -- join on only latest enrolment
 		LEFT JOIN [rpd].[ServiceRoles] sr on sr.Id = le.ServiceRoleId
-		LEFT JOIN [rpd].[ComplianceSchemes] cs ON cs.ExternalId = r.ComplianceSchemeId -- join CS to get nation above
+		LEFT JOIN [rpd].[ComplianceSchemes] cs ON cs.ExternalId = r.ComplianceSchemeId
 	    LEFT JOIN File_id_code_description_combined file_desc on file_desc.fileid = r.FileId
         LEFT JOIN cf_meta_first_record meta on meta.FileId = r.FileId 
-		-----ST-----
 		LEFT JOIN SubmissionsAggregated sa on r.FileId = sa.FileId AND r.SubmissionId = sa.SubmissionId
-		---------------
         WHERE o.IsDeleted=0
 )
 
 SELECT * FROM LatestUserSubmissions WHERE
-UserRowNumber=1
+UserRowNumber=1;
