@@ -214,6 +214,7 @@ Select distinct
 	,cd.organisation_size
 	,cd.organisation_sub_type_code
 	,cd.organisation_type_code
+	,cd.closed_loop_registration
 	,cd.packaging_activity_hl
 	,cd.packaging_activity_im
 	,cd.packaging_activity_om
