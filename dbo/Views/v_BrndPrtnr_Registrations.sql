@@ -364,4 +364,3 @@ Left Join
 	
 Where 
 	Right(dbo.udf_DQ_SubmissionPeriod(cd.SubmissionPeriod),4) > 2024;
-go
