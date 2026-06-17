@@ -209,7 +209,6 @@
     <Build Include="dbo\Tables\t_myc_error_report.sql" />
     <Build Include="dbo\Views\v_myc_error_report.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
-    <Build Include="dbo\Tables\t_POM_Filters.sql" />
     <Build Include="dbo\Tables\t_POM_Com_Landing_Filter.sql" />
     <Build Include="dbo\Tables\t_PoM_Codes.sql" />
     <Build Include="dbo\Tables\POM_Filters.sql" />
@@ -218,7 +217,6 @@
     <Build Include="dbo\Views\v_Producer_CS_Lookup_Pivot.sql" />
     <Build Include="dbo\Views\v_POM_Submissions_POM_Comparison.sql" />
     <Build Include="dbo\Views\v_POM_Org_Names.sql" />
-    <Build Include="dbo\Views\v_POM_Filters.sql" />
     <Build Include="dbo\Views\v_POM_FileNames.sql" />
     <Build Include="dbo\Views\v_POM_Com_Landing_Filter.sql" />
     <Build Include="dbo\Views\v_cosmos_file_metadata_CS_additions.sql" />
@@ -333,5 +331,7 @@
     <Build Include="rpd\Tables\CodeScenarioMapping.sql" />
     <Build Include="dbo\Tables\t_submitted_pom_org_file_status.sql" />
     <Build Include="dbo\Tables\t_PRN_Recycling_Obligation_stat_Count.sql" />
+    <Build Include="dbo\Tables\t_organisation_details_not_submitted.sql" />
+    <Build Include="dbo\Tables\t_registration_enrolled_not_registered.sql" />
   </ItemGroup>
 </Project>
