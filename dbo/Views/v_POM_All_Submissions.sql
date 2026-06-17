@@ -1,21 +1,4 @@
 ﻿CREATE VIEW [dbo].[v_POM_All_Submissions] AS With vPOM_AS 
-/***************************************************************************************************
-History:
-
-	Updated 2024-07-23: SN001: Display Org name with Org ID all the packaging reports.
-							Ticket 412287 for Release 5.0
-
-	Updated: 2024-11-18: YM001:	Ticket - 460891:Adding the new column [transitional_packaging_units]
-	Updated 2024-11-18: JP001: changed by JP; changed organisation_id to OrgansiationID - ticket 462085
-	Updated 2025-01-22: JP002: ticket 475754; added left join on companydetails to get subsidiary name, added new column
-	Updated 2025-07-04: SV003: ticket 576281; Removed subsid retrofit solution
-	Updated 2025-08-05: JP003: ticket 596389; reverted submission_date to be file submission date, renamed new col to applicaton submission date
-	Updated 2025-08-12: TS001: ticket 601453; adding [Is_resubmitted_POM_identifier] column for the POM reports
-	Updated 2025-08-19: TS002: ticket 603393; Changing the handling Application_submitted_ts logic
-	Updated 2025-10-27: JP003: ticket 608994; Adding ram_rag_rating column
-
-*****************************************************************************************************/
-	
 As 
 (
 
@@ -127,7 +110,7 @@ As
 			WHERE direct.FileName NOT IN ( SELECT DISTINCT operators.FileName 
 							FROM dbo.t_POM_Operator_Submissions operators )
  
-			UNION
+			UNION ALL
 			--add in operator
 			SELECT 
 				   [Org_Name]
@@ -177,7 +160,7 @@ As
 				  ,CAST(NULL AS INT) AS OrganisationID -- added TS 12/09/2024
 			FROM dbo.t_POM_Operator_Submissions
  
-			UNION 
+			UNION ALL
 
 			SELECT
 				   [Org_Name]
@@ -230,7 +213,7 @@ As
 			where	[organisation_id_producer] <>   [organisation_id]
 					AND compliance_scheme IS NOT NULL
 	) A
-left join dbo.v_submitted_pom_org_file_status d on d.Filename = A.FileName
+left join dbo.t_submitted_pom_org_file_status d on d.Filename = A.FileName
 --SV001- LEFT JOIN dbo.v_subsidiaryorganisations so 
 --	on so.FirstOrganisation_ReferenceNumber = A.OrganisationID
 --		and ISNULL(trim(so.SubsidiaryId),'') = ISNULL(trim(A.subsidiary_id),'') and ISNULL(trim(so.[SecondOrganisation_CompaniesHouseNumber]), '') = ISNULL(TRIM(A.[CH_Number]), '') -- Added CHN Mapping for the ticket 440955
