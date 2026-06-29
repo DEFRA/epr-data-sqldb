@@ -25,6 +25,7 @@
     [organisation_size]                     NVARCHAR (4000) NOT NULL,
     [organisation_sub_type_code]            NVARCHAR (4000) NULL,
     [organisation_type_code]                NVARCHAR (4000) NULL,
+    [closed_loop_registration]              NVARCHAR (10) NULL,
     [packaging_activity_hl]                 NVARCHAR (4000) NULL,
     [packaging_activity_im]                 NVARCHAR (4000) NULL,
     [packaging_activity_om]                 NVARCHAR (4000) NULL,
