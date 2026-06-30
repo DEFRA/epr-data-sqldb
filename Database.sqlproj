@@ -387,5 +387,6 @@
     <Build Include="dbo\Views\v_ProducerPaycalParameters_resub.sql" />
     <Build Include="dbo\Views\v_UploadedRegistrationDataBySubmissionPeriod.sql" />
     <Build Include="dbo\Views\v_UploadedRegistrationDataBySubmissionPeriod_resub.sql" />
+    <Build Include="dbo\Tables\t_ProducerPayCalParameters_resub.sql" />
   </ItemGroup>
 </Project>
