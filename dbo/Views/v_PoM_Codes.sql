@@ -53,6 +53,7 @@ SELECT 'IM'      Code, 'packaging_activity' Type, 'Imported'		                  
 SELECT 'SE'      Code, 'packaging_activity' Type, 'Sold as empty'	                    Text UNION ALL
 SELECT 'HL'      Code, 'packaging_activity' Type, 'Hired or loaned'	                    Text UNION ALL
 SELECT 'OM'      Code, 'packaging_activity' Type, 'Online marketplace'                  Text UNION ALL
+   
 SELECT 'HH'      Code, 'packaging_type'     Type, 'Total Household packaging'           Text UNION ALL
 SELECT 'NH'      Code, 'packaging_type'     Type, 'Total Non-Household packaging'	    Text UNION ALL
 SELECT 'CW'      Code, 'packaging_type'     Type, 'Self-managed consumer waste'		    Text UNION ALL
@@ -61,6 +62,8 @@ SELECT 'PB'      Code, 'packaging_type'     Type, 'Public binned'					    Text U
 SELECT 'RU'      Code, 'packaging_type'     Type, 'Reusable packaging'				    Text UNION ALL
 SELECT 'HDC'     Code, 'packaging_type'     Type, 'Household drinks containers'		    Text UNION ALL
 SELECT 'NDC'     Code, 'packaging_type'     Type, 'Non-household drinks containers'	    Text UNION ALL
+SELECT 'CLR'     Code, 'packaging_type'     Type, 'Closed Loop Registration'	    Text UNION ALL
+   
 SELECT 'SP'      Code, 'packaging_type'     Type, 'Small organisation packaging - all'  Text UNION ALL
 SELECT 'P1'      Code, 'packaging_class'    Type, 'Primary packaging'                   Text UNION ALL 
 SELECT 'P2'      Code, 'packaging_class'    Type, 'Secondary packaging'			        Text UNION ALL
