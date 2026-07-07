@@ -1,6 +1,3 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
 CREATE VIEW [dbo].[v_POM_Submissions_R8]
 AS
 SELECT distinct
@@ -100,4 +97,3 @@ LEFT JOIN (
     ON o.TransferNationId = n.Id
 ) transfers
 ON p.organisation_id = transfers.Producer_ReferenceNumber
-GO

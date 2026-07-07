@@ -1,6 +1,3 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
 CREATE VIEW [dbo].[v_POM_Extract]
 AS
 SELECT DISTINCT
@@ -116,4 +113,3 @@ FROM [dbo].[v_Pom] p
 
 	left join (select distinct [organisation_id], [organisation_type_code] from  [rpd].[CompanyDetails] where [organisation_id] is not null ) cd on cd.[organisation_id] = p.[organisation_id]
 WHERE p.[submission_period] is not null
-GO

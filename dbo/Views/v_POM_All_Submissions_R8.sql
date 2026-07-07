@@ -1,6 +1,3 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
 CREATE VIEW [dbo].[v_POM_All_Submissions_R8]
 AS
 With vPOM_AS 
@@ -188,4 +185,3 @@ Select
 	,IsLatest	=	Case When Dense_Rank() Over(Partition By v.submission_period, v.[OrganisationID] Order By v.Submission_Date Desc) = 1 Then 1 Else 0 End
 From 
 	vPOM_AS v
-GO

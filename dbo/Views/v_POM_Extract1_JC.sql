@@ -1,6 +1,3 @@
-SET QUOTED_IDENTIFIER ON;
-SET ANSI_NULLS ON;
-GO
 CREATE VIEW [dbo].[v_POM_Extract1_JC]
 AS
 SELECT distinct
@@ -57,4 +54,3 @@ else NULL end [Org_Sub_Type]
    join [dbo].[v_cosmos_file_metadata] meta
  on p.filename = meta.filename
 left join [rpd].[CompanyDetails] reg on reg.[organisation_id] = p.[organisation_id]
-GO
