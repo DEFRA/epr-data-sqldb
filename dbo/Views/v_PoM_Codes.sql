@@ -62,7 +62,7 @@ SELECT 'PB'      Code, 'packaging_type'     Type, 'Public binned'					    Text U
 SELECT 'RU'      Code, 'packaging_type'     Type, 'Reusable packaging'				    Text UNION ALL
 SELECT 'HDC'     Code, 'packaging_type'     Type, 'Household drinks containers'		    Text UNION ALL
 SELECT 'NDC'     Code, 'packaging_type'     Type, 'Non-household drinks containers'	    Text UNION ALL
-SELECT 'CLR'     Code, 'packaging_type'     Type, 'Closed Loop Registration'	    Text UNION ALL
+SELECT 'CLR'     Code, 'packaging_type'     Type, 'Closed Loop Recycling'				   Text UNION ALL
    
 SELECT 'SP'      Code, 'packaging_type'     Type, 'Small organisation packaging - all'  Text UNION ALL
 SELECT 'P1'      Code, 'packaging_class'    Type, 'Primary packaging'                   Text UNION ALL 
