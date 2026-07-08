@@ -1,6 +1,6 @@
 ﻿CREATE PROC [dbo].[GetLatestAcceptedGrantedOrgData]
-    @createdOrModifiedAfter [nvarchar](200) = NULL,
-    @relativeYear INT = NULL
+    @createdOrModifiedAfter [nvarchar](200),
+    @relativeYear INT
 AS
 BEGIN
 	DECLARE @start_dt datetime;
