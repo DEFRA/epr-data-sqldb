@@ -1,14 +1,4 @@
 ﻿/****** Object:  StoredProcedure [dbo].[sp_DP_Pom_Resubmitted_ByDPID ]    Script Date: 05/11/2025 13:54:28 ******/
-IF EXISTS (SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(N'[dbo].[sp_DP_Pom_Resubmitted_ByDPID]'))
-DROP PROCEDURE [dbo].[sp_DP_Pom_Resubmitted_ByDPID];
-GO
-
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
 CREATE PROC [dbo].[sp_DP_Pom_Resubmitted_ByDPID ] @DPOrganisation_ID [INT],@SubmissionPeriod [Varchar](100),@MemberCount [INT] OUT AS
 BEGIN
 	DECLARE @latest_accepted_file NVARCHAR(4000);
@@ -157,4 +147,3 @@ SELECT @MemberCount = COUNT (*)
 	)AS Distinct_Combinations
 
 END;
-GO
