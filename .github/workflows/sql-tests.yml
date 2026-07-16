@@ -1,0 +1,50 @@
+name: SQL scenario tests
+
+# Reproduces the Azure DevOps SQL Server scenario stage from the upstream epr-data
+# pipeline: run the deployable dbo.sp_producer_obligation_determination stored
+# procedure against a real SQL Server (via testcontainers) and assert its output.
+
+on:
+  push:
+    paths:
+      - 'dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+      - 'tests/**'
+      - '.github/workflows/sql-tests.yml'
+  pull_request:
+    paths:
+      - 'dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+      - 'tests/**'
+      - '.github/workflows/sql-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  sql-scenario-test:
+    name: SQL Server scenario test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: make install
+
+      # The SQL Server scenario test starts mcr.microsoft.com/mssql/server via
+      # testcontainers, so it needs a Docker daemon. GitHub-hosted ubuntu runners
+      # ship one preinstalled and running; fail loudly if that ever changes.
+      - name: Verify Docker is available
+        run: |
+          if ! docker info >/dev/null 2>&1; then
+            echo "::error::Docker daemon is not available on this runner. The SQL Server scenario test requires Docker to start mcr.microsoft.com/mssql/server via testcontainers."
+            exit 1
+          fi
+
+      - name: SQL Server scenario test
+        run: make scenario-test selector=sql
