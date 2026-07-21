@@ -1,5 +1,5 @@
 # Contributing
 
-If you have an idea you'd like to contribute please log an [issue](https://help.github.com/en/articles/about-issues).
+For any change, it needs to be allocated against an Analytics & Insights Platform Team release version.
 
-If you'd like to suggest a change or addition, create a branch, add your changes to it, then submit a [pull request](https://help.github.com/en/articles/about-pull-requests).
+Then, follow this guide for branching strategy: [Synapse+release+branches - Tactical](https://eaflood.atlassian.net/wiki/spaces/EDIA/pages/6464864266/SBB-DP-002+Synapse+release+branches+-+Tactical)
