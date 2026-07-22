@@ -93,6 +93,28 @@ AS WITH
             FROM AllSubmittedEventsCTE
             WHERE RowNum = 1
         )
+
+        , ResubmissionApplicationSubmittedDate AS (
+            SELECT
+                se.FileId,
+                se.SubmissionId,
+                se.Created AS ResubmissionSubmittedDate,
+                se.UserId AS ResubmissionSubmittedUserId,
+                ROW_NUMBER() OVER (
+                    PARTITION BY se.FileId
+                    ORDER BY se.load_ts DESC  -- deduplicate cosmos sync duplicates
+                ) AS RowNum
+            FROM apps.SubmissionEvents se
+            INNER JOIN ResubmissionApplicationSubmittedData rad
+                ON rad.FileId = se.FileId
+            WHERE se.[Type] = 'PackagingResubmissionApplicationSubmitted'
+        )
+
+        , LatestResubmissionApplicationSubmittedDate AS (
+            SELECT FileId, SubmissionId, ResubmissionSubmittedDate, ResubmissionSubmittedUserId
+            FROM ResubmissionApplicationSubmittedDate
+            WHERE RowNum = 1
+        )
 		
     -- Get Decision events for submitted (match by fileId)
         ,AllRelatedDecisionEventsCTE AS (
@@ -131,7 +153,8 @@ AS WITH
         ,JoinedSubmittedAndDecisionsCTE AS (
         SELECT
         submitted.SubmissionId,
-        submitted.SubmittedDate,
+        -- If a resubmission application was submitted, use that date; otherwise original submitted date
+        ISNULL(resub.ResubmissionSubmittedDate, submitted.SubmittedDate) AS SubmittedDate,
         submitted.FileId,
 		submitted.SubmittedUserId,
         decision.DecisionDate,
@@ -139,6 +162,7 @@ AS WITH
         decision.Comments,
         decision.IsResubmissionRequired
         FROM LatestSubmittedEventsCTE submitted
+        LEFT JOIN LatestResubmissionApplicationSubmittedDate resub ON resub.FileId = submitted.FileId AND resub.SubmissionId = submitted.SubmissionId
         LEFT JOIN LatestRelatedDecisionEventsCTE decision ON decision.FileId = submitted.FileId
         )
 
