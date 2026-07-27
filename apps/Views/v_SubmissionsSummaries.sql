@@ -150,21 +150,20 @@ AS WITH
         WHERE RowNum = 1
         )
 
-        , JoinedSubmittedAndDecisionsCTE AS (
-            SELECT
-                submitted.SubmissionId,
-                -- If a resubmission application was submitted, use that date; otherwise original submitted date
-                ISNULL(resub.ResubmissionSubmittedDate, submitted.SubmittedDate) AS SubmittedDate,
-                submitted.FileId,
-                ISNULL(resub.ResubmissionSubmittedUserId, submitted.SubmittedUserId) AS SubmittedUserId,
-                decision.DecisionDate,
-                decision.Decision,
-                decision.Comments,
-                decision.IsResubmissionRequired
-            FROM LatestSubmittedEventsCTE submitted
-            LEFT JOIN LatestResubmissionApplicationSubmittedDate resub
-                ON resub.FileId = submitted.FileId AND resub.SubmissionId = submitted.SubmissionId
-            LEFT JOIN LatestRelatedDecisionEventsCTE decision ON decision.FileId = submitted.FileId
+        ,JoinedSubmittedAndDecisionsCTE AS (
+        SELECT
+        submitted.SubmissionId,
+        -- If a resubmission application was submitted, use that date; otherwise original submitted date
+        ISNULL(resub.ResubmissionSubmittedDate, submitted.SubmittedDate) AS SubmittedDate,
+        submitted.FileId,
+		submitted.SubmittedUserId,
+        decision.DecisionDate,
+        decision.Decision,
+        decision.Comments,
+        decision.IsResubmissionRequired
+        FROM LatestSubmittedEventsCTE submitted
+        LEFT JOIN LatestResubmissionApplicationSubmittedDate resub ON resub.FileId = submitted.FileId AND resub.SubmissionId = submitted.SubmissionId
+        LEFT JOIN LatestRelatedDecisionEventsCTE decision ON decision.FileId = submitted.FileId
         )
 
         ,AllRelatedSubmissionsCTE AS (

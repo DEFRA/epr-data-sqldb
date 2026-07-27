@@ -1,10 +1,7 @@
-CREATE PROCEDURE [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails_resub]
-    @SubmissionId [nvarchar](36)
-AS
-
+CREATE PROC [dbo].[sp_FetchOrganisationRegistrationSubmissionDetails_resub] @SubmissionId [nvarchar](36) AS
 BEGIN
 	SET NOCOUNT ON;
-
+ 
 	select o.SubmissionId,
            o.OrganisationId,
            o.OrganisationName,
@@ -66,7 +63,7 @@ BEGIN
            o.CSId,
            o.CSOJson,
            IsNull(ORS.RegistrationJourney, s.RegistrationJourney) AS RegistrationJourney,
-           cast(0 as bit) AS IsClosedLoopRecycler,  -- DEPRECATION: for backwards compatibility during the release. Remove after https://eaflood.atlassian.net/wiki/spaces/EDIA/pages/6524338439/Release+17.13+Release+EPR+Common+Data+API-+Release+Runbook
+           cast(0 as bit) AS IsClosedLoopRecycler,  -- DEPRECATION STUB: to be removed shortly
            o.NumberOfHoldingCompaniesClosedLoopRecycling,
            o.NumberOfSubsidiariesClosedLoopRecycling
     FROM dbo.t_FetchOrganisationRegistrationSubmissionDetails_resub o
