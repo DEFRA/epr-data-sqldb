@@ -354,7 +354,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 		select distinct
 				 cfm.[SubmissionId]
 				,cfm.[RegistrationSetId]
-				,cfm.[OrganisationId]   
+				,cfm.[OrganisationId]	
 				,cfm.[FileName]
 				,cfm.[FileType]
 				,cfm.[OriginalFileName]
@@ -397,7 +397,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 				, se.registrationreferencenumber
 				--Supporting columns
 				, se.Decision as Original_Regulator_Status
-     
+		
 				,s.SubmissionType
 				, ISNULL(rid.IsResubmission_identifier,0) as IsResubmission_identifier
 				, ISNULL(rpl.POM_resubmission_identifier,0) as Is_resubmitted_POM_identifier
@@ -449,7 +449,7 @@ cancelled_registration_submissions as
 cd_pom_result_updated as
 (
 	select c.*
-		, case
+		, case 
 			when c.SubmissionType = 'Registration' and crs.SubmissionId is not null
 				then 'Cancelled'
 			else c.Regulator_Status
