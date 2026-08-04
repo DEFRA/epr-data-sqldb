@@ -1,15 +1,15 @@
 ﻿CREATE VIEW [dbo].[v_submitted_pom_org_file_status] AS With
 /****************************************************************************************************************************
-	History:
-
-	Updated: 2025-01-27:	SN001:	Ticket - 500601:	Additional SQL added to v_submitted_pom_org_file_status capture status of records.
+	History: 
+ 
+	Updated: 2025-01-27:	SN001:	Ticket - 500601:	Additional SQL added to v_submitted_pom_org_file_status capture status of records.  
 	Updated: 2025-01-29:	SN002:	Ticket - 501408:	Additonal SQL required to get correct sumbission date for New Regulator process
-														Additonal Type to identify path of data (Reg/Org) JourneyType
+														Additonal Type to identify path of data (Reg/Org) JourneyType 
 															1= Organisation/Existing, 2=New/Reglulator
-														Change Status From 'Accpeted' to 'Granted' for New path.
+														Change Status From 'Accpeted' to 'Granted' for New path.  
 														Rejected to Refused.. Commented out Implementation data TBC
 
-														RegistrationType added to allow IF/CASE statement logic in POwerBI
+														RegistrationType added to allow IF/CASE statement logic in POwerBI 
 														regulatorbrandwithpartner so new records show NULL not Pending.
 	Updated: 2025-02-06:	YM001:	Ticket - 506054		Rejected to Refused Status change registration file for relevant_year 2025 onwards
 	Updated: 2025-02-11:	YM002:	Ticket - 506055		Changing the decision as Pending from null for the 2nd submission under the ticket 506055
@@ -33,28 +33,28 @@ submitted_file_list as
 	and (IsResubmission is null or IsResubmission = 0)
 ),
 first_PackagingResubmissionReferenceNumberCreated_entry as (
-	select distinct SubmissionId, min(CONVERT(DATETIME,substring(Created,1,23))) as first_PackagingResubmissionReferenceNumberCreated_ts
+	select distinct SubmissionId, min(CONVERT(DATETIME,substring(Created,1,23))) as first_PackagingResubmissionReferenceNumberCreated_ts 
 	from rpd.SubmissionEvents where Type in ('PackagingResubmissionReferenceNumberCreated')
 	group by SubmissionId
 ),
 resubmitted_POM_list as
 (
 select distinct SubmissionId, FileId, IsResubmission as POM_resubmission_identifier, NULL as min_first_PackagingResubmissionReferenceNumberCreated_ts
-from rpd.SubmissionEvents
+from rpd.SubmissionEvents 
 where Type in ('Submitted')
 and Fileid is not null
 and IsResubmission = 1
- union
+ union 
 select sfl.SubmissionId, sfl.FileId, 1 as POM_resubmission_identifier, min(ent.first_PackagingResubmissionReferenceNumberCreated_ts) as min_first_PackagingResubmissionReferenceNumberCreated_ts
 from submitted_file_list sfl
-inner join first_PackagingResubmissionReferenceNumberCreated_entry ent
+inner join first_PackagingResubmissionReferenceNumberCreated_entry ent 
 	on sfl.SubmissionId = ent.SubmissionId
 	and sfl.file_submitted_ts >= ent.first_PackagingResubmissionReferenceNumberCreated_ts
 group by sfl.SubmissionId, sfl.FileId
 ),
 
 --Sub query to find the resubmission records
---with
+--with 
 resubmission_ids as
 (
 	select IsResubmission_identifier, Fileid
@@ -68,7 +68,7 @@ resubmission_ids as
 	) A
 	where resubmission_ids_submitted_rank = 1
 )
---select * from resubmission_ids where Fileid = '665a9626-4f3b-4e5b-b966-423825d0848a'
+--select * from resubmission_ids where Fileid = '665a9626-4f3b-4e5b-b966-423825d0848a' 
 ,
 
 
@@ -77,20 +77,20 @@ resubmission_ids as
 null_fileid_decision_records as
 (
 select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts , SubmissionEventId, SubmissionId
- from rpd.SubmissionEvents where type = 'RegulatorRegistrationDecision'
+ from rpd.SubmissionEvents where type = 'RegulatorRegistrationDecision' 
  and fileid is null
  ),
  all_submitted_records as
  (
  select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts, SubmissionEventId, SubmissionId, fileid
- from rpd.SubmissionEvents where type = 'Submitted'
+ from rpd.SubmissionEvents where type = 'Submitted' 
  ),
 rank_list as
 (
  select D.SubmissionId, D.SubmissionEventId/*, D.Created_ts, S.Created_ts*/, S.fileid as fileid_new
 	, row_number() over(partition by D.SubmissionId, D.SubmissionEventId order by S.Created_ts desc) as RN
  from null_fileid_decision_records D
- inner join all_submitted_records S
+ inner join all_submitted_records S 
 	on D.SubmissionId = S.SubmissionId
 		and D.Created_ts >= S.Created_ts
 ),
@@ -111,7 +111,7 @@ resubmission_list_A as
 (
 	select SE.SubmissionId, 1 as IsResubmitted, min(CONVERT(DATETIME,substring(SE.Created,1,23))) as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
 	and SE.IsResubmission = 1
 	group by SE.SubmissionId
@@ -120,32 +120,32 @@ submission_list_A as
 (
 	select SE.SubmissionId, 0 as IsResubmitted, NULL as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
-	and SE.SubmissionId not in
+	and SE.SubmissionId not in 
 		(
 			select SubmissionId from resubmission_list_A
 		)
 ),
-combined_list_A as
+combined_list_A as 
 (
 	select * from resubmission_list_A
-	union
+	union 
 	select * from submission_list_A
 ),
 null_fileid_decision_records_A as
 (
 	select CONVERT(DATETIME,substring(se.Created,1,23)) as Created_ts , se.SubmissionEventId, se.SubmissionId
-	 from rpd.SubmissionEvents se
+	 from rpd.SubmissionEvents se   
 	 inner join combined_list_A cl on cl.SubmissionId = se.SubmissionId
 	 where se.type = 'RegulatorRegistrationDecision'
 			and
 			(
-				cl.IsResubmitted = 0
-				or
+				cl.IsResubmitted = 0 
+				or 
 					(
-						cl.IsResubmitted = 1
-						and
+						cl.IsResubmitted = 1 
+						and 
 						CONVERT(DATETIME,substring(se.Created,1,23)) < cl.first_resub_ts
 					)
 			)
@@ -155,14 +155,14 @@ null_fileid_decision_records_A as
  all_submitted_records_A as
  (
  select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts, SubmissionEventId, SubmissionId, fileid
- from rpd.SubmissionEvents where type = 'Submitted' and ISNULL(IsResubmission,0) = 0
+ from rpd.SubmissionEvents where type = 'Submitted' and ISNULL(IsResubmission,0) = 0 
  ),
 rank_list_A as
 (
  select D.SubmissionId, D.SubmissionEventId/*, D.Created_ts, S.Created_ts*/, S.fileid as fileid_new
 	, row_number() over(partition by D.SubmissionId, D.SubmissionEventId order by S.Created_ts desc) as RN
  from null_fileid_decision_records_A D
- inner join all_submitted_records_A S
+ inner join all_submitted_records_A S 
 	on D.SubmissionId = S.SubmissionId
 		and D.Created_ts >= S.Created_ts
 ),
@@ -177,7 +177,7 @@ resubmission_list_B as
 (
 	select SE.SubmissionId, 1 as IsResubmitted, min(CONVERT(DATETIME,substring(SE.Created,1,23))) as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
 	and SE.IsResubmission = 1
 	group by SE.SubmissionId
@@ -186,33 +186,33 @@ submission_list_B as
 (
 	select SE.SubmissionId, 0 as IsResubmitted, NULL as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
-	and SE.SubmissionId not in
+	and SE.SubmissionId not in 
 		(
 			select SubmissionId from resubmission_list_B
 		)
 ),
-combined_list_B as
+combined_list_B as 
 (
 	select * from resubmission_list_B
-	union
+	union 
 	select * from submission_list_B
 ),
 null_fileid_decision_records_B as
 (
 	select CONVERT(DATETIME,substring(se.Created,1,23)) as Created_ts , se.SubmissionEventId, se.SubmissionId
-	 from rpd.SubmissionEvents se
+	 from rpd.SubmissionEvents se   
 	 inner join combined_list_B cl on cl.SubmissionId = se.SubmissionId
 	 where se.type = 'RegulatorRegistrationDecision'
 			and se.Decision = 'Cancelled'
 			and
 			(
-				--cl.IsResubmitted = 0
-				--or
+				--cl.IsResubmitted = 0 
+				--or 
 					(
-						cl.IsResubmitted = 1
-						and
+						cl.IsResubmitted = 1 
+						and 
 						CONVERT(DATETIME,substring(se.Created,1,23)) >= cl.first_resub_ts
 					)
 			)
@@ -222,14 +222,14 @@ null_fileid_decision_records_B as
  all_submitted_records_B as
  (
  select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts, SubmissionEventId, SubmissionId, fileid
- from rpd.SubmissionEvents where type = 'Submitted' and ISNULL(IsResubmission,0) = 0
+ from rpd.SubmissionEvents where type = 'Submitted' and ISNULL(IsResubmission,0) = 0 
  ),
 rank_list_B as
 (
  select D.SubmissionId, D.SubmissionEventId/*, D.Created_ts, S.Created_ts*/, S.fileid as fileid_new
 	, row_number() over(partition by D.SubmissionId, D.SubmissionEventId order by S.Created_ts asc) as RN
  from null_fileid_decision_records_B D
- inner join all_submitted_records_B S
+ inner join all_submitted_records_B S 
 	on D.SubmissionId = S.SubmissionId
 		--and D.Created_ts >= S.Created_ts
 ),
@@ -244,7 +244,7 @@ resubmission_list_C as
 (
 	select SE.SubmissionId, 1 as IsResubmitted, min(CONVERT(DATETIME,substring(SE.Created,1,23))) as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
 	and SE.IsResubmission = 1
 	group by SE.SubmissionId
@@ -253,33 +253,33 @@ submission_list_C as
 (
 	select SE.SubmissionId, 0 as IsResubmitted, NULL as first_resub_ts
 	from rpd.submissions S
-	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId
+	inner join rpd.SubmissionEvents SE on S.SubmissionId = SE.SubmissionId 
 	where S.SubmissionType = 'Registration'
-	and SE.SubmissionId not in
+	and SE.SubmissionId not in 
 		(
 			select SubmissionId from resubmission_list_C
 		)
 ),
-combined_list_C as
+combined_list_C as 
 (
 	select * from resubmission_list_C
-	union
+	union 
 	select * from submission_list_C
 ),
 null_fileid_decision_records_C as
 (
 	select CONVERT(DATETIME,substring(se.Created,1,23)) as Created_ts , se.SubmissionEventId, se.SubmissionId
-	 from rpd.SubmissionEvents se
+	 from rpd.SubmissionEvents se   
 	 inner join combined_list_C cl on cl.SubmissionId = se.SubmissionId
 	 where se.type = 'RegulatorRegistrationDecision'
 			and se.Decision <> 'Cancelled'
 			and
 			(
-				--cl.IsResubmitted = 0
-				--or
+				--cl.IsResubmitted = 0 
+				--or 
 					(
-						cl.IsResubmitted = 1
-						and
+						cl.IsResubmitted = 1 
+						and 
 						CONVERT(DATETIME,substring(se.Created,1,23)) >= cl.first_resub_ts
 					)
 			)
@@ -289,14 +289,14 @@ null_fileid_decision_records_C as
  all_submitted_records_C as
  (
  select CONVERT(DATETIME,substring(Created,1,23)) as Created_ts, SubmissionEventId, SubmissionId, fileid
- from rpd.SubmissionEvents where type = 'Submitted'
+ from rpd.SubmissionEvents where type = 'Submitted'  
  ),
 rank_list_C as
 (
  select D.SubmissionId, D.SubmissionEventId/*, D.Created_ts, S.Created_ts*/, S.fileid as fileid_new
 	, row_number() over(partition by D.SubmissionId, D.SubmissionEventId order by S.Created_ts desc) as RN
  from null_fileid_decision_records_C D
- inner join all_submitted_records_C S
+ inner join all_submitted_records_C S 
 	on D.SubmissionId = S.SubmissionId
 		and D.Created_ts >= S.Created_ts
 ),
@@ -308,10 +308,10 @@ select distinct * from rank_list_C where RN = 1
 --SET A + B
 final_result_set as
 (
-select * from final_result_set_A
-union
+select * from final_result_set_A 
+union 
 select * from final_result_set_B
-union
+union 
 select * from final_result_set_C
 ),
 SubmissionEvents_updated as
@@ -340,10 +340,10 @@ get_all_RegistrationApplicationSubmitted as
 		, app_sub.ApplicationReferenceNumber
 		, row_number() over(partition by app_sub.SubmissionId, app_sub.SubmissionEventId order by sub.Submitted_ts desc) as RN
 	From rpd.SubmissionEvents app_sub
-		 inner join submitted_Fileids sub
+		 inner join submitted_Fileids sub 
 			on sub.SubmissionId_of_submitted_record = app_sub.SubmissionId
-				and CONVERT(DATETIME,substring(app_sub.Created,1,23)) >= sub.Submitted_ts
-	where app_sub.Type in ('RegistrationApplicationSubmitted','PackagingResubmissionApplicationSubmitted')
+				and CONVERT(DATETIME,substring(app_sub.Created,1,23)) >= sub.Submitted_ts 
+	where app_sub.Type in ('RegistrationApplicationSubmitted','PackagingResubmissionApplicationSubmitted') 
 ),
 top_matching_og_get_all_RegistrationApplicationSubmitted as
 (
@@ -354,7 +354,7 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 		select distinct
 				 cfm.[SubmissionId]
 				,cfm.[RegistrationSetId]
-				,cfm.[OrganisationId]
+				,cfm.[OrganisationId]   
 				,cfm.[FileName]
 				,cfm.[FileType]
 				,cfm.[OriginalFileName]
@@ -376,8 +376,8 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 				, se.Comments as Regulator_Rejection_Comments
 				, '' as RejectionComments
 
-				, case when se.[Type] is null
-							and SubmissionEventId_of_application_submitted_record is not null
+				, case when se.[Type] is null 
+							and SubmissionEventId_of_application_submitted_record is not null 
 							then 'RegistrationApplicationSubmitted'
 						when se.[Type] is null
 							and sfs.SubmissionEventId_of_submitted_record is not null
@@ -391,13 +391,13 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 					   when Right(dbo.udf_DQ_SubmissionPeriod(s.SubmissionPeriod),4) < 2025 then 1
 						else NULL
 						end
-					as RegistrationType
+					as RegistrationType 
 				,s.SubmissionPeriod
 				, coalesce(app_submitted.ApplicationReferenceNumber,se.AppReferenceNumber) as ApplicationReferenceNo
 				, se.registrationreferencenumber
 				--Supporting columns
 				, se.Decision as Original_Regulator_Status
-
+     
 				,s.SubmissionType
 				, ISNULL(rid.IsResubmission_identifier,0) as IsResubmission_identifier
 				, ISNULL(rpl.POM_resubmission_identifier,0) as Is_resubmitted_POM_identifier
@@ -406,16 +406,16 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 				, se.fileid_new
 				, sfs.submitted_Fileid
 				, sfs.SubmissionEventId_of_submitted_record
-				, app_submitted.app_submitted_Fileid
+				, app_submitted.app_submitted_Fileid 
 				, app_submitted.SubmissionEventId_of_application_submitted_record
 
 		From rpd.cosmos_file_metadata cfm
 		inner join rpd.Submissions s on s.SubmissionId = cfm.SubmissionId
 		left Join
 			SubmissionEvents_updated		se
-				on cfm.FileId = ISNULL(se.FileId,se.fileid_new)
+				on cfm.FileId = ISNULL(se.FileId,se.fileid_new) 
 					and se.[type] in ('RegulatorPoMDecision', 'RegulatorRegistrationDecision')
-		left join resubmission_ids rid on cfm.fileid = rid.fileid
+		left join resubmission_ids rid on cfm.fileid = rid.fileid 
 		left join submitted_Fileids sfs on sfs.submitted_Fileid = cfm.fileid
 		left join top_matching_og_get_all_RegistrationApplicationSubmitted app_submitted on app_submitted.app_submitted_Fileid = cfm.fileid
 		Left Join [rpd].[Users] u on se.[Userid] = u.[userid] and u.[isdeleted] = 0
@@ -426,13 +426,13 @@ top_matching_og_get_all_RegistrationApplicationSubmitted as
 
 rank_on_res as
 (
-select
+select  
 	 *
 	 ,row_number() over(partition by cfm_FileId order by Decision_Date desc, Created desc) as RowNumber
 from res
 ),
 
-cd_pom_result as
+cd_pom_result as 
 (
 	select * From rank_on_res where RowNumber = 1
 ),
