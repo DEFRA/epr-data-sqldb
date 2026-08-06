@@ -17,7 +17,7 @@
     [UserId]                                            NVARCHAR (4000) NULL,
     [RowNumber]                                         BIGINT          NULL,
     [Created]                                           NVARCHAR (4000) NULL,
-    [CreatedDateTime]                                   DATETIME        NULL,
+    [CreatedDateTime]                                   DATETIME2 (7)   NULL,
     [Application_submitted_ts]                          NVARCHAR (4000) NULL,
     [RegistrationType]                                  INT             NULL,
     [SubmissionPeriod]                                  NVARCHAR (4000) NULL,
