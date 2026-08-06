@@ -555,6 +555,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 				[FileType] [nvarchar](4000) NULL,
 				[OriginalFileName] [nvarchar](4000) NULL,
 				[TargetDirectoryName] [nvarchar](4000) NULL,
+				[ComplianceSchemeId] [nvarchar](4000) NULL,
 				[Decision_Date] [nvarchar](4000) NULL,
 				[Regulator_Status] [nvarchar](4000) NULL,
 				[RegulatorDecision] [varchar](1) NOT NULL,
@@ -565,9 +566,11 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 				[UserId] [nvarchar](4000) NULL,
 				[RowNumber] [bigint] NULL,
 				[Created] [nvarchar](4000) NULL,
+				[CreatedDateTime] [datetime2](7) NULL,
 				[Application_submitted_ts] [nvarchar](4000) NULL,
 				[RegistrationType] [int] NULL,
 				[SubmissionPeriod] [nvarchar](4000) NULL,
+				[SubmissionPeriodYear] [int] NULL,
 				[ApplicationReferenceNo] [nvarchar](4000) NULL,
 				[registrationreferencenumber] [nvarchar](4000) NULL,
 				[Original_Regulator_Status] [nvarchar](4000) NULL,
@@ -618,6 +621,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 						Target.FileType = Source.FileType,
 						Target.OriginalFileName = Source.OriginalFileName,
 						Target.TargetDirectoryName = Source.TargetDirectoryName,
+						Target.ComplianceSchemeId = Source.ComplianceSchemeId,
 						Target.Decision_Date = Source.Decision_Date,
 						Target.Regulator_Status = Source.Regulator_Status,
 						Target.RegulatorDecision = Source.RegulatorDecision,
@@ -628,9 +632,11 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 						Target.UserId = Source.UserId,
 						Target.RowNumber = Source.RowNumber,
 						Target.Created = Source.Created,
+						Target.CreatedDateTime = Source.CreatedDateTime,
 						Target.Application_submitted_ts = Source.Application_submitted_ts,
 						Target.RegistrationType = Source.RegistrationType,
 						Target.SubmissionPeriod = Source.SubmissionPeriod,
+						Target.SubmissionPeriodYear = Source.SubmissionPeriodYear,
 						Target.ApplicationReferenceNo = Source.ApplicationReferenceNo,
 						Target.registrationreferencenumber = Source.registrationreferencenumber,
 						Target.Original_Regulator_Status = Source.Original_Regulator_Status,
@@ -652,6 +658,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 								   ,[FileType]
 								   ,[OriginalFileName]
 								   ,[TargetDirectoryName]
+								   ,[ComplianceSchemeId]
 								   ,[Decision_Date]
 								   ,[Regulator_Status]
 								   ,[RegulatorDecision]
@@ -662,9 +669,11 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 								   ,[UserId]
 								   ,[RowNumber]
 								   ,[Created]
+								   ,[CreatedDateTime]
 								   ,[Application_submitted_ts]
 								   ,[RegistrationType]
 								   ,[SubmissionPeriod]
+								   ,[SubmissionPeriodYear]
 								   ,[ApplicationReferenceNo]
 								   ,[registrationreferencenumber]
 								   ,[Original_Regulator_Status]
@@ -686,6 +695,7 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 								   ,Source.[FileType]
 								   ,Source.[OriginalFileName]
 								   ,Source.[TargetDirectoryName]
+								   ,Source.[ComplianceSchemeId]
 								   ,Source.[Decision_Date]
 								   ,Source.[Regulator_Status]
 								   ,Source.[RegulatorDecision]
@@ -696,9 +706,11 @@ select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
 								   ,Source.[UserId]
 								   ,Source.[RowNumber]
 								   ,Source.[Created]
+								   ,Source.[CreatedDateTime]
 								   ,Source.[Application_submitted_ts]
 								   ,Source.[RegistrationType]
 								   ,Source.[SubmissionPeriod]
+								   ,Source.[SubmissionPeriodYear]
 								   ,Source.[ApplicationReferenceNo]
 								   ,Source.[registrationreferencenumber]
 								   ,Source.[Original_Regulator_Status]
