@@ -27,31 +27,28 @@ BEGIN
         , cd.organisation_id
         --ST004 Updated logic to determine the latest accepted file submission with data for a given organisation
         , row_number() over(
-            partition by cd.organisation_id, coalesce(cfm.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
-            order by sofs.created desc
+            partition by cd.organisation_id, coalesce(sofs.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
+            order by sofs.CreatedDateTime desc
         ) as latest_producer_accepted_record_per_SP
-        , Right(sofs.SubmissionPeriod, 4) as Submission_Period_Year
+        , sofs.SubmissionPeriodYear as Submission_Period_Year
         FROM rpd.CompanyDetails cd
         INNER JOIN rpd.Organisations o
-          on  o.ReferenceNumber = cd.organisation_id
+          on  o.ReferenceNumber    = cd.organisation_id
           --Excluding soft deleted organisations
-          AND o.IsDeleted      = 0
+          AND o.IsDeleted          = 0
           --ST006 Restricting here to Large orgs with a name, pushed up from the old Latest_Org_Data_Selection join
           --so we don't need to re-join CompanyDetails later just to apply this filter
           AND cd.Organisation_size = 'L'
           AND cd.organisation_name IS NOT NULL
           -- Only considering Granted files--
           INNER JOIN dbo.t_submitted_pom_org_file_status sofs
-            ON sofs.filetype          = 'CompanyDetails'
+            ON  sofs.filetype             =  'CompanyDetails'
+            AND sofs.FileName             =  cd.FileName
             --ST007 Added Accepted Status to cater for resubmission registration files
-            AND sofs.Regulator_Status IN ('Granted','Accepted')
+            AND sofs.Regulator_Status     IN ('Granted','Accepted')
             --ST003 Restricting the extraction to just Registration files (Excluding older Org type files)
-            AND Right(sofs.SubmissionPeriod, 4) > 2024
-            AND TRY_CONVERT(DATETIME, SUBSTRING(sofs.Created, 1, 23)) <= @CutOffDate
-          -- cosmos_file_metadata join needed for complianceScheme (everything else is exported on t_submitted_pom_org_file_status)
-          INNER JOIN rpd.cosmos_file_metadata cfm
-            on  cfm.FileName = cd.FileName
-            AND cfm.fileid   = sofs.cfm_fileid
+            AND sofs.SubmissionPeriodYear >  2024
+            AND sofs.CreatedDateTime      <= @CutOffDate
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
@@ -66,11 +63,11 @@ BEGIN
         , sofs.submissionperiod as submission_period_desc
         --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
         , row_number() over(
-            partition by p.organisation_id, coalesce(cfm.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
-            order by sofs.created desc
+            partition by p.organisation_id, coalesce(sofs.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
+            order by sofs.CreatedDateTime desc
         ) as latest_producer_accepted_record_per_SP
-        , Right(sofs.SubmissionPeriod, 4) as Submission_Period_Year
-        , coalesce(cfm.ComplianceSchemeId, o.ExternalId) as submitter_id
+        , sofs.SubmissionPeriodYear as Submission_Period_Year
+        , coalesce(sofs.ComplianceSchemeId, o.ExternalId) as submitter_id
         FROM rpd.Pom p
         INNER JOIN rpd.Organisations o
           on  o.ReferenceNumber = p.organisation_id
@@ -78,12 +75,10 @@ BEGIN
           AND o.IsDeleted = 0
           --Restricting to just accepted pom files
         INNER JOIN dbo.t_submitted_pom_org_file_status sofs
-          ON  sofs.filetype         = 'Pom'
-          AND sofs.Regulator_Status = 'Accepted'
-          AND TRY_CONVERT(DATETIME, SUBSTRING(sofs.Created, 1, 23)) <= @CutOffDate
-        INNER JOIN rpd.cosmos_file_metadata cfm
-          ON  cfm.FileName = p.FileName
-          AND cfm.fileid   = sofs.cfm_fileid
+          ON  sofs.filetype         =  'Pom'
+          AND sofs.FileName         =  p.FileName
+          AND sofs.Regulator_Status =  'Accepted'
+          AND sofs.CreatedDateTime  <= @CutOffDate
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
@@ -164,18 +159,18 @@ BEGIN
       AND lap.organisation_id = p.organisation_id
     -- ST006 Join to latest registration data to ensure a registration is present for the associated pom data
     INNER JOIN Latest_Org_Data_Selection lods
-    ON  lods.organisation_id                = p.organisation_id
-    -- Additional criteria on the join to ensure the match is at a submission period year level
-    AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
+      ON  lods.organisation_id                = p.organisation_id
+      -- Additional criteria on the join to ensure the match is at a submission period year level
+      AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
     WHERE (
       p.packaging_type IN ('HH','CW','PB')
       -- HDC packaging_type - specifically restricted to just GL (Glass) materials--
       or (p.packaging_type = 'HDC' and p.packaging_material = 'GL')
     )
-    and p.organisation_size = 'L'
-    AND (p.to_country IS NULL OR trim(p.to_country) = '')
-    AND p.organisation_id IS NOT NULL
-    AND LEFT(p.submission_period,4) = (@RelativeYear - 1)
+      and p.organisation_size = 'L'
+      AND (p.to_country IS NULL OR trim(p.to_country) = '')
+      AND p.organisation_id IS NOT NULL
+      AND LEFT(p.submission_period,4) = (@RelativeYear - 1)
 
   END
 

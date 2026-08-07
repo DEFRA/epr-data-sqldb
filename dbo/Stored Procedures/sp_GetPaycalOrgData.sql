@@ -32,23 +32,21 @@ BEGIN
         , NULLIF(p.subsidiary_id, '') AS subsidiary_id
         , p.submission_period
         , ROW_NUMBER() OVER (
-            PARTITION BY p.organisation_id, p.subsidiary_id, COALESCE(cfm.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
-            ORDER BY sofs.created DESC
+            PARTITION BY p.organisation_id, p.subsidiary_id, COALESCE(sofs.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
+            ORDER BY sofs.CreatedDateTime DESC
           ) AS latest_producer_accepted_record_per_SP
-        , CAST(RIGHT(sofs.SubmissionPeriod, 4) AS INT) AS submission_period_year
-        , COALESCE(cfm.ComplianceSchemeId, o.ExternalId) AS submitter_id
+        , sofs.SubmissionPeriodYear AS submission_period_year
+        , COALESCE(sofs.ComplianceSchemeId, o.ExternalId) AS submitter_id
         FROM rpd.Pom p
         INNER JOIN rpd.Organisations o
-          ON  o.ReferenceNumber = p.organisation_id
-          AND o.IsDeleted       = 0
+          ON  o.ReferenceNumber         = p.organisation_id
+          AND o.IsDeleted               = 0
         INNER JOIN dbo.t_submitted_pom_org_file_status sofs
-          ON  sofs.filetype         = 'Pom'
-          AND sofs.Regulator_Status = 'Accepted'
-					AND CAST(RIGHT(sofs.SubmissionPeriod, 4) AS INT) = @RelativeYear - 1
-					AND TRY_CONVERT(DATETIME, SUBSTRING(sofs.Created, 1, 23)) <= @CutOffDate
-        INNER JOIN rpd.cosmos_file_metadata cfm
-          ON  cfm.FileName = p.FileName
-          AND cfm.fileid   = sofs.cfm_fileid
+          ON  sofs.filetype             =  'Pom'
+          AND sofs.FileName             =  p.FileName
+          AND sofs.Regulator_Status     =  'Accepted'
+          AND sofs.SubmissionPeriodYear =  @RelativeYear - 1
+          AND sofs.CreatedDateTime      <= @CutOffDate
       ) a
       WHERE a.latest_producer_accepted_record_per_SP = 1
     ),
@@ -94,7 +92,7 @@ BEGIN
       , CAST(COALESCE(opf.has_h1, 0) AS BIT) AS has_h1
       , CAST(COALESCE(opf.has_h2, 0) AS BIT) AS has_h2
     FROM dbo.t_producer_obligation_determination ob
-		-- TODO apply @CutOffDate to t_producer_obligation_determination
+    -- TODO apply @CutOffDate to t_producer_obligation_determination
     LEFT JOIN organisation_period_flags opf
       ON  opf.organisation_id            = ob.organisation_id
       AND ISNULL(opf.subsidiary_id, '')  = ISNULL(ob.subsidiary_id, '')
