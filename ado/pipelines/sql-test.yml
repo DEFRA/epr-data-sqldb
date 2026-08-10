@@ -1,0 +1,117 @@
+# SQL scenario test pipeline (Azure DevOps).
+#
+# Primary/self repo : epr-data-sqldb (this repo) - hosts the deployable stored
+#                     procedure dbo.sp_producer_obligation_determination and
+#                     this pipeline.
+# Resource repo      : epr-data (Azure Repos) - hosts the Python test harness.
+#
+# The pipeline checks out both repos side by side, then runs the SQL scenario
+# suite: it executes this repo's stored procedure byte-for-byte against a real
+# SQL Server (via testcontainers) and asserts its output against the shared
+# scenario cases. Requires a Linux agent with a Docker daemon.
+#
+# Because the primary repo is GitHub, the CI (push) and PR triggers below are
+# delivered via the Azure Pipelines GitHub App - so this pipeline can validate
+# pull requests against the stored procedure, which a repository-resource
+# trigger cannot do.
+
+name: 'sql-test_$(Date:yyyyMMdd)$(Rev:.r)'
+
+trigger:
+  branches:
+    include:
+      - main
+      - ECV-*
+      - feature/*
+  paths:
+    include:
+      - 'dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+      - 'ado/pipelines/sql-test.yml'
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - 'dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+      - 'ado/pipelines/sql-test.yml'
+
+parameters:
+  - name: harnessBranch
+    displayName: 'epr-data (test harness) branch'
+    type: string
+    default: 'main'
+  - name: pythonVersion
+    displayName: 'Python version'
+    type: string
+    default: '3.12'
+  - name: agentPool
+    displayName: 'Agent pool (Linux, Docker required)'
+    type: string
+    default: 'DEFRA-COMMON-ubuntu2004-SSV3'
+
+resources:
+  repositories:
+    # Test harness. Azure Repos in this same ADO project, so a bare repo name
+    # works and no service connection (endpoint) is needed.
+    - repository: harnessRepo
+      type: git
+      name: epr-data
+      ref: refs/heads/${{ parameters.harnessBranch }}
+      trigger:
+        branches:
+          include:
+            - main
+            - ECV-*
+            - feature/*
+
+pool:
+  name: ${{ parameters.agentPool }}
+
+stages:
+  - stage: SqlScenarioTest
+    displayName: 'SQL Scenario Test'
+    jobs:
+      - job: run_sql_scenario_test
+        displayName: 'Run SQL scenario suite'
+        steps:
+          # This repo (the stored procedure) and the harness repo are checked out
+          # side by side under $(Build.SourcesDirectory). Explicit paths keep the
+          # layout deterministic:
+          #   $(System.DefaultWorkingDirectory)/epr-data-sqldb  <- stored procedure (self)
+          #   $(System.DefaultWorkingDirectory)/epr-data        <- harness
+          - checkout: self
+            path: s/epr-data-sqldb
+            clean: true
+            displayName: 'Checkout stored procedure (self)'
+          - checkout: harnessRepo
+            path: s/epr-data
+            clean: true
+            displayName: 'Checkout test harness (epr-data)'
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: ${{ parameters.pythonVersion }}
+              architecture: 'x64'
+            displayName: 'Install Python'
+
+          - script: |
+              set -e
+              make install
+            workingDirectory: $(System.DefaultWorkingDirectory)/epr-data/python/epr-obligation-determination
+            displayName: 'Install dependencies'
+
+          # SP_PROC_SQL_PATH points the harness at this repo's procedure, which it
+          # executes byte-for-byte against the SQL Server container.
+          - script: |
+              set -e
+              if ! docker info >/dev/null 2>&1; then
+                echo "##vso[task.logissue type=error]Docker daemon is not available on this agent. The SQL Server scenario test requires Docker to start mcr.microsoft.com/mssql/server via testcontainers."
+                exit 1
+              fi
+              make scenario-test selector="sql"
+            workingDirectory: $(System.DefaultWorkingDirectory)/epr-data/python/epr-obligation-determination
+            env:
+              SP_PROC_SQL_PATH: '$(System.DefaultWorkingDirectory)/epr-data-sqldb/dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+            displayName: 'SQL Server scenario test'
