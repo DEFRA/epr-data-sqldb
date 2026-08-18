@@ -1,8 +1,7 @@
-CREATE OR ALTER PROCEDURE dbo.ProducerObligationDetermination
+CREATE PROCEDURE dbo.ProducerObligationDetermination
     @cut_off_date DATETIME2 = NULL
 AS
 BEGIN
-    SET NOCOUNT ON;
 
 -- latest_accepted_registration_files: join source tables, deduplicate, keep most recent per org/submitter/year
 WITH larf_base AS (
