@@ -390,6 +390,6 @@
     <Build Include="dbo\Views\v_POM_Extract1_JC.sql" />
     <Build Include="dbo\Views\v_POM_Submissions_R8.sql" />
     <Build Include="dbo\Stored Procedures\sp_DP_Pom_Resubmitted_ByDPID.sql" />
-    <Build Include="dbo\Stored Procedures\sp_producer_obligation_determination.sql" />
+    <Build Include="dbo\Stored Procedures\sp_ProducerObligationDetermination.sql" />
   </ItemGroup>
 </Project>

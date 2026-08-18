@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE dbo.sp_producer_obligation_determination
+CREATE OR ALTER PROCEDURE dbo.ProducerObligationDetermination
     @cut_off_date DATETIME2 = NULL
 AS
 BEGIN
@@ -7,32 +7,29 @@ BEGIN
 -- latest_accepted_registration_files: join source tables, deduplicate, keep most recent per org/submitter/year
 WITH larf_base AS (
     SELECT DISTINCT
-        cfm.FileName,
+        cd.FileName,
         cd.organisation_id,
-        RIGHT(cfm.SubmissionPeriod, 4)                           AS submission_period_year,
-        COALESCE(cfm.ComplianceSchemeId, o.ExternalId)           AS submitter_id,
-        cfm.Created,
+        sofs.SubmissionPeriodYear                                AS submission_period_year,
+        COALESCE(sofs.ComplianceSchemeId, o.ExternalId)          AS submitter_id,
+        sofs.CreatedDateTime,
         sofs.Regulator_Status
     FROM rpd.CompanyDetails cd
     INNER JOIN rpd.Organisations o
         ON o.ReferenceNumber = cd.organisation_id
-    INNER JOIN rpd.cosmos_file_metadata cfm
-        ON cfm.FileName = cd.FileName
-    INNER JOIN dbo.v_submitted_pom_org_file_status sofs
-        ON sofs.cfm_fileid = cfm.FileId
-       AND sofs.filetype = 'CompanyDetails'
+    INNER JOIN dbo.t_submitted_pom_org_file_status sofs
+        ON sofs.FileName = cd.FileName
+       AND sofs.FileType = 'CompanyDetails'
        AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled')
     WHERE o.IsDeleted = 0
-      AND (@cut_off_date IS NULL
-           OR CAST(SUBSTRING(cfm.Created, 1, 23) AS DATETIME2) <= @cut_off_date)
+      AND (@cut_off_date IS NULL OR sofs.CreatedDateTime <= @cut_off_date)
 ),
 latest_accepted_registration_files AS (
-    SELECT FileName, organisation_id, submission_period_year, submitter_id, Created, Regulator_Status
+    SELECT FileName, organisation_id, submission_period_year, submitter_id, CreatedDateTime, Regulator_Status
     FROM (
         SELECT *,
             ROW_NUMBER() OVER (
                 PARTITION BY organisation_id, submitter_id, submission_period_year
-                ORDER BY CAST(SUBSTRING(Created, 1, 23) AS DATETIME2) DESC
+                ORDER BY CreatedDateTime DESC
             ) AS rn
         FROM larf_base
     ) t

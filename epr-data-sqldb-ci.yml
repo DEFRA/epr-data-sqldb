@@ -1,7 +1,7 @@
 # SQL scenario test pipeline (Azure DevOps).
 #
 # Primary/self repo : epr-data-sqldb (this repo) - hosts the deployable stored
-#                     procedure dbo.sp_producer_obligation_determination and
+#                     procedure dbo.ProducerObligationDetermination and
 #                     this pipeline.
 # Resource repo      : epr-data (Azure Repos) - hosts the Python test harness.
 #
