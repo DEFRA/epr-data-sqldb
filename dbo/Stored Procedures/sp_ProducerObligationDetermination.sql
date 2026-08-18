@@ -1,5 +1,5 @@
 CREATE PROCEDURE dbo.ProducerObligationDetermination
-    @cut_off_date DATETIME2 = NULL
+    @cut_off_date DATETIME2
 AS
 BEGIN
 
