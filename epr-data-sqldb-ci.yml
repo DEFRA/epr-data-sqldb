@@ -110,8 +110,8 @@ stages:
                 echo "##vso[task.logissue type=error]Docker daemon is not available on this agent. The SQL Server scenario test requires Docker to start mcr.microsoft.com/mssql/server via testcontainers."
                 exit 1
               fi
-              make scenario-test selector="sql"
+              make sql-test
             workingDirectory: $(System.DefaultWorkingDirectory)/epr-data/python/epr-obligation-determination
             env:
-              SP_PROC_SQL_PATH: '$(System.DefaultWorkingDirectory)/epr-data-sqldb/dbo/Stored Procedures/sp_producer_obligation_determination.sql'
+              SP_PROC_SQL_PATH: '$(System.DefaultWorkingDirectory)/epr-data-sqldb/dbo/Stored Procedures/sp_ProducerObligationDetermination.sql'
             displayName: 'SQL Server scenario test'
