@@ -1,7 +1,3 @@
-IF EXISTS (SELECT 1 FROM sys.procedures WHERE object_id = OBJECT_ID(N'[dbo].[sp_GetPaycalPomData]'))
-  DROP PROCEDURE [dbo].[sp_GetPaycalPomData];
-GO
-
 CREATE PROCEDURE [dbo].[sp_GetPaycalPomData]
   @RelativeYear INT
 , @CutOffDate DATETIME
