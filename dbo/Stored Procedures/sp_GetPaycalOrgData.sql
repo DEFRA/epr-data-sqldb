@@ -33,7 +33,7 @@ BEGIN
            AND sofs.FileType = 'CompanyDetails'
            AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled')
         WHERE o.IsDeleted = 0
-          AND (@CutOffDate IS NULL OR sofs.CreatedDateTime <= @CutOffDate)
+          AND sofs.CreatedDateTime <= @CutOffDate
     ),
     latest_accepted_registration_files AS (
         SELECT FileName, organisation_id, submission_period_year, submitter_id, CreatedDateTime, Regulator_Status
