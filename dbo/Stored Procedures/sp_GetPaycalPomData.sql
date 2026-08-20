@@ -4,6 +4,7 @@ CREATE PROCEDURE [dbo].[sp_GetPaycalPomData]
 AS
 BEGIN
   SET NOCOUNT ON;
+  SET @CutOffDate = ISNULL(@CutOffDate, '9999-12-31');   -- NULL = no cut-off (include everything)
 
   DECLARE @start_dt DATETIME;
   DECLARE @batch_id INT;
