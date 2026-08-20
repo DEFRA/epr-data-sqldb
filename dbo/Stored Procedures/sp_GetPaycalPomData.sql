@@ -75,6 +75,7 @@ BEGIN
           ON  sofs.filetype         =  'Pom'
           AND sofs.FileName         =  p.FileName
           AND sofs.Regulator_Status =  'Accepted'
+          AND sofs.SubmissionPeriodYear = @RelativeYear - 1
           AND sofs.CreatedDateTime  <= @CutOffDate
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
