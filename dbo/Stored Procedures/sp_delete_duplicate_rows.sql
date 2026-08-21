@@ -55,36 +55,18 @@ WITH RowsToDelete AS (
     [SubmissionId], [FileId], [UserId], [BlobName], [BlobContainerName], [FileType], [Created], [OriginalFileName], [RegistrationSetId], [OrganisationId], [DataSourceType], [SubmissionPeriod],
     [IsSubmitted], [SubmissionType], [ComplianceSchemeId], [TargetDirectoryName], [TargetContainerName], [SourceContainerName], [FileName],
     [load_ts],
-    ROW_NUMBER() OVER (PARTITION BY [FileName] ORDER BY created,[load_ts] DESC) AS rnk
+    ROW_NUMBER() OVER (PARTITION BY
+      [SubmissionId], [FileId], [UserId], [BlobName], [BlobContainerName], [FileType], [Created], [OriginalFileName],
+      [RegistrationSetId], [OrganisationId], [DataSourceType], [SubmissionPeriod], [IsSubmitted], [SubmissionType],
+      [ComplianceSchemeId], [TargetDirectoryName], [TargetContainerName], [SourceContainerName], [FileName]
+      ORDER BY [load_ts] DESC) AS rn
   FROM
     rpd.cosmos_file_metadata
 )
 
-DELETE a
-
-FROM  rpd.cosmos_file_metadata a
-left JOIN RowsToDelete b
-  ON isnull(a.[SubmissionId],'') = isnull(b.[SubmissionId],'')
-  AND isnull(a.[FileId],'') = isnull(b.[FileId],'')
-  AND isnull(a.[UserId],'') = isnull(b.[UserId],'')
-  AND isnull(a.[BlobName],'') = isnull(b.[BlobName],'')
-  AND isnull(a.[BlobContainerName],'') = isnull(b.[BlobContainerName],'')
-  AND isnull(a.[FileType] ,'')= isnull(b.[FileType],'')
-  AND isnull(a.[Created],'') = isnull(b.[Created],'')
-  AND isnull(a.[OriginalFileName],'') = isnull(b.[OriginalFileName],'')
-  AND isnull(a.[RegistrationSetId],'') = isnull(b.[RegistrationSetId],'')
-  AND isnull(a.[OrganisationId] ,'')= isnull(b.[OrganisationId],'')
-  AND isnull(a.[DataSourceType],'') = isnull(b.[DataSourceType],'')
-  AND isnull(a.[SubmissionPeriod],'') = isnull(b.[SubmissionPeriod],'')
-  AND isnull(a.[IsSubmitted],'') = isnull(b.[IsSubmitted],'')
-  AND isnull(a.[SubmissionType],'') = isnull(b.[SubmissionType],'')
-  AND isnull(a.[ComplianceSchemeId],'') = isnull(b.[ComplianceSchemeId],'')
-  AND isnull(a.[TargetDirectoryName],'') = isnull(b.[TargetDirectoryName],'')
-  AND isnull(a.[TargetContainerName],'') = isnull(b.[TargetContainerName],'')
-  AND isnull(a.[SourceContainerName],'') = isnull(b.[SourceContainerName],'')
-  AND isnull(a.[FileName],'') = isnull(b.[FileName],'')
-  AND isnull(a.[load_ts],'') = isnull(b.[load_ts],'')
-WHERE b.rnk > 1;
+DELETE
+FROM RowsToDelete
+WHERE rn > 1;
 
 
 
