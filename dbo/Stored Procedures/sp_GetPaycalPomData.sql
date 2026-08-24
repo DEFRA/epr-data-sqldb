@@ -4,7 +4,7 @@ CREATE PROCEDURE [dbo].[sp_GetPaycalPomData]
 AS
 BEGIN
   SET NOCOUNT ON;
-  SET @CutOffDate = ISNULL(@CutOffDate, '9999-12-31');   -- NULL = no cut-off (include everything)
+  SET @CutOffDate = ISNULL(@CutOffDate, '9999-12-31');
 
   DECLARE @start_dt DATETIME;
   DECLARE @batch_id INT;
@@ -15,14 +15,12 @@ BEGIN
   SET @start_dt = GETDATE();
 
   BEGIN
-    ----Find latest Registration file with data submitted for a given organisation--
-    --ST006
+
     WITH latest_accepted_registration AS (
       SELECT * FROM (
         SELECT
           sofs.filename
         , cd.organisation_id
-        --ST004 Updated logic to determine the latest accepted file submission with data for a given organisation
         , row_number() over(
             partition by cd.organisation_id, coalesce(sofs.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
             order by sofs.CreatedDateTime desc
@@ -31,26 +29,19 @@ BEGIN
         FROM rpd.CompanyDetails cd
         INNER JOIN rpd.Organisations o
           on  o.ReferenceNumber    = cd.organisation_id
-          --Excluding soft deleted organisations
           AND o.IsDeleted          = 0
-          --ST006 Restricting here to Large orgs with a name, pushed up from the old Latest_Org_Data_Selection join
-          --so we don't need to re-join CompanyDetails later just to apply this filter
           AND cd.Organisation_size = 'L'
           AND cd.organisation_name IS NOT NULL
-          -- Only considering Granted files--
           INNER JOIN dbo.t_submitted_pom_org_file_status sofs
             ON  sofs.filetype             =  'CompanyDetails'
             AND sofs.FileName             =  cd.FileName
-            --ST007 Added Accepted Status to cater for resubmission registration files
             AND sofs.Regulator_Status     IN ('Granted','Accepted')
-            --ST003 Restricting the extraction to just Registration files (Excluding older Org type files)
             AND sofs.SubmissionPeriodYear >  2024
             AND sofs.CreatedDateTime      <= @CutOffDate
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
 
-    ----Find latest POM file with data submitted for a given organisation--
     latest_accepted_pom AS (
       SELECT * FROM (
         SELECT
@@ -58,7 +49,6 @@ BEGIN
         , sofs.FileName
         , p.submission_period
         , sofs.submissionperiod as submission_period_desc
-        --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
         , row_number() over(
             partition by p.organisation_id, coalesce(sofs.ComplianceSchemeId, o.ExternalId), sofs.SubmissionPeriod
             order by sofs.CreatedDateTime desc
@@ -68,9 +58,7 @@ BEGIN
         FROM rpd.Pom p
         INNER JOIN rpd.Organisations o
           on  o.ReferenceNumber = p.organisation_id
-          --Excluding soft deleted organisations
           AND o.IsDeleted = 0
-          --Restricting to just accepted pom files
         INNER JOIN dbo.t_submitted_pom_org_file_status sofs
           ON  sofs.filetype         =  'Pom'
           AND sofs.FileName         =  p.FileName
@@ -81,22 +69,19 @@ BEGIN
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
 
-    -- Assign period flags for organisations
     organisation_period_flags AS (
       SELECT
         organisation_id
       , submitter_id
       , CAST(submission_period_year AS INT) AS submission_period_year
       , MAX(CASE
-              WHEN submission_period = '2024-P1' THEN 1
-              WHEN submission_period = '2024-P2' THEN 1
-              WHEN submission_period = '2024-P3' THEN 1
               WHEN CAST(submission_period_year AS INT) > 2024 AND RIGHT(submission_period, 3) = '-H1' THEN 1
+              WHEN submission_period in ('2024-P1', '2024-P2', '2024-P3') THEN 1
               ELSE 0
             END) AS has_h1
       , MAX(CASE
-              WHEN submission_period = '2024-P4' THEN 1
               WHEN CAST(submission_period_year AS INT) > 2024 AND RIGHT(submission_period, 3) = '-H2' THEN 1
+              WHEN submission_period = '2024-P4' THEN 1
               ELSE 0
             END) AS has_h2
       FROM latest_accepted_pom
@@ -106,7 +91,6 @@ BEGIN
       , submission_period_year
     ),
 
-    -- The following is to ensure we only consider orgs which have submitted two periods
     LatestAcceptedPomsWith2Period as (
       select pom.*
       from latest_accepted_pom pom
@@ -118,7 +102,6 @@ BEGIN
         and has_h2 = 1
     ),
 
-    --ST006
     Latest_Org_Data_Selection AS (
       SELECT DISTINCT
         cd.organisation_id
@@ -126,9 +109,6 @@ BEGIN
       FROM rpd.CompanyDetails cd
       INNER JOIN latest_accepted_registration lar
         ON  cd.filename          = lar.filename
-        --Ensuring this is kept at a per org level of extraction, otherwise we would extract all data from the file
-        --In latest_accepted_registration finding the latest file regardless of org size
-        --Restricting here to those records where the organisation size is Large
         AND cd.Organisation_size = 'L'
         AND lar.organisation_id  = cd.organisation_id
         AND cd.organisation_id   IS NOT NULL
@@ -155,14 +135,11 @@ BEGIN
     INNER JOIN LatestAcceptedPomsWith2Period lap
       ON  trim(p.FileName)    = trim(lap.FileName)
       AND lap.organisation_id = p.organisation_id
-    -- ST006 Join to latest registration data to ensure a registration is present for the associated pom data
     INNER JOIN Latest_Org_Data_Selection lods
       ON  lods.organisation_id                = p.organisation_id
-      -- Additional criteria on the join to ensure the match is at a submission period year level
       AND lods.Submission_Period_Year_minus_1 = lap.Submission_Period_Year
     WHERE (
       p.packaging_type IN ('HH','CW','PB')
-      -- HDC packaging_type - specifically restricted to just GL (Glass) materials--
       or (p.packaging_type = 'HDC' and p.packaging_material = 'GL')
     )
       and p.organisation_size = 'L'

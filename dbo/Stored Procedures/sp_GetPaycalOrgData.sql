@@ -311,15 +311,13 @@ BEGIN
       , submitter_id
       , submission_period_year
       , MAX(CASE
-              WHEN submission_period = '2024-P1' THEN 1
-              WHEN submission_period = '2024-P2' THEN 1
-              WHEN submission_period = '2024-P3' THEN 1
               WHEN CAST(submission_period_year AS INT) > 2024 AND RIGHT(submission_period, 3) = '-H1' THEN 1
+              WHEN submission_period in ('2024-P1', '2024-P2', '2024-P3') THEN 1
               ELSE 0
             END) AS has_h1
       , MAX(CASE
-              WHEN submission_period = '2024-P4' THEN 1
               WHEN CAST(submission_period_year AS INT) > 2024 AND RIGHT(submission_period, 3) = '-H2' THEN 1
+              WHEN submission_period = '2024-P4' THEN 1
               ELSE 0
             END) AS has_h2
       FROM latest_accepted_pom
