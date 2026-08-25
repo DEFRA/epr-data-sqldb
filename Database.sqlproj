@@ -356,6 +356,7 @@
     <Build Include="apps\Views\v_SubmissionsSummaries.sql" />
     <Build Include="dbo\Functions\fn_GetUploadedOrganisationDetails.sql" />
     <Build Include="dbo\Functions\fn_GetUploadedOrganisationDetails_resub.sql" />
+    <Build Include="dbo\Functions\fn_ProducerObligationDetermination.sql" />
     <Build Include="dbo\Stored Procedures\GetLastSyncTime.sql" />
     <Build Include="dbo\Stored Procedures\sp_CSO_Pom_Resubmitted_ByCSID.sql" />
     <Build Include="dbo\Stored Procedures\sp_CheckForCosmosData.sql" />
