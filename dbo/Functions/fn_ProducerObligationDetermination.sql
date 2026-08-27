@@ -23,7 +23,7 @@ WITH larf_base AS (
        AND sofs.FileType = 'CompanyDetails'
        AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled')
     WHERE o.IsDeleted = 0
-      AND (@cut_off_date IS NULL OR sofs.CreatedDateTime <= @cut_off_date)
+      AND (sofs.IsResubmission_identifier = 0 OR @cut_off_date IS NULL OR sofs.CreatedDateTime <= @cut_off_date)
 ),
 latest_accepted_registration_files AS (
     SELECT FileName, organisation_id, submission_period_year, submitter_id, CreatedDateTime, Regulator_Status

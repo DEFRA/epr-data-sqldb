@@ -44,7 +44,7 @@ BEGIN
           AND sofs.FileName             =  p.FileName
           AND sofs.Regulator_Status     =  'Accepted'
           AND sofs.SubmissionPeriodYear =  @RelativeYear - 1
-          AND sofs.CreatedDateTime      <= @CutOffDate
+          AND (sofs.Is_resubmitted_POM_identifier = 0 OR sofs.CreatedDateTime <= @CutOffDate)
       ) a
       WHERE a.latest_producer_accepted_record_per_SP = 1
     ),
