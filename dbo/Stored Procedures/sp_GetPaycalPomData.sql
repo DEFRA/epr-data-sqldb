@@ -39,7 +39,7 @@ BEGIN
             --ST007 Added Accepted Status to cater for resubmission registration files
             AND sofs.Regulator_Status     IN ('Granted','Accepted')
             AND sofs.SubmissionPeriodYear >  2024
-            AND sofs.CreatedDateTime      <= @CutOffDate
+            AND (sofs.IsResubmission_identifier = 0 OR sofs.CreatedDateTime <= @CutOffDate)
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
@@ -68,7 +68,7 @@ BEGIN
           AND sofs.FileName         =  p.FileName
           AND sofs.Regulator_Status =  'Accepted'
           AND sofs.SubmissionPeriodYear = @RelativeYear - 1
-          AND sofs.CreatedDateTime  <= @CutOffDate
+          AND (sofs.Is_resubmitted_POM_identifier = 0 OR sofs.CreatedDateTime <= @CutOffDate)
       ) a
       WHERE latest_producer_accepted_record_per_SP = 1
     ),
