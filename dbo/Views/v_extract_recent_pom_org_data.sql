@@ -104,7 +104,7 @@ ORG as
 			left join rpd.users u on u.USerId = cfm.UserId
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
-			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = cd.filename
+			left join [dbo].[t_submitted_pom_org_file_status] fs on fs.FileName = cd.filename
 		) A
 ),
 ORG_REJECTED_SUBMISSION_ONLY as --YM006
@@ -287,7 +287,7 @@ POM as
 			left join rpd.users u on u.USerId = cfm.UserId
 			left join rpd.persons p on p.UserId = u.id
 			left join rpd.Nations N on N.Id = cs.NationId
-			left join [dbo].[v_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
+			left join [dbo].[t_submitted_pom_org_file_status] fs on fs.FileName = pm.filename
 			where fs.Regulator_Status <> 'Uploaded' --YM007
 		) A
 ),
