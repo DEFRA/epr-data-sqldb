@@ -29,6 +29,7 @@ LatestAcceptedRegistrationFiles as (
     select distinct
         cfm.filename
       , cd.organisation_id
+      , sofs.Regulator_Status
       , right(dbo.udf_DQ_SubmissionPeriod(cfm.SubmissionPeriod), 4) as submission_period_year
       , cast(coalesce(cfm.ComplianceSchemeId, o.ExternalId) as uniqueidentifier) as submitter_id -- cast added for consistent case
       , case
@@ -54,11 +55,11 @@ LatestAcceptedRegistrationFiles as (
       inner join dbo.v_submitted_pom_org_file_status sofs
         on  sofs.cfm_fileid   = cfm.fileid
         and sofs.filetype     = 'CompanyDetails'
-        and sofs.Regulator_Status in ('Granted','Accepted')
+        and sofs.Regulator_Status in ('Granted','Accepted', 'Cancelled')
     left join rpd.ComplianceSchemes cs
       on cs.ExternalId        = cfm.ComplianceSchemeId
   ) a
-  where rn = 1
+  where rn = 1 and Regulator_Status <> 'Cancelled'
 ),
 LatestAcceptedRegistrations as (
   select
