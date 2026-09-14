@@ -135,9 +135,13 @@
     <Folder Include="apps\Stored Procedures\" />
     <Folder Include="apps\Tables\" />
     <Folder Include="apps\Views\" />
+    <Folder Include="cdp\" />
+    <Folder Include="cdp\Stored Procedures\" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\apps.sql" />
+    <Build Include="Security\cdp.sql" />
+    <Build Include="cdp\Stored Procedures\sp_GetPaycalPomDataByOrganisation.sql" />
     <Build Include="rpd\Tables\Users.sql" />
     <Build Include="rpd\Tables\Services.sql" />
     <Build Include="rpd\Tables\ServiceRoles.sql" />
