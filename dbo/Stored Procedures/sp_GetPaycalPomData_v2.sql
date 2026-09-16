@@ -1,4 +1,4 @@
-CREATE PROCEDURE [dbo].[sp_GetPaycalPomDataV2]
+CREATE PROCEDURE [dbo].[sp_GetPaycalPomData_v2]
   @RelativeYear INT
 AS
 BEGIN
