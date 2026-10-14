@@ -100,13 +100,6 @@ AS WITH
 			AND SubmissionStatus = 'Granted'
 		) t where RowNum = 1
 	)
-	,LatestDecisionCTE AS (
-		SELECT * FROM (
-			SELECT *, ROW_NUMBER() OVER (PARTITION BY SubmissionId ORDER BY DecisionDate DESC) AS RowNumber
-			FROM ReconciledSubmissionEvents
-			WHERE IsRegulatorDecision = 1 AND IsRegulatorResubmissionDecision = 0
-		) t WHERE RowNumber = 1
-	)
 	,ResubmissionCTE AS (
 		SELECT * FROM (
 			SELECT *, ROW_NUMBER() OVER (PARTITION BY SubmissionId ORDER BY DecisionDate DESC) AS RowNum
@@ -125,7 +118,7 @@ AS WITH
 		SELECT
 			s.SubmissionId,
 			CASE WHEN s.DecisionDate > id.DecisionDate THEN 'Pending'
-				 ELSE COALESCE(ld.SubmissionStatus, id.SubmissionStatus, reg.SubmissionStatus, 'Pending')
+				 ELSE COALESCE(id.SubmissionStatus, reg.SubmissionStatus, 'Pending')
 				 END AS SubmissionStatus,
 			CASE
 				WHEN r.SubmissionEventId IS NOT NULL AND rd.SubmissionEventId IS NOT NULL THEN rd.ResubmissionStatus
@@ -135,10 +128,10 @@ AS WITH
 			s.DecisionDate as SubmissionDate,
 			fs.DecisionDate as FirstSubmissionDate,
 			s.SubmissionEventId as ProducerSubmissionEventId,
-			COALESCE(reg.DecisionDate, ld.DecisionDate, id.DecisionDate) AS RegistrationDate,
+			COALESCE(reg.DecisionDate, id.DecisionDate) AS RegistrationDate,
 			id.SubmissionEventId AS SubmissionDecisionEventId,
-			COALESCE(ld.StatusPendingDate, id.StatusPendingDate) as StatusPendingDate,
-			COALESCE(ld.DecisionDate, reg.DecisionDate, id.DecisionDate) as RegulatorDecisionDate,
+			id.StatusPendingDate as StatusPendingDate,
+			COALESCE(id.DecisionDate, reg.DecisionDate) as RegulatorDecisionDate,
 			rd.DecisionDate AS ResubmissionDecisionDate,
 			rd.SubmissionEventId AS ResubmissionDecisionEventId,
 			r.DecisionDate as ResubmissionDate,
@@ -155,7 +148,6 @@ AS WITH
 		FROM InitialSubmissionCTE s
         LEFT JOIN FirstSubmissionCTE fs on fs.SubmissionId = s.SubmissionId
 		LEFT JOIN InitialDecisionCTE id ON id.SubmissionId = s.SubmissionId
-		LEFT JOIN LatestDecisionCTE ld ON ld.SubmissionId = s.SubmissionId
 		LEFT JOIN RegistrationDecisionCTE reg on reg.SubmissionId = s.SubmissionId
 		LEFT JOIN ResubmissionCTE r ON r.SubmissionId = s.SubmissionId
 		LEFT JOIN ResubmissionDecisionCTE rd ON rd.SubmissionId = r.SubmissionId AND rd.FileId = r.FileId
