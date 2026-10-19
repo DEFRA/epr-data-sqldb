@@ -393,5 +393,7 @@
     <Build Include="dbo\Stored Procedures\sp_DP_Pom_Resubmitted_ByDPID.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalOrgData_v2.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalPomData_v2.sql" />
+    <Build Include="dbo\Stored Procedures\sp_Refresh_CrossValidation_Static.sql" />
+    <Build Include="dbo\Stored Procedures\sp_Refresh_CrossValidation_Static_Run.sql" />
   </ItemGroup>
 </Project>
