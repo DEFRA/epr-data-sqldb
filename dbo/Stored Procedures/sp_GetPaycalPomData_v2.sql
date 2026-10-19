@@ -49,6 +49,7 @@ BEGIN
                 , p.packaging_material_weight
                 , p.ram_rag_rating
                 , p.packaging_material_subtype
+                , p.organisation_size
                 , cpf.submission_period_desc
                 , cpf.submitter_id
                 , cpf.FileName AS file_name
@@ -58,8 +59,7 @@ BEGIN
                 INNER JOIN candidate_pom_files cpf
                   ON  TRIM(p.FileName)    = TRIM(cpf.FileName)
                   AND cpf.organisation_id = p.organisation_id
-                WHERE p.organisation_size = 'L'
-                  AND (p.to_country IS NULL OR TRIM(p.to_country) = '')
+                WHERE (p.to_country IS NULL OR TRIM(p.to_country) = '')
                   AND p.organisation_id IS NOT NULL
                   AND LEFT(p.submission_period, 4) = (@RelativeYear - 1)
 

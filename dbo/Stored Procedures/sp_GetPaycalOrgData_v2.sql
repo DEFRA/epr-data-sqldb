@@ -44,6 +44,7 @@ BEGIN
                     cd.leaver_code AS status_code,
                     cd.joiner_date,
                     cd.leaver_date,
+                    cd.organisation_size,
                     crf.submission_period_year,
                     crf.Regulator_Status AS regulator_status,
                     crf.CreatedDateTime AS created_date_time,
@@ -52,8 +53,7 @@ BEGIN
                 INNER JOIN rpd.CompanyDetails cd
                     ON  cd.organisation_id = crf.organisation_id
                     AND cd.FileName = crf.FileName
-                WHERE cd.organisation_size = 'L'
-                  AND cd.organisation_id IS NOT NULL
+                WHERE cd.organisation_id IS NOT NULL
                   AND cd.organisation_name IS NOT NULL
                   AND crf.submission_period_year = @RelativeYear;
 
