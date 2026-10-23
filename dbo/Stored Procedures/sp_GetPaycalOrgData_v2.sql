@@ -30,7 +30,7 @@ BEGIN
                     INNER JOIN dbo.t_submitted_pom_org_file_status sofs
                         ON sofs.FileName = cd.FileName
                        AND sofs.FileType = 'CompanyDetails'
-                       AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled')
+                       AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled', 'Pending')
                     WHERE o.IsDeleted = 0
                 )
                 -- Main selection of data: join back to CompanyDetails, filter to large orgs.
