@@ -1,11 +1,4 @@
 CREATE VIEW [dbo].[v_Compliance_Report] AS WITH reg_submissions AS (
-/*
-History:
-Updated 2025-10-29: ST001: 623983: Added this history log. Now utilising t_submitted_pom_org_file_status rather than view for performance increase,
-likewise utilising t_PRN_Recycling_Obligation_stat_Count rather than view as view with changes required was causing this to hang indefinitely.
-*/
----------------------------------------------------
-/*Returns information about registration files*/
     SELECT
 		cfm.organisationid,
 		cd.organisation_id,
