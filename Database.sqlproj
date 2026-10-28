@@ -366,6 +366,7 @@
     <Build Include="dbo\Stored Procedures\sp_FilterAndPaginateOrganisationRegistrationSummaries_resub.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissions.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissionsMyc.sql" />
+    <Build Include="dbo\Stored Procedures\sp_GetApprovedSubmissionsMycWithObligations.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalOrgData.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalPomData.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetRegistrationFeeCalculationDetails.sql" />
