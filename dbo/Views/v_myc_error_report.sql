@@ -169,6 +169,28 @@ LatestAcceptedPoms as (
   where a.rn = 1
 ),
 
+-- Household flag: true if any accepted pom row for the producer/submitter/year
+-- has a household packaging type
+PomHouseholdFlags as (
+  select
+    lap.organisation_id
+  , lap.subsidiary_id
+  , lap.submitter_id
+  , lap.submission_period_year
+  , cast(max(case when trim(p.packaging_type) in ('HH', 'PB', 'HDC') then 1 else 0 end) as bit) as is_household
+  from LatestAcceptedPoms as lap
+  inner join rpd.Pom as p
+    on  p.FileName                                    = lap.FileName
+    and p.organisation_id                             = lap.organisation_id
+    and coalesce(nullif(trim(p.subsidiary_id), ''), '') = lap.subsidiary_id
+    and p.submission_period                           = lap.submission_period
+  group by
+    lap.organisation_id
+  , lap.subsidiary_id
+  , lap.submitter_id
+  , lap.submission_period_year
+),
+
 --
 -- PART 3
 -- Collect the errors
@@ -329,14 +351,26 @@ ObligationMismatch as (
   , reg.leaver_code
   , reg.error_code
   , reg.accepted_date
+),
+
+AllErrors as (
+  select * from MissingRegistrations
+  union
+  select * from MissingPoms
+  union
+  select * from MissingPoms2024P1P2P3
+  union
+  select * from RegistrationErrors
+  union
+  select * from ObligationMismatch
 )
 
-select * from MissingRegistrations
-union
-select * from MissingPoms
-union
-select * from MissingPoms2024P1P2P3
-union
-select * from RegistrationErrors
-union
-select * from ObligationMismatch;
+select
+  err.*
+, hh.is_household -- null when there is no corresponding pom data
+from AllErrors as err
+left join PomHouseholdFlags as hh
+  on  hh.organisation_id        = err.organisation_id
+  and hh.subsidiary_id          = err.subsidiary_id
+  and hh.submitter_id           = err.submitter_id
+  and hh.submission_period_year = err.relevant_year - 1;
