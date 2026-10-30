@@ -393,11 +393,5 @@
     <Build Include="dbo\Stored Procedures\sp_DP_Pom_Resubmitted_ByDPID.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalOrgData_v2.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalPomData_v2.sql" />
-    <Build Include="dbo\Views\v_CV_Static_AllProducers.sql" />
-    <Build Include="dbo\Views\v_CV_Static_ComplianceScheme.sql" />
-    <Build Include="dbo\Views\v_Compliance_Report.sql" />
-    <Build Include="dbo\Tables\t_CV_Static_AllProducers.sql" />
-    <Build Include="dbo\Tables\t_CV_Static_ComplianceScheme.sql" />
-
   </ItemGroup>
 </Project>
