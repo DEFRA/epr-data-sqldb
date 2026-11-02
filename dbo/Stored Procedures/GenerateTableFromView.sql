@@ -718,6 +718,60 @@ begin
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_registration_enrolled_not_registered', NULL, @start_dt, getdate(), 'Tab 24 - Completed',@batch_id
 
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 24, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 24, getdate()
+	end
+end
+
+--Table 25
+if (@recovery_checkpoint < 25)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_CV_Static_AllProducers', 'U') IS NOT NULL
+		BEGIN
+			TRUNCATE TABLE dbo.t_CV_Static_AllProducers;
+
+			INSERT INTO dbo.t_CV_Static_AllProducers
+			SELECT * FROM dbo.v_CV_Static_AllProducers;
+		END;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CV_Static_AllProducers', NULL, @start_dt, getdate(), 'Tab 25 - Completed',@batch_id
+
+	if exists (select 1 from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView')
+	begin
+		update [dbo].[tblCheckpoint] set [CheckPoint] = 25, [Timestamp] = getdate() where Module = 'GenerateTableFromView'
+	end
+	else
+	begin
+		insert into [dbo].[tblCheckpoint] ([Module], [CheckPoint], [Timestamp])
+		select 'GenerateTableFromView', 25, getdate()
+	end
+end
+
+--Table 26
+if (@recovery_checkpoint < 26)
+begin
+	set @start_dt = getdate()
+
+		IF OBJECT_ID('dbo.t_CV_Static_ComplianceScheme', 'U') IS NOT NULL
+		BEGIN
+			TRUNCATE TABLE dbo.t_CV_Static_ComplianceScheme;
+
+			INSERT INTO dbo.t_CV_Static_ComplianceScheme
+			SELECT * FROM dbo.v_CV_Static_ComplianceScheme;
+		END;
+
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CV_Static_ComplianceScheme', NULL, @start_dt, getdate(), 'Tab 26 - Completed',@batch_id
+
 	delete from [dbo].[tblCheckpoint] where Module = 'GenerateTableFromView'
 
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
@@ -725,7 +779,7 @@ begin
 end
 
 --Removing check point
-if (@recovery_checkpoint >= 25)
+if (@recovery_checkpoint >= 27)
 begin
 
 	set @start_dt = getdate()
@@ -833,5 +887,13 @@ end
 	select @cnt =count(1) from dbo.t_PRN_Recycling_Obligation_stat_Count;
 	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
 	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_PRN_Recycling_Obligation_stat_Count', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_CV_Static_AllProducers;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CV_Static_AllProducers', @cnt, NULL, getdate(), 'Completed',@batch_id
+
+	select @cnt =count(1) from dbo.t_CV_Static_ComplianceScheme;
+	INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
+	select (select ISNULL(max(id),1)+1 from [dbo].[batch_log]),'GenerateTableFromView','t_CV_Static_ComplianceScheme', @cnt, NULL, getdate(), 'Completed',@batch_id
 
 END;
