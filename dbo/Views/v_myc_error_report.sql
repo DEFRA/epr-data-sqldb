@@ -170,14 +170,21 @@ LatestAcceptedPoms as (
 ),
 
 -- Household flag: true if any accepted pom row for the producer/submitter/year
--- has a household packaging type
+-- has a household packaging type (HDC only counts for GL - Glass)
 PomHouseholdFlags as (
   select
     lap.organisation_id
   , lap.subsidiary_id
   , lap.submitter_id
   , lap.submission_period_year
-  , cast(max(case when trim(p.packaging_type) in ('HH', 'PB', 'HDC') then 1 else 0 end) as bit) as is_household
+  , cast(max(
+      case
+        when trim(p.packaging_type) in ('HH', 'PB')
+          or (trim(p.packaging_type) = 'HDC' and trim(p.packaging_material) = 'GL')
+        then 1
+        else 0
+      end
+    ) as bit) as is_household
   from LatestAcceptedPoms as lap
   inner join rpd.Pom as p
     on  p.FileName                                    = lap.FileName
