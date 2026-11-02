@@ -184,6 +184,8 @@ BEGIN
           select value as PackagingType from string_split(@IncludePackagingTypes, @Delimiter)
         ),
 
+        -- Joined on the raw organisation/subsidiary/submitter key with no tie-break: the snapshot holds at most one row
+        -- per key per year (no duplicates in any year as of 2 Nov 2026). If that ever changes, this join double-counts weight.
         RegistrationsWithObligations as (
           select
             organisation_id
@@ -198,32 +200,8 @@ BEGIN
           , obligation_status
           , num_days_obligated
           , error_code
-          , coalesce(subsidiary_id, cast(organisation_id as nvarchar(50))) as producer_id
           from dbo.t_producer_obligation_determination
           where submission_period_year = @RelevantYear
-        ),
-
-        -- SUB-410: one row per producer/submitter, so joiner/leaver details are available
-        -- for every producer, not only the ones that end up obligated (obligation_status = 'O').
-        -- If a producer somehow has more than one row, the obligated one wins, same tie-break
-        -- as the existing obl join below.
-        ObligationDetails as (
-          select
-            organisation_id
-          , subsidiary_id
-          , submitter_id
-          , obligation_status
-          , leaver_code
-          , joiner_date
-          , leaver_date
-          from (
-            select *, row_number() over (
-                        partition by organisation_id, coalesce(subsidiary_id, ''), submitter_id
-                        order by case when obligation_status = 'O' then 0 else 1 end
-                      ) as rn
-            from RegistrationsWithObligations
-          ) x
-          where x.rn = 1
         ),
 
         LatestAcceptedPomEntries as (
@@ -275,10 +253,10 @@ BEGIN
               0
             ) as bigint
           )                                              as PackagingMaterialWeightKg
-        , od.obligation_status                           as ObligationStatus
-        , od.leaver_code                                 as LeaverCode
-        , try_convert(date, od.joiner_date, 103)          as JoinerDate
-        , try_convert(date, od.leaver_date, 103)          as LeaverDate
+        , obl.obligation_status                           as ObligationStatus
+        , obl.leaver_code                                 as LeaverCode
+        , try_convert(date, obl.joiner_date, 103)          as JoinerDate
+        , try_convert(date, obl.leaver_date, 103)          as LeaverDate
         from LatestAcceptedPomEntries as pom
         inner join #LatestAcceptedPomsWith2Period as lfp
           on  lfp.submission_period           =  pom.submission_period
@@ -289,11 +267,7 @@ BEGIN
           on  pom.organisation_id             = obl.organisation_id
           and coalesce(pom.subsidiary_id, '') = coalesce(obl.subsidiary_id, '')
           and pom.submitter_id                = obl.submitter_id
-          and obl.obligation_status           = 'O'
-        left join ObligationDetails as od
-          on  pom.organisation_id             = od.organisation_id
-          and coalesce(pom.subsidiary_id, '') = coalesce(od.subsidiary_id, '')
-          and pom.submitter_id                = od.submitter_id
+
         where packaging_material              in (select * from IncludePackagingMaterialsTable)
           and packaging_type                  in (select * from IncludePackagingTypesTable)
         group by
@@ -303,10 +277,10 @@ BEGIN
         , external_producer_id
         , packaging_material
         , obl.num_days_obligated
-        , od.obligation_status
-        , od.leaver_code
-        , od.joiner_date
-        , od.leaver_date
+        , obl.obligation_status
+        , obl.leaver_code
+        , obl.joiner_date
+        , obl.leaver_date
 
     END
 
