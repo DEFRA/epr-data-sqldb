@@ -20,6 +20,7 @@ BEGIN
                     SELECT DISTINCT
                       p.organisation_id
                     , sofs.FileName
+                    , sofs.Regulator_Status
                     , p.submission_period
                     , sofs.submissionperiod AS submission_period_desc
                     , sofs.SubmissionPeriodYear AS Submission_Period_Year
@@ -34,7 +35,7 @@ BEGIN
                     INNER JOIN dbo.t_submitted_pom_org_file_status sofs
                       ON  sofs.filetype         = 'Pom'
                       AND sofs.FileName         = p.FileName
-                      AND sofs.Regulator_Status = 'Accepted'
+                      AND sofs.Regulator_Status IN ('Accepted', 'Pending')
                       AND sofs.SubmissionPeriodYear = @RelativeYear - 1
                 )
                 -- Main selection of data
@@ -49,17 +50,18 @@ BEGIN
                 , p.packaging_material_weight
                 , p.ram_rag_rating
                 , p.packaging_material_subtype
+                , p.organisation_size
                 , cpf.submission_period_desc
                 , cpf.submitter_id
                 , cpf.FileName AS file_name
                 , cpf.CreatedDateTime AS created_date_time
                 , CAST(cpf.Is_resubmitted_POM_identifier AS bit) AS is_resubmission
+                , cpf.Regulator_Status AS regulator_status
                 FROM rpd.POM p
                 INNER JOIN candidate_pom_files cpf
                   ON  TRIM(p.FileName)    = TRIM(cpf.FileName)
                   AND cpf.organisation_id = p.organisation_id
-                WHERE p.organisation_size = 'L'
-                  AND (p.to_country IS NULL OR TRIM(p.to_country) = '')
+                WHERE (p.to_country IS NULL OR TRIM(p.to_country) = '')
                   AND p.organisation_id IS NOT NULL
                   AND LEFT(p.submission_period, 4) = (@RelativeYear - 1)
 
