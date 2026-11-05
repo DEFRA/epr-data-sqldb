@@ -23,6 +23,11 @@ BEGIN
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
         DECLARE @DaysInYear int = datediff(day, datefromparts(convert(int, @RelevantYear), 1, 1), datefromparts(convert(int, @RelevantYear) + 1, 1, 1));
 
+        -- Synapse scopes temp tables to the session, not the procedure, so without this a second call in the
+        -- same session fails with "There is already an object named '#LatestAcceptedPomsWith2Period'".
+        if object_id('tempdb..#LatestAcceptedPomsWith2Period') is not null
+          drop table #LatestAcceptedPomsWith2Period;
+
         with
         P1P4Table as (
           select concat(@PeriodYear, '-P1') as period
@@ -281,6 +286,8 @@ BEGIN
         , obl.leaver_code
         , obl.joiner_date
         , obl.leaver_date
+
+        drop table #LatestAcceptedPomsWith2Period;
 
     END
 
