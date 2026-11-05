@@ -250,7 +250,10 @@ BEGIN
             ) as int
           )                                              as PackagingMaterialWeight
         , obl.num_days_obligated                         as NumberOfDaysObligated
-        -- SUB-410
+        -- SUB-410: the same net weight as PackagingMaterialWeight, in kilograms, without the divide by 1000.
+        -- Rounding to whole tonnes per row throws away up to 500 kg each time. The obligations consumer pro-rates
+        -- weight by days and adds rows together, so it needs the unrounded figure. bigint because kilograms can
+        -- exceed the int limit of 2,147,483,647 (about 2.1 million tonnes).
         , cast(
             round(
               sum(packaging_material_weight) - coalesce(sum(transitional_packaging_units), 0),
