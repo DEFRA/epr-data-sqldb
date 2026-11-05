@@ -189,8 +189,6 @@ BEGIN
           select value as PackagingType from string_split(@IncludePackagingTypes, @Delimiter)
         ),
 
-        -- Joined on the raw organisation/subsidiary/submitter key with no tie-break: the snapshot holds at most one row
-        -- per key per year (no duplicates in any year as of 2 Nov 2026). If that ever changes, this join double-counts weight.
         RegistrationsWithObligations as (
           select
             organisation_id
@@ -205,6 +203,7 @@ BEGIN
           , obligation_status
           , num_days_obligated
           , error_code
+          , coalesce(subsidiary_id, cast(organisation_id as nvarchar(50))) as producer_id
           from dbo.t_producer_obligation_determination
           where submission_period_year = @RelevantYear
         ),
