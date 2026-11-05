@@ -288,6 +288,10 @@ BEGIN
         , obl.leaver_code
         , obl.joiner_date
         , obl.leaver_date
+        order by
+          pom.submitter_id
+        , external_producer_id
+        , packaging_material
 
         drop table #LatestAcceptedPomsWith2Period;
 
