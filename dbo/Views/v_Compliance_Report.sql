@@ -1,11 +1,4 @@
 ﻿CREATE VIEW [dbo].[v_Compliance_Report] AS WITH reg_submissions AS (
-/*
-History:
-Updated 2025-10-29: ST001: 623983: Added this history log. Now utilising t_submitted_pom_org_file_status rather than view for performance increase,
-likewise utilising t_PRN_Recycling_Obligation_stat_Count rather than view as view with changes required was causing this to hang indefinitely.
-*/
----------------------------------------------------
-/*Returns information about registration files*/
     SELECT
 		cfm.organisationid,
 		cd.organisation_id,
@@ -30,6 +23,17 @@ SELECT *,
     ROW_NUMBER() OVER (PARTITION BY organisation_id, Relevant_Year ORDER BY CAST(SubmissionTime AS DATETIME2) DESC) AS rn_desc
 	FROM reg_submissions
 ),
+
+/* Organisations with at least one Accepted/Granted
+   registration in a relevant year */
+valid_previous_year_reg AS (
+    SELECT DISTINCT
+        organisation_id,
+        Relevant_Year
+    FROM reg_submissions
+    WHERE SubmissionTime IS NOT NULL
+      AND Regulator_Status IN ('Granted', 'Accepted')
+),
  
  reg_pom AS (
  /*Returns information about POM files partitioned over org id and submission period so that we return the first and latest dates for an org in that period. 
@@ -52,8 +56,42 @@ SELECT *,
 
 )
 
+/* Identify qualifying packaging submissions by
+   organisation, relevant year and half-year period */
+, valid_pom_submissions AS (
+    SELECT DISTINCT
+        organisation_id,
+        Relevant_Year,
+        CASE
+            WHEN SubmissionPeriod LIKE 'Jan%Jun%'
+                THEN 'H1'
+            WHEN SubmissionPeriod LIKE 'Jul%Dec%'
+                THEN 'H2'
+        END AS POM_Half
+    FROM reg_pom
+    WHERE SubmissionTime IS NOT NULL
+      AND Regulator_Status IN ('Granted', 'Accepted')
+      AND (
+          SubmissionPeriod LIKE 'Jan%Jun%'
+          OR SubmissionPeriod LIKE 'Jul%Dec%'
+      )
+)
+
+/* Summarise qualifying packaging submissions
+   by organisation and relevant year */
+, previous_year_pom_status AS (
+    SELECT
+        organisation_id,
+        Relevant_Year,
+        MAX(CASE WHEN POM_Half = 'H1' THEN 1 ELSE 0 END) AS H1_Submitted,
+        MAX(CASE WHEN POM_Half = 'H2' THEN 1 ELSE 0 END) AS H2_Submitted
+    FROM valid_pom_submissions
+    GROUP BY
+        organisation_id,
+        Relevant_Year
+)
 ,
-	lookup_dates AS(
+lookup_dates AS(
 /*Returns information around deadline dates by differnt types  */
 	SELECT	[Producer_Type]
       ,[Submission_Type]
@@ -97,6 +135,7 @@ left join rpd.Nations n on n.id = cs.NationId
 	/*Select uses max and Group By as a work-around to merge first and latest dates onto one line  */
   SELECT
 Organisation_ID,
+Companies_House_Number,
 Subsidiary_ID,
 Organisation_Name,
 Organisation_Size,
@@ -109,13 +148,19 @@ Relevant_Year,
  max([First_Registration_File_Status]) AS [First_Registration_File_Status],
  max([Latest_Registration_File_Submission_Date]) AS [Latest_Registration_File_Submission_Date],
  max([Latest_Registration_File_Status]) AS [Latest_Registration_File_Status],
-max(Registration_File_Compliant) as Registration_File_Compliant,
+ max(Registration_Submitted) AS Registration_Submitted,
+max(Registration_Submitted_On_Time) AS Registration_Submitted_On_Time,
+/*******New column selected 'Registered_Previous_Year' *****/
+MAX(Registered_Previous_Year) AS Registered_Previous_Year,
+/***********************************************************/
 POM_Submission_Period,
+max(Packaging_Submitted) as Packaging_Submitted,
 max(First_POM_Submission_Date) as First_POM_Submission_Date,
 max(First_POM_Status) as First_POM_Status,
 max(Latest_POM_Submission_Date) as Latest_POM_Submission_Date,
 max(Latest_POM_Status) as Latest_POM_Status,
-max(Pom_File_Compliant) as Pom_File_Compliant,
+max(Packaging_Submitted_On_Time) AS Packaging_Submitted_On_Time,
+MAX(Packaging_Submitted_Previous_Year) AS Packaging_Submitted_Previous_Year,
 Registration_Submission_Deadline_Date,
 max(POM_Submission_Deadline_Date) AS POM_Submission_Deadline_Date,
 max(Joiner_Date) AS Joiner_Date,
@@ -133,6 +178,7 @@ from
 (
 SELECT
     Org.ReferenceNumber AS [Organisation_ID], -- Organisation Reference Number from main Organisation table
+    cd.companies_house_number AS [Companies_House_Number], -- Companies House number from CompanyDetails
     cd.subsidiary_id AS [Subsidiary_ID], -- Subsidiary ID from company details table, will be null if no registration file ever submitted or if org does not have a subsidiary
     Org.Name AS [Organisation_Name], -- Organisation Name from main Organisation table
     cd.organisation_size AS [Organisation_Size],-- Organisation size from company details table, will be null if no registration file ever submitted, can have both L and S in same submission period
@@ -162,8 +208,27 @@ SELECT
     f.Regulator_Status AS [First_Registration_File_Status],
     l.SubmissionTime AS [Latest_Registration_File_Submission_Date],
     l.Regulator_Status AS [Latest_Registration_File_Status],
+    CASE
+        WHEN f.SubmissionTime IS NOT NULL THEN 'Yes'
+            ELSE 'No'
+        END AS [Registration_Submitted],
 	-- Registration Submission Deadline
     ldateR.deadline_date AS [Registration_Submission_Deadline_Date],
+
+    CASE
+        WHEN f.SubmissionTime IS NULL THEN NULL
+        WHEN f.SubmissionTime <= LDateR.deadline_date THEN 'Yes'
+            ELSE 'No'
+    END AS [Registration_Submitted_On_Time],
+
+    /***** Added new column 'Registered_Previous_Year' *****/
+
+    CASE
+        WHEN prevreg.organisation_id IS NOT NULL THEN 'Yes'
+        ELSE 'No'
+    END AS [Registered_Previous_Year],
+    /********************************************************/
+
    CASE 
         WHEN f.SubmissionTime<    LdateR.deadline_Date THEN 'Yes'
         ELSE 'No'
@@ -172,17 +237,39 @@ SELECT
 
     -- POM Submission Details
 	LDateP.Submission_Period AS [POM_Submission_Period], -- Pom submission period from the lookup table based on organisation size and relevant year
+    CASE
+        WHEN fpom.SubmissionTime IS NOT NULL THEN 'Yes'
+            ELSE 'No'
+    END AS [Packaging_Submitted],
     fpom.SubmissionTime AS [First_POM_Submission_Date],
     fpom.Regulator_Status AS [First_POM_Status],
     lpom.SubmissionTime AS [Latest_POM_Submission_Date],
     lpom.Regulator_Status AS [Latest_POM_Status],
 	-- Packaging Submission Deadline
 	LDateP.deadline_date 	AS [POM_Submission_Deadline_Date],  -- Pom deadline from the lookup table based on organisation size and relevant year, will be null if we have never had registration info for this org,
-	CASE 
-        WHEN fpom.SubmissionTime<  LdateP.deadline_date THEN 'Yes'
+	
+     CASE
+        WHEN fpom.SubmissionTime IS NULL THEN NULL
+        WHEN fpom.SubmissionTime <= LDateP.deadline_date THEN 'Yes'
         ELSE 'No'
-    END  
-	 AS [Pom_File_Compliant],  -- if first file is before deadline date then Compliant else No
+    END AS [Packaging_Submitted_On_Time],
+    /* EMR-643: Packaging Submitted Previous Year */
+    CASE
+        WHEN cd.organisation_size = 'L'
+         AND prevpom.H1_Submitted = 1
+         AND prevpom.H2_Submitted = 1
+        THEN 'Yes'
+
+        WHEN cd.organisation_size = 'S'
+         AND (
+             prevpom.H1_Submitted = 1
+             OR prevpom.H2_Submitted = 1
+         )
+        THEN 'Yes'
+
+        ELSE 'No'
+    END AS [Packaging_Submitted_Previous_Year],
+
 
     cd.joiner_date AS [Joiner_Date], -- Joiner date from Company Details table
     cd.leaver_date AS [Leaver_Date], --  Leaver date from Company Details table
@@ -206,12 +293,26 @@ LEFT JOIN first_latest_reg_submissions f
     ON f.organisation_id=Org.referenceNumber AND f.rn_asc = 1 and f.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
 LEFT JOIN first_latest_reg_submissions l
     ON l.organisation_id=Org.referenceNumber AND l.rn_desc = 1 and l.Relevant_Year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT)
+/***** Added join for previous year Registration *****/
+
+LEFT JOIN valid_previous_year_reg prevreg
+    ON prevreg.organisation_id = Org.ReferenceNumber
+    AND prevreg.Relevant_Year = rel.Relevant_Year - 1
+
+/*****************************************************/
+
 LEFT JOIN lookup_dates LDateP 
 	ON LDateP.Producer_Type=cd.organisation_size and LDateP.Submission_Type='Packaging' and LdateP.relevant_year=rel.Relevant_year --592034 moved join earlier to enable filtering by submission period in POM data join
 LEFT JOIN pom_sub fpom
     ON fpom.organisation_id=Org.referenceNumber AND fpom.rn_asc = 1 and fpom.Relevant_Year=rel.Relevant_year and fpom.SubmissionPeriod=LDateP.submission_period--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) 592034 add submission period to join cond
 LEFT JOIN reg_pom lpom
     ON lpom.organisation_id=Org.referenceNumber AND lpom.rn_desc = 1 and lpom.Relevant_Year=rel.Relevant_year and lpom.SubmissionPeriod=LDateP.submission_period--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) 592034 add submission period to join cond
+
+/* EMR-643: Previous year packaging submission status */
+LEFT JOIN previous_year_pom_status prevpom
+    ON prevpom.organisation_id = Org.ReferenceNumber
+    AND prevpom.Relevant_Year = rel.Relevant_Year - 1
+
 LEFT JOIN lookup_dates LDateR 
 	ON LDateR.Producer_Type=cd.organisation_size and LDateR.Submission_Type='Registration' and LdateR.relevant_year=rel.Relevant_year--TRY_CAST('20' + RIGHT(RTRIM(meta.SubmissionPeriod), 2) AS INT) --meta.created>= LDateR.start_date and meta.created<=LDateR.end_date
 LEFT JOIN t_PRN_Recycling_Obligation_stat_Count prn
@@ -224,6 +325,7 @@ LEFT JOIN rpd.Nations n
 	
 	group by
 	Organisation_ID,
+Companies_House_Number,
 Subsidiary_ID,
 Organisation_Name,
 Organisation_Size,
