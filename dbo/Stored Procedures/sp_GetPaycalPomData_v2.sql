@@ -1,5 +1,6 @@
 CREATE PROCEDURE [dbo].[sp_GetPaycalPomData_v2]
-  @RelativeYear INT
+  @RelativeYear INT,
+  @UpdatedSince DATETIME2
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -13,7 +14,7 @@ BEGIN
   SET @start_dt = GETDATE();
 
   BEGIN
--- candidate_pom_files: accepted POM files submitted for a given organisation/submitter/period.
+-- candidate_pom_files: POM files (all regulator statuses) submitted for a given organisation/submitter/period.
                 -- DISTINCT collapses rpd.Pom's per-line-item rows down to one row per file (every selected
                 -- column here is a per-file attribute, not a per-line-item one).
                 WITH candidate_pom_files AS (
@@ -21,6 +22,7 @@ BEGIN
                       p.organisation_id
                     , sofs.FileName
                     , sofs.Regulator_Status
+                    , sofs.Decision_Date
                     , p.submission_period
                     , sofs.submissionperiod AS submission_period_desc
                     , sofs.SubmissionPeriodYear AS Submission_Period_Year
@@ -35,8 +37,13 @@ BEGIN
                     INNER JOIN dbo.t_submitted_pom_org_file_status sofs
                       ON  sofs.filetype         = 'Pom'
                       AND sofs.FileName         = p.FileName
-                      AND sofs.Regulator_Status IN ('Accepted', 'Pending')
                       AND sofs.SubmissionPeriodYear = @RelativeYear - 1
+                      -- When @UpdatedSince is provided, only return submissions created or with a status change since that date.
+                      AND (
+                            @UpdatedSince IS NULL
+                         OR sofs.CreatedDateTime >= @UpdatedSince
+                         OR TRY_CONVERT(DATETIME2, LEFT(sofs.Decision_Date, 23)) >= @UpdatedSince
+                      )
                 )
                 -- Main selection of data
                 SELECT
@@ -57,6 +64,7 @@ BEGIN
                 , cpf.CreatedDateTime AS created_date_time
                 , CAST(cpf.Is_resubmitted_POM_identifier AS bit) AS is_resubmission
                 , cpf.Regulator_Status AS regulator_status
+                , TRY_CONVERT(DATETIME2, LEFT(cpf.Decision_Date, 23)) AS decision_date
                 FROM rpd.POM p
                 INNER JOIN candidate_pom_files cpf
                   ON  TRIM(p.FileName)    = TRIM(cpf.FileName)
