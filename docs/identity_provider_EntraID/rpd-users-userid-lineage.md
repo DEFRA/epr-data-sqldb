@@ -8,6 +8,8 @@ This document maps where the sign-in/user identifier in `rpd.Users.UserId` is co
 flowchart TB
     subgraph Accounts[Accounts and identity]
         IdP["Regulator sign-in token claim"] -->|"application sends GUID as userId"| AccountUser["Accounts Users.UserId"]
+        PackagingFrontend["epr-packaging-frontend"] -->|"delegated calls: user-accounts / persons?userId"| PackagingAccountsAPI["Accounts Facade endpoints"]
+        PackagingAccountsAPI -. "frontend-to-database mapping not verified" .-> AccountUser
         AccountUser -->|"internal Users.Id"| Person["Persons.UserId (integer account key)"]
         Person --> Connection["PersonOrganisationConnections"]
         Connection --> Org["Organisations: nation, external ID"]
@@ -128,6 +130,17 @@ flowchart TB
 - `epr-data-ado\notebook\master_script_automation.json:534-553,589-594` joins `rpd.SubmissionEvents.UserId` to `rpd.Users.UserId`, then to `rpd.Persons` to obtain submitter profile fields. The selected CSV/XLSX output contains email and first/last name, but does **not** select the raw `UserId` field (`:928-960`). Its pipeline is `pipeline/pip_master_script_automation.json:5-29`, with trigger `trigger/trg_master_script_automation.json`.
 - `epr-data-ado\notebook\get_rpd_files.json:477-502` and `get_rpd_files_no_split.json:760-804` use event `UserId` as a grouping key while building file-processing metadata. These are not joins to `rpd.Users.UserId`; the code shown does not establish that the raw ID is written into the submitted file contents.
 - No direct Power BI dataset/report binding or Power BI-specific `UserId` query was found in the inspected data workspace/SQL/API definitions. An architecture model elsewhere leaves the Synapse-to-Power BI connection unresolved (`epr-programme-docs\docs\architecture\report-packaging-data\model.external.c4:11-15`), so the dotted report edge in the diagram is intentionally unconfirmed.
+
+## Packaging frontend review
+
+The added `epr-packaging-frontend` repository was reviewed for paths into the identity objects above:
+
+- `src\FrontendSchemeRegistration.Application\Services\UserAccountService.cs:27-54,79-84` calls the endpoints in `Constants\UserAccountPaths.cs:5-7` (`user-accounts`, `persons?userId=...`, and `persons/all-persons?userId=...`). `AccountServiceApiClient.cs:28-61,64-100` sends these requests with a delegated user access token. This is a confirmed frontend-to-Accounts-Facade call, but the endpoint implementation and its exact SQL object mapping were not available in the reviewed path. If the facade resolves these IDs against Accounts `dbo.Users.UserId`, that object is already shown in the identity flow; the mapping remains unverified.
+- `src\FrontendSchemeRegistration.Application\Services\RegulatorService.cs:22-29` posts `regulators/resubmission-notify/`. This is a notification call, not evidence of regulator caller lookup or use of the regulator pagination procedures.
+- `SubmissionService.cs:46-64` places a `SubmittedBy` string in a submission payload and delegates to `WebApiGatewayClient`; the gateway posts to `/api/v1/submissions/{id}/submit` (`WebApiGatewayClient.cs:225-242`). Registration and decision calls also use `/api/v1/...` gateway routes (`:245-286`). The inspected methods do not send a `UserId` as `@RegulatorUserId` or invoke the summary lookup methods described above. These are HTTP calls; the frontend code does not establish that `SubmittedBy` maps to `rpd.SubmissionEvents.UserId`, an `apps` event column, or any particular SQL table or view. Do not equate it to `rpd.Users.UserId` without tracing the gateway and persistence implementation.
+- `WebApiGatewayClient.cs:712-717` and `AccountServiceApiClient.cs:96-100` acquire delegated user tokens. Checked-in `src\FrontendSchemeRegistration.UI\appsettings.json:2-10` contains `AccountsFacadeAPI` and `AzureADB2C` settings; this is evidence of the frontend's configured B2C setup, not evidence that it is the regulator sign-in application or that regulators use these endpoints.
+
+No additional affected SQL table, view, or stored procedure was confirmed from this frontend review, so no new database object was added to the inventory. The Accounts lookup and gateway persistence implementations, deployed endpoint routing, and runtime access by regulator accounts remain unverified.
 
 ## Important limits
 

@@ -20,6 +20,8 @@ flowchart TB
     Token --> RegFE["Regulator frontend / gateway"]
     RegFE -->|"caller GUID sent as userId"| AccountAPI["Facade / Accounts API"]
     AccountAPI -->|"store or match external sign-in ID"| AccountsUser["Accounts dbo.Users.UserId"]
+    PackagingFrontend["epr-packaging-frontend\n(AzureADB2C configured)"] -->|"delegated calls: user-accounts / persons?userId"| PackagingAccountsAPI["Accounts Facade endpoints"]
+    PackagingAccountsAPI -. "frontend-to-database mapping not verified" .-> AccountsUser
     AccountsUser -->|"internal integer Users.Id"| AccountsPerson["dbo.Persons.UserId"]
     AccountsPerson --> AccountsLink["PersonOrganisationConnections"]
     AccountsLink --> AccountsOrg["Organisations\nExternalId, NationId"]
@@ -175,6 +177,14 @@ These are separate IDs written by submission, audit, or file-processing paths. U
 5. Test each caller summary procedure/API with the old ID and new ID according to the chosen design. Verify the expected nation and summaries, and verify an unknown, placeholder, deleted, or ambiguous identity fails safely rather than selecting unintended data.
 6. Confirm historical names and attribution for audit, submission/decision events and file metadata, plus the master-script exports. Refresh dependent summary/report materialisations only after related source tables and identity mappings are consistent.
 7. Rehearse cutover and rollback. Preserve the old-ID lookup until historic dependencies are validated; record unresolved identities, propagation lag and failed joins as release blockers.
+
+## Packaging frontend review
+
+- `epr-packaging-frontend\src\FrontendSchemeRegistration.Application\Services\UserAccountService.cs:27-54,79-84` calls `user-accounts`, `persons?userId=...`, and `persons/all-persons?userId=...` (`Constants\UserAccountPaths.cs:5-7`). `AccountServiceApiClient.cs:28-61,64-100` sends delegated user tokens. This confirms an HTTP path to the Accounts Facade, but not which SQL tables or views the endpoint implementation uses. If the facade resolves these IDs against Accounts `dbo.Users.UserId`, that existing identity object is already covered in this document; the endpoint-to-table mapping remains unverified.
+- `RegulatorService.cs:22-29` calls `regulators/resubmission-notify/`; the reviewed method sends an email request and does not resolve the caller or invoke the regulator pagination procedures.
+- `SubmissionService.cs:46-64` sends a `SubmittedBy` string through the Web API Gateway, whose `/api/v1/submissions/{id}/submit` endpoint is posted at `WebApiGatewayClient.cs:225-242`. Registration application and decision calls use other `/api/v1/...` routes (`:245-286`). The inspected methods do not send a `UserId` as `@RegulatorUserId` or invoke the caller-to-nation summary lookups listed above. The frontend does not show the gateway's database persistence mapping, so these calls do not establish use of `rpd.SubmissionEvents.UserId`, the `apps` event copies, or related summary tables/views. `SubmittedBy` must not be assumed to equal `rpd.Users.UserId`.
+- `WebApiGatewayClient.cs:712-717` and `AccountServiceApiClient.cs:96-100` acquire delegated user access tokens. The checked-in `src\FrontendSchemeRegistration.UI\appsettings.json:2-10` configures `AzureADB2C` and a producers-account-facade scope; this does not establish that the frontend is used by regulators or that this app is in their sign-in path.
+- No direct use of a database table, view, or stored procedure was confirmed in the reviewed frontend call paths. No new affected SQL object was identified, so the existing object inventories remain unchanged. The Accounts Facade and Web API Gateway backend implementations, deployed routes, and runtime access by regulator accounts are not established by this static review.
 
 ## Evidence and limits
 
