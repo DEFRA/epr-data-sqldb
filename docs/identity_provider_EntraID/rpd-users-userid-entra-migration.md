@@ -16,13 +16,12 @@ The lineage is split into focused diagrams so each flow is easier to read and zo
 
 ```mermaid
 flowchart TB
-    IdP["B2C today / Entra ID proposed"] -. "regulator-specific token-to-account mapping not verified" .-> Token["Sign-in token\nissuer, tenant, subject/object ID"]
-    Token -. "regulator frontend / gateway path not verified in available checkout" .-> RegFE["Regulator frontend / gateway"]
-    RegFE -. "request identity binding not established" .-> AccountAPI["Facade / Accounts API"]
-    AccountAPI -->|"checked-in generic account lookup path; regulator use unverified"| AccountsUser["Accounts dbo.Users.UserId"]
-    PackagingFrontend["epr-packaging-frontend\n(AzureADB2C configured)"] -->|"delegated calls: user-accounts / persons?userId"| PackagingAccountsAPI["Accounts Facade endpoints"]
-    PackagingAccountsAPI -->|"checked-in user-accounts route maps to backend Users.UserId lookup"| AccountsUser
-    PackagingAccountsAPI -. "persons endpoint table mapping not traced" .-> AccountsPerson
+    IdP["B2C today / Entra ID proposed"] -. "Sign-in token/object ID" .-> RegFE["Regulator frontend / gateway"]
+    RegFE --> AccountAPI["Facade / Accounts API"]
+    AccountAPI -->|"B2C object ID"| AccountsUser["Accounts dbo.Users.UserId"]
+    PackagingFrontend["epr-packaging-frontend\n(AzureAD B2C configured)"] --> PackagingAccountsAPI["Accounts Facade endpoints"]
+    PackagingAccountsAPI -->|"Users.UserId lookup"| AccountsUser
+    PackagingAccountsAPI --> AccountsPerson
     AccountsUser -->|"internal integer Users.Id"| AccountsPerson["dbo.Persons.UserId"]
     AccountsPerson --> AccountsLink["PersonOrganisationConnections"]
     AccountsLink --> AccountsOrg["Organisations\nExternalId, NationId"]
@@ -33,23 +32,18 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    Trigger["trg_tumb_rpd_apps_wd"] --> Main["pip_rpd_main_wd"]
-    Main --> HourGate["UTC-hour condition"]
-    HourGate -->|"true branch after preceding activity succeeds"| Wrapper["pip_wrapper"]
-    HourGate -->|"otherwise"| Skip["not run"]
-    Wrapper --> EnrolPipe["pip_enrolment\nfact load enabled"]
-    MasterTrigger["trg_enrolment_master_tbl"] --> MasterPipe["pip_enrolment_master_tbl\nseparate master load"]
-    Ctrl["External ctrl_table.csv\ndeployed table list unverified"] -. "selects tables and load type" .-> EnrolNotebook["notebook/enrolment"]
-    EnrolPipe -->|"configured INCR tables plus Users"| EnrolNotebook
-    MasterPipe -->|"configured FULL tables except Users"| EnrolNotebook
-    AccountsUsers["Accounts dbo.Users"] -->|"configured Users source"| EnrolNotebook
-    AccountsMembership["Accounts persons, connections, organisations,\nenrolments and roles"] -->|"configured related sources"| EnrolNotebook
-    EnrolNotebook -->|"writes source values"| Delta["Delta enrolment tables\nUsers and membership tables"]
+    EnrolPipe["pip_enrolment\nfact load enabled"]
+    MasterPipe["pip_enrolment_master_tbl\nseparate master load"]
+    EnrolNotebook["notebook/enrolment"]
+    MasterPipe -->|"FULL tables (excl Users)"| EnrolNotebook
+    EnrolPipe -->|"INCR tables (incl Users)"| EnrolNotebook
+    AccountsMembership["Accounts: persons, connections, organisations,\nenrolments & roles"] -->EnrolNotebook
+    AccountsUsers["Accounts dbo.Users"] --> EnrolNotebook
+    EnrolNotebook -->|"writes source values"| Delta["Delta enrolment: \nusers and membership tables"]
     Delta --> Spark["Spark catalog rpd tables"]
-    Delta -->|"schema-aligned write"| PoolUser["Dedicated SQL pool rpd.Users"]
-    Delta --> PoolMembership["SQL pool rpd.Persons / connections /\norganisations / enrolments / roles"]
+    Delta -->|"schema-aligned write"| PoolUser["Dedicated SQL pool: \nusers, persons, connections, organisations, enrolments, roles"]
 
-    AccountsUsers -. "configured whole-table replication; live state unverified" .-> Link["Separate Synapse Link"]
+    AccountsUsers -. "whole-table replication" .-> Link["Separate Synapse Link"]
     Link -.-> Bronze["bronze_accountsdb.Users"]
 ```
 
@@ -57,10 +51,9 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AuthPrincipal["Authenticated API principal"] -. "binding to request ID not established" .-> CommonAPIRequest["Common Data API request-supplied UserId"]
-    CommonAPIRequest -->|"@RegulatorUserId"| PageProc["POM / registration summary procedure"]
+    CommonAPIRequest -->|"@RegulatorUserId"| PageProc["POM / registration summary SP"]
     PageProc --> Resolve["Resolve supplied ID"]
-    Resolve -->|"match UserId; require ServiceId = 2"| RpdUser["rpd.Users.UserId"]
+    Resolve -->|"UserId"| RpdUser["rpd.Users.UserId"]
     RpdUser -->|"Users.Id = Persons.UserId"| RpdPerson["rpd.Persons"]
     RpdPerson --> RpdConnection["rpd.PersonOrganisationConnections"]
     RpdConnection --> RpdOrg["rpd.Organisations / enrolments / service roles"]
