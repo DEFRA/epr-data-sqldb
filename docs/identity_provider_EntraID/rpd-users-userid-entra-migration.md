@@ -4,13 +4,9 @@
 
 This document identifies checked-in Synapse and API objects that store, copy, join, filter, or expose the identifier currently represented by `rpd.Users.UserId`, and explains what may need to change when regulator sign-in moves from B2C to Entra ID.
 
-**A provider switch does not, by itself, require a Synapse schema change.** If the regulator application continues to send the identifier Accounts already recognises (for example, through a verified Entra-to-existing-ID mapping), the existing `Users.UserId` flow can remain. If it sends a different Entra ID that is loaded into `rpd.Users.UserId`, the existing equality lookup can match it; verify identity binding and authorization, and address any event/profile joins that need to resolve historic IDs. Do not update event and audit history just because the current sign-in identifier changes.
-
-This is a static review of checked-in repositories and the supplied test-environment extract. It does not confirm deployed SQL, live pipeline/link state, production identity claims, or runtime consumers. “Change” below means a code, schema, or data operation may be required under the stated identity design; it is not a recommendation to edit every listed object.
+**A provider switch does not, by itself, require a Synapse schema change.** If the regulator application continues to send the identifier Accounts already recognises (for example, through a verified Entra-to-existing-ID mapping), the existing `Users.UserId` flow can remain. If it sends a different Entra ID that is loaded into `rpd.Users.UserId`, the existing equality lookup can match. 
 
 ## Data lineage diagrams
-
-The lineage is split into focused diagrams so each flow is easier to read and zoom independently. Read them in order: sign-in and Accounts, Accounts ingestion, the regulator caller lookup, historical submission and audit resolution, then notebook/report outputs. Repeated nodes such as `Accounts dbo.Users.UserId` and `rpd.Users.UserId` are the shared points between diagrams.
 
 ### 1. Sign-in identity and Accounts relationships
 
@@ -112,9 +108,7 @@ flowchart TB
     ReportTables --> BI["Power BI / external reports"]
 ```
 
-**Diagram conventions:** all diagrams flow top-to-bottom. Solid edges represent relationships supported by checked-in definitions or reviewed code paths; dotted edges indicate configured but runtime-unverified or otherwise unconfirmed paths. `UserId` fields in events, submissions, audit logs, and file metadata are separately stored actor/submitter values; their names do not prove that each has the same meaning as `rpd.Users.UserId`.
-
-In diagram 4, `apps.SubmissionEvents` and `rpd.SubmissionEvents` are shown as separate sources because the checked-in summary views use different schema objects; the diagram does not assume a direct copy between them.
+**Diagram conventions:** 
 
 ## Which objects may need to change
 
@@ -122,7 +116,7 @@ In diagram 4, `apps.SubmissionEvents` and `rpd.SubmissionEvents` are shown as se
 
 | Object / field | Current role | Migration impact |
 |---|---|---|
-| Regulator sign-in frontend/gateway and Accounts client | The regulator-specific sign-in-to-Accounts path was not available in the checked-in sources reviewed here; a generic account lookup does not prove which claim is supplied by a regulator. | **Verify before selecting an identity strategy.** Confirm issuer, tenant, audience, claim mapping and trusted binding from authenticated principal to lookup ID. Either translate the verified Entra identity to the existing Accounts ID or make the new identity resolvable. A successful login alone does not establish an Accounts match. |
+| Regulator sign-in frontend/gateway and Accounts client |  | **Verify before selecting an identity strategy.** Confirm issuer, tenant, audience, claim mapping and trusted binding from authenticated principal to lookup ID. Either translate the verified Entra identity to the existing Accounts ID or make the new identity resolvable. A successful login alone does not establish an Accounts match. |
 | Accounts `dbo.Users.UserId`; `epr-data-sqldb\rpd\Tables\Users.sql:1-12`; backend lookup `epr-backend-account-microservice\src\BackendAccountService.Core\Services\UserService.cs:46-64` | Stores the external ID matched by the checked-in `user-accounts` Facade-to-backend route. `Users.Id` is a separate internal integer. | **Data change only if the chosen identity design requires it.** Decide whether this retains the old ID, is replaced, or supports a separate crosswalk/alias. Do not assume changing this one value preserves history. This does not establish deployed routing or mappings for other endpoints. |
 | Accounts `Persons.UserId`, `PersonOrganisationConnections`, `Organisations`, `Enrolments`, `ServiceRoles`; pool key relationship in `epr-data-sqldb\rpd\Tables\Persons.sql:1-14` | Connects internal `Users.Id` to a person, organisation, nation and service role. | Usually **no schema change** for a pure ID translation if these stable internal relationships remain correct. If adding a parallel account, its person and membership/enrolment must be created through the supported Accounts process and reviewed for correct access. Do not create a Synapse-only user row. |
 
