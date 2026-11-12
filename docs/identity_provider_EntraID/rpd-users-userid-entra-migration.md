@@ -68,17 +68,17 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    AppEvents["apps.SubmissionEvents.UserId\n(submitted event actor)"] --> SummaryViews["apps.v_SubmissionsSummaries /\napps.v_RegistrationsSummaries"]
-    RpdUser["rpd.Users.UserId"] -->|"inner user/person joins; unmatched rows are omitted"| SummaryViews
+    AppEvents["apps.SubmissionEvents.UserId"] -. "submitter" .-> SummaryViews["apps.v_SubmissionsSummaries /\napps.v_RegistrationsSummaries"]
+    RpdUser["rpd.Users.UserId"] -->|"inner user/person joins"| SummaryViews
     SummaryViews --> Merge["Aggregate / merge procedures"]
     Merge --> SummaryTables["apps.SubmissionsSummaries / apps.RegistrationsSummaries"]
     Merge -. "on refresh, target rows absent from source are deleted; events remain" .-> SummaryTables
 
-    RpdDecisionEvents["rpd.SubmissionEvents.UserId\n(decision actor; output RegulatorUserId)"] --> OrgRegView["apps.v_OrganisationRegistrationSummaries"]
-    RpdSubmissions["rpd.Submissions.UserId\n(submitter)"] --> OrgRegView
+    RpdDecisionEvents["rpd.SubmissionEvents.UserId"] -. "decision actor / RegulatorUserId" .-> OrgRegView["apps.v_OrganisationRegistrationSummaries"]
+    RpdSubmissions["rpd.Submissions.UserId\n"] -. "submitter" .-> OrgRegView
     OrgRegView -->|"retain actor IDs"| OrgRegTable["apps.OrgRegistrationsSummaries"]
     OrgRegTable -. "RegistrationJourney join only" .-> DetailProc["sp_FetchOrganisationRegistrationSubmissionDetails_resub"]
-    DetailView["dbo.V_FetchOrganisationRegistrationSubmissionDetails_resub\n(independent event and user joins)"] --> DetailTable["dbo.t_FetchOrganisationRegistrationSubmissionDetails_resub"]
+    DetailView["dbo.V_FetchOrganisationRegistrationSubmissionDetails_resub"] --> DetailTable["dbo.t_FetchOrganisationRegistrationSubmissionDetails_resub"]
     DetailTable --> DetailProc
     DetailProc --> DetailAPI["Common Data API detail response"]
 ```
@@ -98,8 +98,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    MasterNotebook["Previously inspected master_script_automation\n(not in this checkout)"] -. "historical query: event ID joined to Users/persons" .-> RpdUser["rpd.Users.UserId"]
-    MasterNotebook -. "historically selected submitter email/name, not raw ID" .-> FlatFiles["Submitted-file CSV/XLSX exports\n(actual output not inspected)"]
+    MasterNotebook["master_script_automation"] -. "historical query: event ID joined to Users/persons" .-> RpdUser["rpd.Users.UserId"]
+    MasterNotebook -. "historical submitter email/name" .-> FlatFiles["Submitted-file CSV/XLSX exports"]
 
     SubmittedEvents["submitted event UserId"] --> GetFiles["notebook/get_rpd_files"]
     AntivirusEvents["antivirus-result event UserId"] --> GetFilesNoSplit["notebook/get_rpd_files_no_split"]
@@ -109,7 +109,7 @@ flowchart TB
     FileUser --> FileViews["File metadata / POM reporting views"]
     RpdUser -->|"resolve metadata ID to profile"| FileViews
     FileViews --> ReportTables["Materialised report tables"]
-    ReportTables -. "possible consumer; connection unconfirmed" .-> BI["Power BI / external reports"]
+    ReportTables --> BI["Power BI / external reports"]
 ```
 
 **Diagram conventions:** all diagrams flow top-to-bottom. Solid edges represent relationships supported by checked-in definitions or reviewed code paths; dotted edges indicate configured but runtime-unverified or otherwise unconfirmed paths. `UserId` fields in events, submissions, audit logs, and file metadata are separately stored actor/submitter values; their names do not prove that each has the same meaning as `rpd.Users.UserId`.
