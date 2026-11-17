@@ -394,4 +394,13 @@
     <Build Include="dbo\Stored Procedures\sp_GetPaycalOrgData_v2.sql" />
     <Build Include="dbo\Stored Procedures\sp_GetPaycalPomData_v2.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Post-deployment script. The committed file is a placeholder; the build pipeline
+         overwrites it at build time with the release script chosen via the
+         'postDeployScript' parameter (a file from Scripts\Post\). -->
+    <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
+    <!-- Release post-deployment scripts (history). Not compiled as schema objects. -->
+    <None Include="Scripts\Post\**\*.sql" />
+    <None Include="Scripts\Post\README.md" />
+  </ItemGroup>
 </Project>
