@@ -214,13 +214,35 @@ SELECT
         END AS [Registration_Submitted],
 	-- Registration Submission Deadline
     ldateR.deadline_date AS [Registration_Submission_Deadline_Date],
+    
+CASE
+    -- No deadline available
+    WHEN LDateR.deadline_date IS NULL
+        THEN NULL
 
-    CASE
-        WHEN f.SubmissionTime IS NULL THEN NULL
-        WHEN f.SubmissionTime <= LDateR.deadline_date THEN 'Yes'
-            ELSE 'No'
-    END AS [Registration_Submitted_On_Time],
+    -- Registration submitted on or before deadline
+    WHEN f.SubmissionTime IS NOT NULL
+         AND CAST(f.SubmissionTime AS DATE)
+             <= CAST(LDateR.deadline_date AS DATE)
+        THEN 'Yes'
 
+    -- Registration submitted after deadline
+    WHEN f.SubmissionTime IS NOT NULL
+         AND CAST(f.SubmissionTime AS DATE)
+             > CAST(LDateR.deadline_date AS DATE)
+        THEN 'No'
+
+    -- Registration not submitted and deadline passed
+    WHEN f.SubmissionTime IS NULL
+         AND CAST(GETDATE() AS DATE)
+             > CAST(LDateR.deadline_date AS DATE)
+        THEN 'No'
+
+    -- Registration not submitted and deadline not passed
+    ELSE NULL
+END AS Registration_Submitted_On_Time,
+
+    
     /***** Added new column 'Registered_Previous_Year' *****/
 
     CASE
@@ -248,11 +270,34 @@ SELECT
 	-- Packaging Submission Deadline
 	LDateP.deadline_date 	AS [POM_Submission_Deadline_Date],  -- Pom deadline from the lookup table based on organisation size and relevant year, will be null if we have never had registration info for this org,
 	
-     CASE
-        WHEN fpom.SubmissionTime IS NULL THEN NULL
-        WHEN fpom.SubmissionTime <= LDateP.deadline_date THEN 'Yes'
-        ELSE 'No'
-    END AS [Packaging_Submitted_On_Time],
+     
+CASE
+    -- No deadline available
+    WHEN LDateP.deadline_date IS NULL
+        THEN NULL
+
+    -- Packaging submitted on or before deadline
+    WHEN fpom.SubmissionTime IS NOT NULL
+         AND CAST(fpom.SubmissionTime AS DATE)
+             <= CAST(LDateP.deadline_date AS DATE)
+        THEN 'Yes'
+
+    -- Packaging submitted after deadline
+    WHEN fpom.SubmissionTime IS NOT NULL
+         AND CAST(fpom.SubmissionTime AS DATE)
+             > CAST(LDateP.deadline_date AS DATE)
+        THEN 'No'
+
+    -- Packaging not submitted and deadline passed
+    WHEN fpom.SubmissionTime IS NULL
+         AND CAST(GETDATE() AS DATE)
+             > CAST(LDateP.deadline_date AS DATE)
+        THEN 'No'
+
+    -- Packaging not submitted and deadline not passed
+    ELSE NULL
+END AS Packaging_Submitted_On_Time,
+
     /* EMR-643: Packaging Submitted Previous Year */
     CASE
         WHEN cd.organisation_size = 'L'
@@ -325,7 +370,7 @@ LEFT JOIN rpd.Nations n
 	
 	group by
 	Organisation_ID,
-Companies_House_Number,
+    Companies_House_Number,
 Subsidiary_ID,
 Organisation_Name,
 Organisation_Size,
