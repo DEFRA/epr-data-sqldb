@@ -1,28 +1,19 @@
 CREATE PROCEDURE [dbo].[sp_GetApprovedSubmissionsMycWithObligationsForOrg]
     @PeriodYear [varchar](4),
     @IncludePackagingTypes [varchar](max),
-    @IncludePackagingMaterials [varchar](max),
-    @OrgId [varchar](max)
+    @IncludePackagingMaterials [varchar](max)
 AS
 BEGIN
 
   DECLARE @start_dt datetime;
   DECLARE @batch_id INT;
-  DECLARE @cnt int;
 
   select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
   set @start_dt = getdate();
 
     BEGIN
         SET NOCOUNT ON;
-
-        declare @DirectRegistrantType nvarchar(50) = 'DirectRegistrant';
-        declare @ComplianceSchemeType nvarchar(50) = 'ComplianceScheme';
-
-        declare @Delimiter char(1) = ',';
-
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
-        DECLARE @DaysInYear int = datediff(day, datefromparts(convert(int, @RelevantYear), 1, 1), datefromparts(convert(int, @RelevantYear) + 1, 1, 1));
 
         -- Synapse scopes temp tables to the session, not the procedure, so without this a second call in the
         -- same session fails with "There is already an object named '#LatestAcceptedPomsWith2Period'".
@@ -108,8 +99,8 @@ BEGIN
             , coalesce(nullif(trim(p.subsidiary_id), ''), cast(p.organisation_id as nvarchar(50))) as producer_id
             , case
                 when nullif(trim(cfm.ComplianceSchemeId), '') is null
-                then @DirectRegistrantType
-                else @ComplianceSchemeType
+                then 'DirectRegistrant'
+                else 'ComplianceScheme'
               end as submitter_type
             from rpd.Pom as p
             inner join rpd.Organisations o
@@ -137,28 +128,28 @@ BEGIN
           from LatestAcceptedPoms
           where submission_period in (select period from P1P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P1P4Table)
+          having count(distinct submission_period) = 2 -- records in P1P4Table
         ),
         OrgsWithBothP2P4 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from P2P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P2P4Table)
+          having count(distinct submission_period) = 2 -- records in P2P4Table
         ),
         OrgsWithBothP3P4 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from P3P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P3P4Table)
+          having count(distinct submission_period) = 2 -- records in P3P4Table
         ),
         OrgsWithBothH1H2 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from H1H2Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from H1H2Table)
+          having count(distinct submission_period) = 2 -- records in H1H2Table
         ),
         OrgsWith2Periods as (
           select producer_id, submitter_id from OrgsWithBothP1P4 where @PeriodYear = '2024'
@@ -183,11 +174,11 @@ BEGIN
 
         with
         IncludePackagingMaterialsTable as (
-          select value as PackagingMaterials from string_split(@IncludePackagingMaterials, @Delimiter)
+          select value as PackagingMaterials from string_split(@IncludePackagingMaterials, ',')
         ),
 
         IncludePackagingTypesTable as (
-          select value as PackagingType from string_split(@IncludePackagingTypes, @Delimiter)
+          select value as PackagingType from string_split(@IncludePackagingTypes, ',')
         ),
 
         RegistrationsWithObligations as (
@@ -293,8 +284,6 @@ BEGIN
           pom.submitter_id
         , external_producer_id
         , packaging_material
-
-        drop table #LatestAcceptedPomsWith2Period;
 
     END
 
