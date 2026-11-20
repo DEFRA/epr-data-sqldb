@@ -1,7 +1,8 @@
 CREATE PROCEDURE [dbo].[sp_GetApprovedSubmissionsMycWithObligationsForOrg]
     @PeriodYear [varchar](4),
     @IncludePackagingTypes [varchar](max),
-    @IncludePackagingMaterials [varchar](max)
+    @IncludePackagingMaterials [varchar](max),
+    @ExternalId [varchar](max)
 AS
 BEGIN
 
@@ -105,9 +106,7 @@ BEGIN
             from rpd.Pom as p
             inner join rpd.Organisations o
               on  o.ReferenceNumber     = p.organisation_id
-              --Excluding soft deleted organisations
               and o.IsDeleted           = 0
-              --Restricting to just accepted pom files
             inner join rpd.cosmos_file_metadata as cfm
               on  cfm.FileName          = p.FileName
             inner join LatestAcceptedPomFiles as latest
@@ -223,6 +222,7 @@ BEGIN
           from #LatestAcceptedPomsWith2Period as lap
           inner join rpd.Organisations prodOrg
             on prodOrg.ReferenceNumber = lap.producer_id
+            and prodOrg.ExternalId = @ExternalId
           inner join rpd.Pom as pom
             on  pom.FileName           = lap.FileName
             and coalesce(nullif(trim(pom.subsidiary_id), ''), '') = coalesce(lap.subsidiary_id, '')
