@@ -285,6 +285,8 @@ BEGIN
         , external_producer_id
         , packaging_material
 
+        drop table #LatestAcceptedPomsWith2Period;
+
     END
 
   INSERT INTO [dbo].[batch_log] ([ID],[ProcessName],[SubProcessName],[Count],[start_time_stamp],[end_time_stamp],[Comments],batch_id)
