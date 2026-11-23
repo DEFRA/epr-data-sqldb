@@ -75,6 +75,12 @@ BEGIN
           where a.rn = 1
         ),
 
+        activeRpdOrgs as (
+            select * from rpd.Organisations
+            where ExternalId = @ExternalId
+                and IsDeleted = 0
+        ),
+
         LatestAcceptedPoms as (
           select * from (
             select distinct
@@ -104,9 +110,8 @@ BEGIN
                 else 'ComplianceScheme'
               end as submitter_type
             from rpd.Pom as p
-            inner join rpd.Organisations o
+            inner join activeRpdOrgs o
               on  o.ReferenceNumber     = p.organisation_id
-              and o.IsDeleted           = 0
             inner join rpd.cosmos_file_metadata as cfm
               on  cfm.FileName          = p.FileName
             inner join LatestAcceptedPomFiles as latest
@@ -199,13 +204,18 @@ BEGIN
           where submission_period_year = @RelevantYear
         ),
 
+        rpdOrgs as (
+            select * from rpd.Organisations
+            where ExternalId = @ExternalId
+        ),
+
         LatestAcceptedPomEntries as (
           select
             lap.organisation_id
           , lap.subsidiary_id
           , lap.submitter_id
           , lap.producer_id
-          , prodOrg.ExternalId as external_producer_id
+          , rpdOrgs.ExternalId as external_producer_id
           , lap.submitter_type
           , lap.submission_period
           , lap.submission_period_year
@@ -220,9 +230,9 @@ BEGIN
             end as packaging_material_weight
           , pom.transitional_packaging_units
           from #LatestAcceptedPomsWith2Period as lap
-          inner join rpd.Organisations prodOrg
-            on prodOrg.ReferenceNumber = lap.producer_id
-            and prodOrg.ExternalId = @ExternalId
+          inner join rpdOrgs
+            on rpdOrgs.ReferenceNumber = lap.producer_id
+            and rpdOrgs.ExternalId = @ExternalId
           inner join rpd.Pom as pom
             on  pom.FileName           = lap.FileName
             and coalesce(nullif(trim(pom.subsidiary_id), ''), '') = coalesce(lap.subsidiary_id, '')
