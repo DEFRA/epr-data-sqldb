@@ -7,21 +7,13 @@ BEGIN
 
   DECLARE @start_dt datetime;
   DECLARE @batch_id INT;
-  DECLARE @cnt int;
 
   select @batch_id  = ISNULL(max(batch_id),0)+1 from [dbo].[batch_log]
   set @start_dt = getdate();
 
     BEGIN
         SET NOCOUNT ON;
-
-        declare @DirectRegistrantType nvarchar(50) = 'DirectRegistrant';
-        declare @ComplianceSchemeType nvarchar(50) = 'ComplianceScheme';
-
-        declare @Delimiter char(1) = ',';
-
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
-        DECLARE @DaysInYear int = datediff(day, datefromparts(convert(int, @RelevantYear), 1, 1), datefromparts(convert(int, @RelevantYear) + 1, 1, 1));
 
         -- Synapse scopes temp tables to the session, not the procedure, so without this a second call in the
         -- same session fails with "There is already an object named '#LatestAcceptedPomsWith2Period'".
@@ -34,33 +26,33 @@ BEGIN
         with
         P1P4Table as (
           select concat(@PeriodYear, '-P1') as period
-          union
+          union all
           select concat(@PeriodYear, '-P4') as period
         ),
 
         P2P4Table as (
           select concat(@PeriodYear, '-P2') as period
-          union
+          union all
           select concat(@PeriodYear, '-P4') as period
         ),
         P3P4Table as (
           select concat(@PeriodYear, '-P3') as period
-          union
+          union all
           select concat(@PeriodYear, '-P4') as period
         ),
 
         -- For 2025+
         H1H2Table as (
           select concat(@PeriodYear, '-H1') as period
-          union
+          union all
           select concat(@PeriodYear, '-H2') as period
         ),
 
         AllPeriodsTable as (
           select * from P1P4Table where @PeriodYear = '2024'
-          union
+          union all
           select * from P2P4Table where @PeriodYear = '2024'
-          union
+          union all
           select * from P3P4Table where @PeriodYear = '2024'
           union
           select * from H1H2Table where @PeriodYear > '2024'
@@ -110,13 +102,12 @@ BEGIN
             , coalesce(nullif(trim(p.subsidiary_id), ''), cast(p.organisation_id as nvarchar(50))) as producer_id
             , case
                 when nullif(trim(cfm.ComplianceSchemeId), '') is null
-                then @DirectRegistrantType
-                else @ComplianceSchemeType
+                    then 'DirectRegistrant'
+                else 'ComplianceScheme'
               end as submitter_type
             from rpd.Pom as p
             inner join rpd.Organisations o
               on  o.ReferenceNumber     = p.organisation_id
-              --Excluding soft deleted organisations
               and o.IsDeleted           = 0
               --Restricting to just accepted pom files
             inner join rpd.cosmos_file_metadata as cfm
@@ -185,28 +176,23 @@ BEGIN
 
         with
         IncludePackagingMaterialsTable as (
-          select value as PackagingMaterials from string_split(@IncludePackagingMaterials, @Delimiter)
+          select value as PackagingMaterials from string_split(@IncludePackagingMaterials, ',')
         ),
 
         IncludePackagingTypesTable as (
-          select value as PackagingType from string_split(@IncludePackagingTypes, @Delimiter)
+          select value as PackagingType from string_split(@IncludePackagingTypes, ',')
         ),
 
         RegistrationsWithObligations as (
           select
             organisation_id
           , subsidiary_id
-          , organisation_name
-          , trading_name
           , status_code  as leaver_code
           , leaver_date
           , joiner_date
           , submitter_id
-          , submission_period_year
           , obligation_status
           , num_days_obligated
-          , error_code
-          , coalesce(subsidiary_id, cast(organisation_id as nvarchar(50))) as producer_id
           from dbo.t_producer_obligation_determination
           where submission_period_year = @RelevantYear
         ),
@@ -238,6 +224,8 @@ BEGIN
             on  pom.FileName           = lap.FileName
             and coalesce(nullif(trim(pom.subsidiary_id), ''), '') = coalesce(lap.subsidiary_id, '')
             and pom.organisation_id    = lap.organisation_id
+          where pom.packaging_material in (select PackagingMaterials from IncludePackagingMaterialsTable)
+            and pom.packaging_type in (select PackagingType from IncludePackagingTypesTable)
         )
 
         select
@@ -282,8 +270,6 @@ BEGIN
           and coalesce(pom.subsidiary_id, '') = coalesce(obl.subsidiary_id, '')
           and pom.submitter_id                = obl.submitter_id
 
-        where packaging_material              in (select * from IncludePackagingMaterialsTable)
-          and packaging_type                  in (select * from IncludePackagingTypesTable)
         group by
           pom.submission_period_year
         , pom.submitter_id
@@ -310,7 +296,7 @@ BEGIN
               ObligationStatus,
               LeaverCode,
               JoinerDate,
-              LeaverDat
+              LeaverDate
           )
           SELECT
               SubmissionPeriod,
@@ -324,7 +310,7 @@ BEGIN
               ObligationStatus,
               LeaverCode,
               JoinerDate,
-              LeaverDat
+              LeaverDate
           FROM #ApprovedSubmissionsMycWithObligations;
 
         select
