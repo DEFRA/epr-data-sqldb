@@ -210,7 +210,6 @@
     <Build Include="dbo\Tables\t_registration_latest.sql" />
     <Build Include="dbo\Tables\t_Producer_CS_Lookup.sql" />
     <Build Include="dbo\Tables\t_producer_obligation_determination.sql" />
-    <Build Include="dbo\Tables\approved_submissions_myc_with_obligations.sql" />
     <Build Include="dbo\Tables\t_myc_error_report.sql" />
     <Build Include="dbo\Views\v_myc_error_report.sql" />
     <Build Include="dbo\Tables\t_POM_Submissions_POM_Comparison.sql" />
@@ -344,6 +343,7 @@
     <Build Include="apps\Stored Procedures\sp_GetActualSubmissionPeriod.sql" />
     <Build Include="apps\Stored Procedures\sp_MergeRegistrationsSummaries.sql" />
     <Build Include="apps\Stored Procedures\sp_MergeSubmissionsSummaries.sql" />
+    <Build Include="apps\Tables\approved_submissions_myc_with_obligations.sql" />
     <Build Include="apps\Tables\OrgRegistrationsSummaries.sql" />
     <Build Include="apps\Tables\RegistrationsSummaries.sql" />
     <Build Include="apps\Tables\SubmissionEvents.sql" />
