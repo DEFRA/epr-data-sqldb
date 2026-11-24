@@ -28,6 +28,9 @@ BEGIN
         if object_id('tempdb..#LatestAcceptedPomsWith2Period') is not null
           drop table #LatestAcceptedPomsWith2Period;
 
+        if object_id('tempdb..#ApprovedSubmissionsMycWithObligations') is not null
+          drop table #ApprovedSubmissionsMycWithObligations;
+
         with
         P1P4Table as (
           select concat(@PeriodYear, '-P1') as period
@@ -264,6 +267,10 @@ BEGIN
         , obl.leaver_code                                 as LeaverCode
         , try_convert(date, obl.joiner_date, 103)          as JoinerDate
         , try_convert(date, obl.leaver_date, 103)          as LeaverDate
+        , pom.submitter_id                                as SortSubmitterId
+        , external_producer_id                            as SortOrganisationId
+        , packaging_material                              as SortPackagingMaterial
+        into #ApprovedSubmissionsMycWithObligations
         from LatestAcceptedPomEntries as pom
         inner join #LatestAcceptedPomsWith2Period as lfp
           on  lfp.submission_period           =  pom.submission_period
@@ -287,13 +294,60 @@ BEGIN
         , obl.obligation_status
         , obl.leaver_code
         , obl.joiner_date
-        , obl.leaver_date
+        , obl.leaver_date;
+
+        TRUNCATE TABLE apps.approved_submissions_myc_with_obligations;
+        INSERT INTO apps.approved_submissions_myc_with_obligations
+          (
+              SubmissionPeriod,
+              SubmitterType,
+              SubmitterId,
+              OrganisationId,
+              PackagingMaterial,
+              PackagingMaterialWeight,
+              NumberOfDaysObligated,
+              PackagingMaterialWeightKg,
+              ObligationStatus,
+              LeaverCode,
+              JoinerDate,
+              LeaverDat
+          )
+          SELECT
+              SubmissionPeriod,
+              SubmitterType,
+              SubmitterId,
+              OrganisationId,
+              PackagingMaterial,
+              PackagingMaterialWeight,
+              NumberOfDaysObligated,
+              PackagingMaterialWeightKg,
+              ObligationStatus,
+              LeaverCode,
+              JoinerDate,
+              LeaverDat
+          FROM #ApprovedSubmissionsMycWithObligations;
+
+        select
+            SubmissionPeriod,
+            SubmitterType,
+            SubmitterId,
+            OrganisationId,
+            PackagingMaterial,
+            PackagingMaterialWeight,
+            NumberOfDaysObligated,
+            PackagingMaterialWeightKg,
+            ObligationStatus,
+            LeaverCode,
+            JoinerDate,
+            LeaverDate
+        from #ApprovedSubmissionsMycWithObligations
         order by
-          pom.submitter_id
-        , external_producer_id
-        , packaging_material
+            SortSubmitterId,
+            SortOrganisationId,
+            SortPackagingMaterial;
 
         drop table #LatestAcceptedPomsWith2Period;
+        drop table #ApprovedSubmissionsMycWithObligations;
 
     END
 
