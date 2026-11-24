@@ -130,28 +130,28 @@ BEGIN
           from LatestAcceptedPoms
           where submission_period in (select period from P1P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P1P4Table)
+          having count(distinct submission_period) = 2 --count in P1P4Table
         ),
         OrgsWithBothP2P4 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from P2P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P2P4Table)
+          having count(distinct submission_period) = 2 -- count in P2P4Table
         ),
         OrgsWithBothP3P4 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from P3P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from P3P4Table)
+          having count(distinct submission_period) = 2 -- count in P3P4Table
         ),
         OrgsWithBothH1H2 as (
           select producer_id, submitter_id
           from LatestAcceptedPoms
           where submission_period in (select period from H1H2Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = (select count(*) from H1H2Table)
+          having count(distinct submission_period) = 2 -- count in H1H2Table
         ),
         OrgsWith2Periods as (
           select producer_id, submitter_id from OrgsWithBothP1P4 where @PeriodYear = '2024'
