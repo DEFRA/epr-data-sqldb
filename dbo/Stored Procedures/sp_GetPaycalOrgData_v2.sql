@@ -1,5 +1,6 @@
 CREATE PROCEDURE [dbo].[sp_GetPaycalOrgData_v2]
-  @RelativeYear INT
+  @RelativeYear INT,
+  @UpdatedSince DATETIME2
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -23,6 +24,7 @@ BEGIN
                         COALESCE(sofs.ComplianceSchemeId, o.ExternalId) AS submitter_id,
                         sofs.CreatedDateTime,
                         sofs.Regulator_Status,
+                        sofs.Decision_Date,
                         sofs.IsResubmission_identifier
                     FROM rpd.CompanyDetails cd
                     INNER JOIN rpd.Organisations o
@@ -30,8 +32,13 @@ BEGIN
                     INNER JOIN dbo.t_submitted_pom_org_file_status sofs
                         ON sofs.FileName = cd.FileName
                        AND sofs.FileType = 'CompanyDetails'
-                       AND sofs.Regulator_Status IN ('Granted', 'Accepted', 'Cancelled', 'Pending')
                     WHERE o.IsDeleted = 0
+                      -- When @UpdatedSince is provided, only return submissions created or with a status change since that date.
+                      AND (
+                            @UpdatedSince IS NULL
+                         OR sofs.CreatedDateTime >= @UpdatedSince
+                         OR TRY_CONVERT(DATETIME2, LEFT(sofs.Decision_Date, 23)) >= @UpdatedSince
+                      )
                 )
                 -- Main selection of data: join back to CompanyDetails, filter to large orgs.
                 SELECT
@@ -47,6 +54,7 @@ BEGIN
                     cd.organisation_size,
                     crf.submission_period_year,
                     crf.Regulator_Status AS regulator_status,
+                    TRY_CONVERT(DATETIME2, LEFT(crf.Decision_Date, 23)) AS decision_date,
                     crf.CreatedDateTime AS created_date_time,
                     crf.IsResubmission_identifier AS is_resubmission
                 FROM candidate_registration_files crf

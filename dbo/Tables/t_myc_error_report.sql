@@ -10,7 +10,8 @@ CREATE TABLE [dbo].[t_myc_error_report]
 	[leaver_code] [nvarchar](4000) NULL,
 	[error_code] [nvarchar](4000) NULL,
 	[PomAcceptedDate] [date] NULL,
-	[RegAcceptedDate] [date] NULL
+	[RegAcceptedDate] [date] NULL,
+	[is_household] [BIT] NULL
 )
 WITH
 (
