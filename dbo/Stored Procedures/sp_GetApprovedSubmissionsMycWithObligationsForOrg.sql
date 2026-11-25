@@ -1,7 +1,5 @@
 CREATE PROCEDURE [dbo].[sp_GetApprovedSubmissionsMycWithObligationsForOrg]
     @PeriodYear [varchar](4),
-    @IncludePackagingTypes [varchar](max),
-    @IncludePackagingMaterials [varchar](max),
     @ExternalId [varchar](max)
 AS
 BEGIN
@@ -176,16 +174,7 @@ BEGIN
         select * into #LatestAcceptedPomsWith2Period from LatestAcceptedPomsWith2Period;
 
 
-        with
-        IncludePackagingMaterialsTable as (
-          select value as PackagingMaterials from string_split(@IncludePackagingMaterials, ',')
-        ),
-
-        IncludePackagingTypesTable as (
-          select value as PackagingType from string_split(@IncludePackagingTypes, ',')
-        ),
-
-        RegistrationsWithObligations as (
+        with RegistrationsWithObligations as (
           select
             organisation_id
           , subsidiary_id
@@ -277,8 +266,8 @@ BEGIN
           and coalesce(pom.subsidiary_id, '') = coalesce(obl.subsidiary_id, '')
           and pom.submitter_id                = obl.submitter_id
 
-        where packaging_material              in (select * from IncludePackagingMaterialsTable)
-          and packaging_type                  in (select * from IncludePackagingTypesTable)
+        where packaging_material              in ('AL','FC','GL','PC','PL','ST','WD')
+          and packaging_type                  in ('HH','NH','PB','HDC','NDC')
         group by
           pom.submission_period_year
         , pom.submitter_id
