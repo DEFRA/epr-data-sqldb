@@ -19,40 +19,6 @@ BEGIN
         declare @RequestedExternalId uniqueidentifier = try_convert(uniqueidentifier, @ExternalId);
 
         with
-        P1P4Table as (
-          select concat(@PeriodYear, '-P1') as period
-          union
-          select concat(@PeriodYear, '-P4') as period
-        ),
-
-        P2P4Table as (
-          select concat(@PeriodYear, '-P2') as period
-          union
-          select concat(@PeriodYear, '-P4') as period
-        ),
-        P3P4Table as (
-          select concat(@PeriodYear, '-P3') as period
-          union
-          select concat(@PeriodYear, '-P4') as period
-        ),
-
-        -- For 2025+
-        H1H2Table as (
-          select concat(@PeriodYear, '-H1') as period
-          union
-          select concat(@PeriodYear, '-H2') as period
-        ),
-
-        AllPeriodsTable as (
-          select * from P1P4Table where @PeriodYear = '2024'
-          union
-          select * from P2P4Table where @PeriodYear = '2024'
-          union
-          select * from P3P4Table where @PeriodYear = '2024'
-          union
-          select * from H1H2Table where @PeriodYear > '2024'
-        ),
-
         LatestAcceptedPomFiles as (
           select
             FileId
@@ -87,7 +53,7 @@ BEGIN
           , producer_id
           , submitter_type
           from (
-            select distinct
+            select
               cfm.FileName
             --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
             , row_number() over(
@@ -116,7 +82,23 @@ BEGIN
               on  cfm.FileName          = p.FileName
             inner join LatestAcceptedPomFiles as latest
               on  latest.FileId         = cfm.FileId
-            where p.submission_period in (select period from AllPeriodsTable)
+            where (
+              (
+                @PeriodYear = '2024'
+                and p.submission_period in (
+                  concat(@PeriodYear, '-P1'),
+                  concat(@PeriodYear, '-P2'),
+                  concat(@PeriodYear, '-P3'),
+                  concat(@PeriodYear, '-P4')
+                )
+              )
+              or (
+                @PeriodYear > '2024'
+                and p.submission_period in (
+                  concat(@PeriodYear, '-H1'),
+                  concat(@PeriodYear, '-H2')
+                )
+              ))
               and p.organisation_size = 'L'
               and exists (
                 select 1
@@ -131,41 +113,55 @@ BEGIN
           where a.rn = 1
         ),
 
-        PeriodFlags as (
+        LatestAcceptedPomsWithPeriodFlags as (
           select
-                producer_id
-              , submitter_id
-              , max(case when submission_period = concat(@PeriodYear, '-P1') then 1 else 0 end) as HasP1
-              , max(case when submission_period = concat(@PeriodYear, '-P2') then 1 else 0 end) as HasP2
-              , max(case when submission_period = concat(@PeriodYear, '-P3') then 1 else 0 end) as HasP3
-              , max(case when submission_period = concat(@PeriodYear, '-P4') then 1 else 0 end) as HasP4
-              , max(case when submission_period = concat(@PeriodYear, '-H1') then 1 else 0 end) as HasH1
-              , max(case when submission_period = concat(@PeriodYear, '-H2') then 1 else 0 end) as HasH2
-          from LatestAcceptedPoms
-          group by producer_id, submitter_id
-        ),
-
-        OrgsWith2Periods as (
-          select producer_id, submitter_id
-          from PeriodFlags
-          where (
-              @PeriodYear = '2024'
-              and HasP4 = 1
-              and 1 in (HasP1, HasP2, HasP3)
-            )
-            or (
-              @PeriodYear > '2024'
-              and HasH1 = 1
-              and HasH2 = 1
-            )
+            lap.*
+          , max(case
+              when (
+                @PeriodYear = '2024'
+                and lap.submission_period in (
+                  concat(@PeriodYear, '-P1'),
+                  concat(@PeriodYear, '-P2'),
+                  concat(@PeriodYear, '-P3')
+                )
+              )
+                or (
+                  @PeriodYear > '2024'
+                  and lap.submission_period = concat(@PeriodYear, '-H1')
+                )
+              then 1
+              else 0
+            end) over (partition by lap.producer_id, lap.submitter_id) as HasFirstPeriod
+          , max(case
+              when (
+                @PeriodYear = '2024'
+                and lap.submission_period = concat(@PeriodYear, '-P4')
+              )
+                or (
+                  @PeriodYear > '2024'
+                  and lap.submission_period = concat(@PeriodYear, '-H2')
+                )
+              then 1
+              else 0
+            end) over (partition by lap.producer_id, lap.submitter_id) as HasSecondPeriod
+          from LatestAcceptedPoms as lap
         ),
 
         LatestAcceptedPomsWith2Period as (
-          select pom.*
-          from LatestAcceptedPoms pom
-          inner join OrgsWith2Periods as periods
-            on  pom.producer_id  = periods.producer_id
-            and pom.submitter_id = periods.submitter_id
+          select
+            FileName
+          , organisation_id
+          , subsidiary_id
+          , submission_period
+          , submission_period_year
+          , submitter_id
+          , producer_id
+          , submitter_type
+          from LatestAcceptedPomsWithPeriodFlags
+          where producer_id is not null
+            and submitter_id is not null
+            and HasFirstPeriod = 1
+            and HasSecondPeriod = 1
         ),
         RegistrationsWithObligations as (
           select
