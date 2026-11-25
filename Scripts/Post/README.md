@@ -24,5 +24,9 @@ Builds run with `postDeployScript` left blank contain no post-deployment script.
   will not run there unless a later script also covers it.
 - **Environment-specific logic** must be guarded inside the script, e.g.
   `IF DB_NAME() IN ('preepdsp1401', 'preepdsp2401') BEGIN ... END`.
+- **Scripts run on the Synapse dedicated SQL pool**, so only T-SQL supported there
+  works - e.g. no `@@ROWCOUNT`. Test unfamiliar statements against TST first.
+- **Report progress with `PRINT`.** SqlPackage doesn't show result sets or
+  "(n rows affected)" in the deployment log, but it does show `PRINT` messages.
 - `GO` batch separators are allowed.
 - Do not edit `Scripts/Script.PostDeployment.sql`; it is a placeholder.
