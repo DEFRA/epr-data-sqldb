@@ -78,7 +78,8 @@ BEGIN
         ),
 
         activeRpdOrgs as (
-            select * from rpd.Organisations
+            select ExternalId, ReferenceNumber
+            from rpd.Organisations
             where IsDeleted = 0
         ),
 
