@@ -18,11 +18,6 @@ BEGIN
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
         declare @RequestedExternalId uniqueidentifier = try_convert(uniqueidentifier, @ExternalId);
 
-        -- Synapse scopes temp tables to the session, not the procedure, so without this a second call in the
-        -- same session fails with "There is already an object named '#LatestAcceptedPomsWith2Period'".
-        if object_id('tempdb..#LatestAcceptedPomsWith2Period') is not null
-          drop table #LatestAcceptedPomsWith2Period;
-
         with
         P1P4Table as (
           select concat(@PeriodYear, '-P1') as period
@@ -120,51 +115,46 @@ BEGIN
               on  latest.FileId         = cfm.FileId
             where p.submission_period in (select period from AllPeriodsTable)
               and p.organisation_size = 'L'
+              and exists (
+                select 1
+                from rpd.Organisations as producerOrg
+                where producerOrg.ReferenceNumber = coalesce(
+                  nullif(trim(p.subsidiary_id), ''),
+                  cast(p.organisation_id as nvarchar(50))
+                )
+                  and try_convert(uniqueidentifier, producerOrg.ExternalId) = @RequestedExternalId
+              )
           ) a
           where a.rn = 1
         ),
 
-        -- The following is to enure we only consider orgs
-        -- which have submitted two periods
-        -- Note, P2 and P3 only apply to 2024
-        -- TODO it doesn't prevent anyone submitting P1, P2 and P3 (or P0 - seen in test data)
-        -- It also doesn't ensure that the two periods were submitted with the same org structure
-        OrgsWithBothP1P4 as (
-          select producer_id, submitter_id
+        PeriodFlags as (
+          select
+            producer_id
+          , submitter_id
+          , max(case when submission_period = concat(@PeriodYear, '-P1') then 1 else 0 end) as HasP1
+          , max(case when submission_period = concat(@PeriodYear, '-P2') then 1 else 0 end) as HasP2
+          , max(case when submission_period = concat(@PeriodYear, '-P3') then 1 else 0 end) as HasP3
+          , max(case when submission_period = concat(@PeriodYear, '-P4') then 1 else 0 end) as HasP4
+          , max(case when submission_period = concat(@PeriodYear, '-H1') then 1 else 0 end) as HasH1
+          , max(case when submission_period = concat(@PeriodYear, '-H2') then 1 else 0 end) as HasH2
           from LatestAcceptedPoms
-          where submission_period in (select period from P1P4Table)
           group by producer_id, submitter_id
-          having count(distinct submission_period) = 2 -- records in P1P4Table
         ),
-        OrgsWithBothP2P4 as (
-          select producer_id, submitter_id
-          from LatestAcceptedPoms
-          where submission_period in (select period from P2P4Table)
-          group by producer_id, submitter_id
-          having count(distinct submission_period) = 2 -- records in P2P4Table
-        ),
-        OrgsWithBothP3P4 as (
-          select producer_id, submitter_id
-          from LatestAcceptedPoms
-          where submission_period in (select period from P3P4Table)
-          group by producer_id, submitter_id
-          having count(distinct submission_period) = 2 -- records in P3P4Table
-        ),
-        OrgsWithBothH1H2 as (
-          select producer_id, submitter_id
-          from LatestAcceptedPoms
-          where submission_period in (select period from H1H2Table)
-          group by producer_id, submitter_id
-          having count(distinct submission_period) = 2 -- records in H1H2Table
-        ),
+
         OrgsWith2Periods as (
-          select producer_id, submitter_id from OrgsWithBothP1P4 where @PeriodYear = '2024'
-          union
-          select producer_id, submitter_id from OrgsWithBothP2P4 where @PeriodYear = '2024'
-          union
-          select producer_id, submitter_id from OrgsWithBothP3P4 where @PeriodYear = '2024'
-          union
-          select producer_id, submitter_id from OrgsWithBothH1H2 where @PeriodYear > '2024'
+          select producer_id, submitter_id
+          from PeriodFlags
+          where (
+              @PeriodYear = '2024'
+              and HasP4 = 1
+              and (HasP1 = 1 or HasP2 = 1 or HasP3 = 1)
+            )
+            or (
+              @PeriodYear > '2024'
+              and HasH1 = 1
+              and HasH2 = 1
+            )
         ),
 
         LatestAcceptedPomsWith2Period as (
@@ -173,12 +163,8 @@ BEGIN
           inner join OrgsWith2Periods as periods
             on  pom.producer_id  = periods.producer_id
             and pom.submitter_id = periods.submitter_id
-        )
-
-        select * into #LatestAcceptedPomsWith2Period from LatestAcceptedPomsWith2Period;
-
-
-        with RegistrationsWithObligations as (
+        ),
+        RegistrationsWithObligations as (
           select
             organisation_id
           , subsidiary_id
@@ -217,7 +203,7 @@ BEGIN
               else pom.packaging_material_weight
             end as packaging_material_weight
           , pom.transitional_packaging_units
-          from #LatestAcceptedPomsWith2Period as lap
+          from LatestAcceptedPomsWith2Period as lap
           inner join rpd.Organisations prodOrg
             on prodOrg.ReferenceNumber = lap.producer_id
             and try_convert(uniqueidentifier, prodOrg.ExternalId) = @RequestedExternalId
@@ -255,11 +241,6 @@ BEGIN
         , try_convert(date, obl.joiner_date, 103)          as JoinerDate
         , try_convert(date, obl.leaver_date, 103)          as LeaverDate
         from LatestAcceptedPomEntries as pom
-        inner join #LatestAcceptedPomsWith2Period as lfp
-          on  lfp.submission_period           =  pom.submission_period
-          and lfp.organisation_id             =  pom.organisation_id
-          and coalesce(lfp.subsidiary_id, '') =  coalesce(pom.subsidiary_id, '')
-          and lfp.submitter_id                =  pom.submitter_id
         left join RegistrationsWithObligations as obl
           on  pom.organisation_id             = obl.organisation_id
           and coalesce(pom.subsidiary_id, '') = coalesce(obl.subsidiary_id, '')
@@ -282,8 +263,6 @@ BEGIN
           pom.submitter_id
         , external_producer_id
         , packaging_material
-
-        drop table #LatestAcceptedPomsWith2Period;
 
     END
 
