@@ -12,7 +12,11 @@ BEGIN
 
     BEGIN
         SET NOCOUNT ON;
+        declare @DirectRegistrantType nvarchar(50) = 'DirectRegistrant';
+        declare @ComplianceSchemeType nvarchar(50) = 'ComplianceScheme';
+
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
+        declare @RequestedExternalId uniqueidentifier = try_convert(uniqueidentifier, @ExternalId);
 
         -- Synapse scopes temp tables to the session, not the procedure, so without this a second call in the
         -- same session fails with "There is already an object named '#LatestAcceptedPomsWith2Period'".
@@ -75,8 +79,7 @@ BEGIN
 
         activeRpdOrgs as (
             select * from rpd.Organisations
-            where ExternalId = @ExternalId
-                and IsDeleted = 0
+            where IsDeleted = 0
         ),
 
         LatestAcceptedPoms as (
@@ -104,8 +107,8 @@ BEGIN
             , coalesce(nullif(trim(p.subsidiary_id), ''), cast(p.organisation_id as nvarchar(50))) as producer_id
             , case
                 when nullif(trim(cfm.ComplianceSchemeId), '') is null
-                then 'DirectRegistrant'
-                else 'ComplianceScheme'
+                then @DirectRegistrantType
+                else @ComplianceSchemeType
               end as submitter_type
             from rpd.Pom as p
             inner join activeRpdOrgs o
@@ -193,18 +196,13 @@ BEGIN
           where submission_period_year = @RelevantYear
         ),
 
-        rpdOrgs as (
-            select * from rpd.Organisations
-            where ExternalId = @ExternalId
-        ),
-
         LatestAcceptedPomEntries as (
           select
             lap.organisation_id
           , lap.subsidiary_id
           , lap.submitter_id
           , lap.producer_id
-          , rpdOrgs.ExternalId as external_producer_id
+          , prodOrg.ExternalId as external_producer_id
           , lap.submitter_type
           , lap.submission_period
           , lap.submission_period_year
@@ -219,9 +217,9 @@ BEGIN
             end as packaging_material_weight
           , pom.transitional_packaging_units
           from #LatestAcceptedPomsWith2Period as lap
-          inner join rpdOrgs
-            on rpdOrgs.ReferenceNumber = lap.producer_id
-            and rpdOrgs.ExternalId = @ExternalId
+          inner join rpd.Organisations prodOrg
+            on prodOrg.ReferenceNumber = lap.producer_id
+            and try_convert(uniqueidentifier, prodOrg.ExternalId) = @RequestedExternalId
           inner join rpd.Pom as pom
             on  pom.FileName           = lap.FileName
             and coalesce(nullif(trim(pom.subsidiary_id), ''), '') = coalesce(lap.subsidiary_id, '')
