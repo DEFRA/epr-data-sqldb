@@ -54,13 +54,12 @@ BEGIN
             FROM (
                 SELECT
                     cfm.FileName,
-                    --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
                     ROW_NUMBER() OVER (
                         PARTITION BY
                             p.organisation_id,
-                            NULLIF(TRIM(p.subsidiary_id), ''), -- important - sometimes is blank, sometimes is null
+                            NULLIF(TRIM(p.subsidiary_id), ''), -- sometimes is blank, sometimes is null
                             p.submission_period,
-                            COALESCE(cfm.ComplianceSchemeId, o.ExternalId) -- keep alternative submissions... (especially submitter_type)
+                            COALESCE(cfm.ComplianceSchemeId, o.ExternalId)
                         ORDER BY latest.created DESC
                     ) AS rn,
                     p.organisation_id,
@@ -191,14 +190,11 @@ BEGIN
                 lap.submission_period_year,
                 pom.packaging_type,
                 pom.packaging_material,
-                -- TODO could use v_POM which already does this
                 CASE
                     WHEN pom.submission_period = '2023-P2'
                         THEN CAST(pom.packaging_material_weight * 1.50 AS decimal(16, 2))
                     WHEN pom.submission_period = '2024-P2'
                         THEN CAST(pom.packaging_material_weight * 2 AS decimal(16, 2))
-                    -- v_POM uses 3 - but 182/61 preserves value previously used
-                    -- (for 182 days in P1, 61 in P3).
                     WHEN pom.submission_period = '2024-P3'
                         THEN CAST(pom.packaging_material_weight * 182.0 / 61 AS decimal(16, 2))
                     ELSE pom.packaging_material_weight
