@@ -12,8 +12,6 @@ BEGIN
 
     BEGIN
         SET NOCOUNT ON;
-        declare @DirectRegistrantType nvarchar(50) = 'DirectRegistrant';
-        declare @ComplianceSchemeType nvarchar(50) = 'ComplianceScheme';
 
         declare @RelevantYear varchar(4) = cast(cast(@PeriodYear as int) + 1 as varchar);
         declare @RequestedExternalId uniqueidentifier = try_convert(uniqueidentifier, @ExternalId);
@@ -72,8 +70,8 @@ BEGIN
             , coalesce(nullif(trim(p.subsidiary_id), ''), cast(p.organisation_id as nvarchar(50))) as producer_id
             , case
                 when nullif(trim(cfm.ComplianceSchemeId), '') is null
-                then @DirectRegistrantType
-                else @ComplianceSchemeType
+                    then 'DirectRegistrant'
+                    else 'ComplianceScheme'
               end as submitter_type
             from rpd.Pom as p
             inner join activeRpdOrgs o
@@ -82,24 +80,24 @@ BEGIN
               on  cfm.FileName          = p.FileName
             inner join LatestAcceptedPomFiles as latest
               on  latest.FileId         = cfm.FileId
-            where (
-              (
-                @PeriodYear = '2024'
-                and p.submission_period in (
-                  concat(@PeriodYear, '-P1'),
-                  concat(@PeriodYear, '-P2'),
-                  concat(@PeriodYear, '-P3'),
-                  concat(@PeriodYear, '-P4')
-                )
-              )
-              or (
-                @PeriodYear > '2024'
-                and p.submission_period in (
-                  concat(@PeriodYear, '-H1'),
-                  concat(@PeriodYear, '-H2')
-                )
-              ))
-              and p.organisation_size = 'L'
+            where p.organisation_size = 'L'
+                and (
+                  (
+                    @PeriodYear = '2024'
+                    and p.submission_period in (
+                      concat(@PeriodYear, '-P1'),
+                      concat(@PeriodYear, '-P2'),
+                      concat(@PeriodYear, '-P3'),
+                      concat(@PeriodYear, '-P4')
+                    )
+                  )
+                  or (
+                    @PeriodYear > '2024'
+                    and p.submission_period in (
+                      concat(@PeriodYear, '-H1'),
+                      concat(@PeriodYear, '-H2')
+                    )
+                  ))
               and exists (
                 select 1
                 from rpd.Organisations as producerOrg
