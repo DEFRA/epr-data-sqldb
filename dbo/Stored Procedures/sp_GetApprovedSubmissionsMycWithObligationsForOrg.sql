@@ -56,12 +56,10 @@ BEGIN
         LatestAcceptedPomFiles as (
           select
             FileId
-          , SubmissionId
           , Created
           from (
             select
               FileId
-            , SubmissionId
             , Created
             , row_number() over (partition by SubmissionId order by Created desc) as rn
             from rpd.SubmissionEvents
@@ -79,13 +77,18 @@ BEGIN
         ),
 
         LatestAcceptedPoms as (
-          select * from (
+          select
+            FileName
+          , organisation_id
+          , subsidiary_id
+          , submission_period
+          , submission_period_year
+          , submitter_id
+          , producer_id
+          , submitter_type
+          from (
             select distinct
-              latest.SubmissionId
-            , latest.FileId
-            , cfm.FileName
-            , cfm.submissionperiod as submission_period_desc
-            , latest.created
+              cfm.FileName
             --ST005 Updated logic to determine the latest accepted file submission with data for a given organisation
             , row_number() over(
                 partition by
@@ -130,14 +133,14 @@ BEGIN
 
         PeriodFlags as (
           select
-            producer_id
-          , submitter_id
-          , max(case when submission_period = concat(@PeriodYear, '-P1') then 1 else 0 end) as HasP1
-          , max(case when submission_period = concat(@PeriodYear, '-P2') then 1 else 0 end) as HasP2
-          , max(case when submission_period = concat(@PeriodYear, '-P3') then 1 else 0 end) as HasP3
-          , max(case when submission_period = concat(@PeriodYear, '-P4') then 1 else 0 end) as HasP4
-          , max(case when submission_period = concat(@PeriodYear, '-H1') then 1 else 0 end) as HasH1
-          , max(case when submission_period = concat(@PeriodYear, '-H2') then 1 else 0 end) as HasH2
+                producer_id
+              , submitter_id
+              , max(case when submission_period = concat(@PeriodYear, '-P1') then 1 else 0 end) as HasP1
+              , max(case when submission_period = concat(@PeriodYear, '-P2') then 1 else 0 end) as HasP2
+              , max(case when submission_period = concat(@PeriodYear, '-P3') then 1 else 0 end) as HasP3
+              , max(case when submission_period = concat(@PeriodYear, '-P4') then 1 else 0 end) as HasP4
+              , max(case when submission_period = concat(@PeriodYear, '-H1') then 1 else 0 end) as HasH1
+              , max(case when submission_period = concat(@PeriodYear, '-H2') then 1 else 0 end) as HasH2
           from LatestAcceptedPoms
           group by producer_id, submitter_id
         ),
@@ -148,7 +151,7 @@ BEGIN
           where (
               @PeriodYear = '2024'
               and HasP4 = 1
-              and (HasP1 = 1 or HasP2 = 1 or HasP3 = 1)
+              and 1 in (HasP1, HasP2, HasP3)
             )
             or (
               @PeriodYear > '2024'
@@ -168,17 +171,12 @@ BEGIN
           select
             organisation_id
           , subsidiary_id
-          , organisation_name
-          , trading_name
           , status_code  as leaver_code
           , leaver_date
           , joiner_date
           , submitter_id
-          , submission_period_year
           , obligation_status
           , num_days_obligated
-          , error_code
-          , coalesce(subsidiary_id, cast(organisation_id as nvarchar(50))) as producer_id
           from dbo.t_producer_obligation_determination
           where submission_period_year = @RelevantYear
         ),
@@ -188,10 +186,8 @@ BEGIN
             lap.organisation_id
           , lap.subsidiary_id
           , lap.submitter_id
-          , lap.producer_id
           , prodOrg.ExternalId as external_producer_id
           , lap.submitter_type
-          , lap.submission_period
           , lap.submission_period_year
           , pom.packaging_type
           , pom.packaging_material
@@ -226,10 +222,6 @@ BEGIN
             ) as int
           )                                              as PackagingMaterialWeight
         , obl.num_days_obligated                         as NumberOfDaysObligated
-        -- SUB-410: the same net weight as PackagingMaterialWeight, in kilograms, without the divide by 1000.
-        -- Rounding to whole tonnes per row throws away up to 500 kg each time. The obligations consumer pro-rates
-        -- weight by days and adds rows together, so it needs the unrounded figure. bigint because kilograms can
-        -- exceed the int limit of 2,147,483,647 (about 2.1 million tonnes).
         , cast(
             round(
               sum(packaging_material_weight) - coalesce(sum(transitional_packaging_units), 0),
